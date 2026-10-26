@@ -81,6 +81,14 @@ public final class InGameController {
         try sendToList(connectedPlayers(excluding: player), cs)
     }
 
+    /// Change a stance, telling everyone (changeStance), as the AI does
+    /// directly rather than by a command.
+    public func changeStance(_ player: Player, _ stance: Player.Stance, _ other: Player,
+                             _ symmetric: Bool) throws {
+        let cs = ChangeSet()
+        if try player.csChangeStance(stance, other, symmetric, cs) { try sendToAll(cs) }
+    }
+
     // MARK: The turn cycle
 
     /// End the current player's turn, and go on to the next player that

@@ -18,6 +18,7 @@
 //
 
 import Foundation
+import FreeColCore
 
 /// Something a player asks the server to do: one of Java's messages
 /// from a client, as a typed value.
@@ -226,5 +227,38 @@ public struct CommandElement: Equatable, Sendable {
         for (k, v) in attributes.sorted(by: { $0.key < $1.key }) { s += " \(k)=\"\(escape(v))\"" }
         if children.isEmpty { return s + "/>" }
         return s + ">" + children.map(\.xml).joined() + "</" + tag + ">"
+    }
+}
+
+extension CommandElement {
+    /// An object as a command carries it: written as XML to the server,
+    /// and parsed back into an element tree.
+    public init(serializing object: FreeColObject) {
+        let parser = ElementParser(Data(object.serialize(.toServer()).utf8))
+        self = parser.root ?? CommandElement(tag: object.xmlTagName)
+    }
+}
+
+/// Parses XML text into a tree of command elements.
+private final class ElementParser: NSObject, XMLParserDelegate {
+    private var stack: [CommandElement] = []
+    private(set) var root: CommandElement?
+
+    init(_ data: Data) {
+        super.init()
+        let parser = XMLParser(data: data)
+        parser.delegate = self
+        parser.parse()
+    }
+
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?,
+                qualifiedName qName: String?, attributes attributeDict: [String: String] = [:]) {
+        stack.append(CommandElement(tag: elementName, attributes: attributeDict))
+    }
+
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?,
+                qualifiedName qName: String?) {
+        let done = stack.removeLast()
+        if stack.isEmpty { root = done } else { stack[stack.count - 1].children.append(done) }
     }
 }

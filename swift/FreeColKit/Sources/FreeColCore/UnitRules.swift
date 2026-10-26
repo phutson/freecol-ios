@@ -199,11 +199,12 @@ extension Unit {
     }
 
     /// Change owner, with the units on board, dropping teaching, orders
-    /// and home settlement.  Java tells the AI first; that comes in
-    /// Phase 4.
+    /// and home settlement.  The AI is told first, so it can find the
+    /// old owner's AI player.
     public func changeOwner(_ newOwner: Player) {
         let oldOwner = owner
         if oldOwner === newOwner { return }
+        game?.notifyOwnerChanged(self, oldOwner, newOwner)
         owner = newOwner
         for u in unitList { u.changeOwner(newOwner) }
         if let teacher, !canBeStudent(teacher) {

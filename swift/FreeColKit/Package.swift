@@ -26,6 +26,8 @@ import PackageDescription
 //
 //                    FreeColEngine
 //                         |
+//                     FreeColAI
+//                         |
 //   FreeColResources  FreeColServer
 //          |         /
 //   FreeColIO, FreeColI18n
@@ -46,7 +48,7 @@ let package = Package(
             name: "FreeColKit",
             targets: ["FreeColUtil", "FreeColXML", "FreeColCore",
                       "FreeColI18n", "FreeColIO", "FreeColResources",
-                      "FreeColServer", "FreeColEngine"]),
+                      "FreeColServer", "FreeColAI", "FreeColEngine"]),
     ],
     targets: [
         // Java compatibility (random numbers, rounding) and collection
@@ -82,12 +84,19 @@ let package = Package(
         .target(name: "FreeColServer",
                 dependencies: ["FreeColUtil", "FreeColXML", "FreeColCore", "FreeColIO"]),
 
+        // The computer players (server/ai): an AI player for each, with
+        // missions for its units, acting through the same commands as a
+        // human player.
+        .target(name: "FreeColAI",
+                dependencies: ["FreeColUtil", "FreeColXML", "FreeColCore", "FreeColServer"]),
+
         // The engine as the user interface sees it: an actor that owns
         // the game, takes the human player's commands, plays the other
         // players' turns, saves and loads, and hands out snapshots of
         // what the human can see.
         .target(name: "FreeColEngine",
-                dependencies: ["FreeColUtil", "FreeColXML", "FreeColCore", "FreeColIO", "FreeColServer"]),
+                dependencies: ["FreeColUtil", "FreeColXML", "FreeColCore", "FreeColIO", "FreeColServer",
+                               "FreeColAI"]),
 
         // Helpers shared by the tests: reading and writing the
         // canonical JSON dumps made by the Java tools, and the Java
@@ -113,6 +122,9 @@ let package = Package(
         .testTarget(name: "FreeColServerTests",
                     dependencies: ["FreeColUtil", "FreeColXML", "FreeColCore",
                                    "FreeColIO", "FreeColServer", "FreeColTestSupport"]),
+        .testTarget(name: "FreeColAITests",
+                    dependencies: ["FreeColUtil", "FreeColCore", "FreeColIO", "FreeColServer",
+                                   "FreeColAI", "FreeColTestSupport"]),
         .testTarget(name: "FreeColEngineTests",
                     dependencies: ["FreeColUtil", "FreeColCore", "FreeColIO", "FreeColServer",
                                    "FreeColEngine", "FreeColTestSupport"]),

@@ -426,3 +426,27 @@ extension Unit {
         return search(start, threatDecider, CostDeciders.avoidIllegal(), reverseRange, carrier)
     }
 }
+
+extension Unit {
+    /// Whether this unit would need a carrier to get somewhere: not a
+    /// ship, not there already, and with no path except by carrier
+    /// (shouldTakeTransportTo).
+    public func shouldTakeTransportTo(_ loc: (any Location)?) -> Bool {
+        guard let loc, !isNaval, !isAtLocation(loc), let here = location else { return false }
+        guard let path = findPath(here, loc, carrier) else { return true }
+        return path.usesCarrier
+    }
+}
+
+/// The location above, a colony for a work location, a tile for a
+/// settlement or unit on it (Location.upLoc).
+public func upLoc(_ loc: (any Location)?) -> (any Location)? {
+    loc?.up()
+}
+
+extension Game {
+    /// The age of the game: early, middle or late (getAge).
+    public var age: Int {
+        specification?.age(turn) ?? 0
+    }
+}

@@ -130,8 +130,8 @@ open class Game: FreeColGameObject {
         }
     }
 
-    /// Register a new object.  It is an error if a live object is
-    /// already registered with this identifier.
+    /// Register a new object, and tell the listener.  It is an error if
+    /// a live object is already registered with this identifier.
     public func addFreeColGameObject(_ id: String, _ fcgo: FreeColGameObject) {
         precondition(!id.isEmpty, "Null/empty identifier: \(self)")
         if let old = getFreeColGameObject(id) {
@@ -139,6 +139,17 @@ open class Game: FreeColGameObject {
                 + " with \(fcgo.id ?? "null") : \(type(of: fcgo))")
         }
         setFreeColGameObject(id, fcgo)
+        freeColGameObjectListener?.setFreeColGameObject(id, fcgo)
+    }
+
+    /// What is told of objects being added, removed or changing owner
+    /// (the server's AI).
+    public weak var freeColGameObjectListener: FreeColGameObjectListener?
+
+    /// Tell the listener an object is about to change owner
+    /// (notifyOwnerChanged).
+    public func notifyOwnerChanged(_ source: FreeColGameObject, _ oldOwner: Player?, _ newOwner: Player?) {
+        freeColGameObjectListener?.ownerChanged(source, oldOwner, newOwner)
     }
 
     /// Unregister an identifier.
@@ -148,6 +159,7 @@ open class Game: FreeColGameObject {
     ///   - reason: Why, for debugging (Java logs it).
     public func removeFreeColGameObject(_ id: String, reason: String) {
         precondition(!id.isEmpty, "Null/empty identifier: \(self)")
+        freeColGameObjectListener?.removeFreeColGameObject(id)
         objects[id] = nil
         removeCount += 1
         if removeCount > Game.removeCleanThreshold {
@@ -453,4 +465,12 @@ open class Game: FreeColGameObject {
             try super.readChild(xr)
         }
     }
+}
+
+/// What is told of the game's objects (FreeColGameObjectListener): the
+/// server's AI keeps an object for each unit, colony and AI player.
+public protocol FreeColGameObjectListener: AnyObject {
+    func setFreeColGameObject(_ id: String, _ fcgo: FreeColGameObject)
+    func removeFreeColGameObject(_ id: String)
+    func ownerChanged(_ source: FreeColGameObject, _ oldOwner: Player?, _ newOwner: Player?)
 }

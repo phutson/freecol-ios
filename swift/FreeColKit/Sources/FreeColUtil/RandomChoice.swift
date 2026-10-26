@@ -32,8 +32,9 @@ public struct RandomChoice<T> {
     }
 
     /// The sum of the weights.
+    /// The total weight, in Java's int arithmetic, which wraps.
     public static func totalProbability(_ choices: [RandomChoice<T>]) -> Int {
-        choices.reduce(0) { $0 + $1.probability }
+        Int(choices.reduce(Int32(0)) { $0 &+ Int32(truncatingIfNeeded: $1.probability) })
     }
 
     /// Choose by weight, as Java does: none for no choices or no weight,
@@ -44,10 +45,10 @@ public struct RandomChoice<T> {
         let n = totalProbability(choices)
         guard !choices.isEmpty, n > 0 else { return nil }
         if choices.count == 1 { return choices[0].object }
-        let probability = Int(RandomUtils.randomInt(logMe, random, Int32(n)))
-        var total = 0
+        let probability = RandomUtils.randomInt(logMe, random, Int32(n))
+        var total = Int32(0)
         for choice in choices {
-            total += choice.probability
+            total = total &+ Int32(truncatingIfNeeded: choice.probability)
             if probability < total { return choice.object }
         }
         return choices[0].object

@@ -2084,6 +2084,107 @@ with Phase 4.
 - **Recommendation:** a quick version of B to unblock testing the UI, then
   A. The comparison tests from Phase 3 cover the AI too.
 
+**Chosen: A, a faithful port**, as the user interface was not yet
+waiting on it, and a faithful AI makes the Phase 3 milestone (turns with
+computer players matching Java's) possible. About 25,200 lines:
+`server/ai` (24,300) and `server/ai/military` (900).
+
+### 4a. How the AI is checked
+
+Java's AI runs each turn, and each answer to the server, in a new thread
+(`AIPlayer.invoke`), and the AI players answer each other's messages, so
+a plain recording would not repeat. Otherwise the AI is deterministic: it
+has no clocks and no unseeded generators, and each AI player has its own
+generator seeded from the server's when it is made. An AI's requests go
+straight to the server's handler and the reply comes straight back, on
+the calling thread.
+
+So the AI oracle runs Java's AI with a patched copy of `AIPlayer` (kept
+with the oracle tools, ahead of the game's classes on the class path)
+whose `invoke` does the work at once instead of in a thread. Then ending
+the human player's turn plays every computer player's turn in order, and
+the game after each round is recorded with its generators. The patch can
+also keep some players' AI idle (they only end their turns), so the
+natives' AI can be checked before the Europeans' exists.
+
+### 4b. Steps
+
+1. **The natives' AI:** `AIMain`, `AIObject`, `AIPlayer`, `AIUnit`,
+   `MissionAIPlayer`, `Mission`, `NativeAIPlayer` and its missions
+   (wandering, hostile wandering, idling and defending at settlements,
+   bringing gifts, demanding goods, seeking and destroying). Checked by
+   rounds of new games with only the natives' AI working.
+2. **The Europeans' colonies:** `AIColony`, `ColonyPlan`,
+   `WorkLocationPlan`, `TileImprovementPlan`, the wishes and `AIGoods`.
+3. **The Europeans' units:** the missions (building colonies,
+   pioneering, scouting, transport and `Cargo`, wishes, working in
+   colonies, treasure, missionaries, privateers, escorts), the military
+   coordinator, and `EuropeanAIPlayer`. Checked by rounds with every AI
+   working.
+4. **The REF's AI**, the AI's objects in saved games, and the engine
+   using the AI for its computer players. Then the Phase 3 milestone:
+   many rounds of computer players matching Java's.
+
+**Step 1 status: done.** The natives' AI plays as Java's does.
+- **`FreeColAI`**, a new module between `FreeColServer` and
+  `FreeColEngine`, holds the AI:
+  - `AIMain`: an AI object for each computer player, unit (and, later,
+    colony). It is told of new objects, of objects removed and of
+    owners changing, through a listener `Game` now has, as Java's is.
+    It hands each computer player what it is sent, message by message.
+  - `AIPlayer`: each player's own generator (seeded from the server's
+    when the player was made, the seed kept from step 7), its requests
+    as `PlayerCommand`s, and its answers: founding fathers, the
+    monarch, first contacts, demands, loot, native trade, names and
+    nation summaries. A request is reported as answered even if refused,
+    as Java's server API does.
+  - `MissionAIPlayer`, `AIUnit` (with `ValuedAIObject` and
+    `TransportableAIObject`), and `Mission`, with travelling to a
+    target, random moves, and clearing blockages.
+  - `NativeAIPlayer`: stances from tension, trading goods between
+    settlements, arming braves, defending settlements against threats,
+    gifts and demands, missions for the rest, and the natives' side of
+    trades.
+  - The missions: wandering, hostile wandering, idling at and defending
+    settlements, bringing gifts, demanding goods, seeking and destroying.
+  - `EuropeanAIPlayer`'s answers (tax raises, with trade suppressed in
+    Europe on refusal; mercenaries; founding fathers; native demands).
+    Its turns, and its diplomacy, come in steps 2 and 3.
+- **Java behaviour kept:**
+  - seeking and destroying works out a unit target's score and drops
+    it, so only settlements are ever chosen;
+  - a demand's tribute goes into the settlement directly, not through
+    the server;
+  - errors in a unit's mission are caught and the next unit goes on.
+- **Checked:** `AIOracle.java` records rounds of Java's AI with the
+  patched `AIPlayer`, the Europeans' AI idle: a new game (ten rounds),
+  the command game with its colonies (twenty rounds, the AI made
+  afresh as Java's server does for a saved game without one), and a
+  war game from it (`NativeAIGameMaker.java`, twenty rounds): the
+  natives at war with the Dutch (hating them) and the Spanish (angry),
+  so they demand goods and attack, happy with the French and the
+  English, so they bring gifts, nine Dutch soldiers beside their
+  settlements, and gifts and demands likelier. `NativeAITests` plays
+  all three and compares, after every round, the game, the server's
+  generator and each AI player's own generator (which drifts unseen
+  before it shows in the game), and that the AI met nothing unported.
+  The recordings are in Tests/JavaOracle/ai.zip (275 KB).
+- **Java behaviour kept (found by the war game):** Java's `int`
+  arithmetic wraps. A path the search has not settled has 2^30 turns,
+  and seek-and-destroy's `1020 - turns * 100` wraps back to 1020, so a
+  colony out of reach scores as if one turn away. The AI's scores and
+  `RandomChoice`'s totals wrap as Java's do, and casts from `double`
+  saturate.
+- **Planted bugs:** 5 of 16 caught: wander directions, no arming, no
+  stances, first-turn defenders, and the attack tension limit. The 11
+  missed change weights and tie-breaks that the three games reach only
+  with a single choice, or not at all: the gift and demand weights, the
+  home and threat bonuses, the raid and defender values, the fortify
+  count, a lone defender, a collected gift, aborting invalid missions,
+  and spending moves after wandering. These games show the natives'
+  AI matching Java where it is reached, not that every rule is right.
+  The European games of steps 2 and 3 will reach more of it.
+
 ## Phase 5: iOS user interface (replaces ~72k lines of Swing)
 
 Prototyping can start after Phase 1. A read-only map viewer for a loaded

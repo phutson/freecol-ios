@@ -512,3 +512,24 @@ extension TradeRoute {
         verifyUniqueNameKey.map { StringTemplate.template($0).addName("%name%", name) }
     }
 }
+
+extension Player.Stance {
+    /// The stance a tension calls for (getStanceFromTension): cease fire
+    /// from war, then peace, as tension falls; war from peace as it
+    /// rises.
+    public func stance(fromTension tension: Tension) -> Player.Stance {
+        let value = tension.value
+        switch self {
+        case .war:
+            if value <= Tension.Level.content.limit - Tension.delta { return .ceaseFire }
+        case .ceaseFire:
+            if value <= Tension.Level.happy.limit - Tension.delta { return .peace }
+            if value > Tension.Level.hateful.limit + Tension.delta { return .war }
+        case .alliance, .peace:
+            if value > Tension.Level.hateful.limit + Tension.delta { return .war }
+        case .uncontacted:
+            break
+        }
+        return self
+    }
+}

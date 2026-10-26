@@ -213,6 +213,7 @@ open class Settlement: GoodsLocation, Ownable {
         precondition(newOwner.isIndian == (oldOwner?.isIndian ?? newOwner.isIndian),
                      "Can not transfer settlements between native and European players: "
                      + "\(oldOwner?.description ?? "null") -> \(newOwner)")
+        game?.notifyOwnerChanged(self, oldOwner, newOwner)
         owner = newOwner
         game?.checkOwners(self, oldOwner: oldOwner)
         for t in ownedTiles { t.changeOwnership(newOwner, self) }
