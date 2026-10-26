@@ -1953,6 +1953,81 @@ with Phase 4.
 
 7. **Map and game generation** (`server/generator`): checked by
    generating the same seed as Java.
+
+   **Status: done.** A new game is made as Java's server makes it, and
+   from the same seed and options it comes out the same, object for
+   object, with the generator left in the same state.
+   - **Ported:**
+     - `LandMap`, with its four land generators (classic, continent,
+       archipelago, islands);
+     - `TerrainGenerator`: tile types by latitude, temperature,
+       humidity and forest; mountain ranges and hills; rivers (`River`,
+       `RiverSection`), with deltas and great rivers; lakes; land
+       regions split to at most 75 tiles; fish and resources; the
+       style of water tiles;
+     - the predefined regions (`ServerRegion.requireFixedRegions`):
+       polar, the nine land regions by thirds of the land, and the
+       oceans, filled from the edges; `Region` gained the server's
+       size and bounds;
+     - `SimpleMapGenerator`: native settlement sites, capitals and
+       settlements by nation area or region, their land grown, the
+       skills taught (and moved so every new world goods type has its
+       expert), their goods and braves; lost city rumours;
+     - `EuropeanStartingPositionsGenerator`: the starting units, and
+       start tiles in each of the three ways (classic, random,
+       historical), from map areas or the map's edges;
+     - the new game (`ServerGame.newGame`, `startNewGame`, `buildGame`):
+       the nation options, the cities of Cibola, the unknown enemy, a
+       human player logging in, a player for every other nation, the
+       map, the price options (`Specification.generateDynamicOptions`),
+       each European's immigration target, gold, recruits and prices
+       (`randomizeGame`), and the natives at peace with each other.
+   - **Java behaviour kept:**
+     - `RandomIntCache` draws with `Random.ints`, which since JDK 17
+       takes the low bits of `nextInt()`, not `nextInt(bound)`;
+     - `java.awt.Rectangle`'s int arithmetic, which regions rely on
+       with widths of Integer.MAX_VALUE;
+     - only the polar regions are offered as parents of the new
+       regions (`requireFixedRegions` returns the polar and ocean
+       regions, not the nine land regions), and those nine are added to
+       the map twice;
+     - a skill producing nothing (the scout) is weighted by the null
+       key of Java's map, which nothing adds to;
+     - each AI player Java makes takes a seed from the server's
+       generator; here the seed is drawn and kept (`Player.aiSeed`) for
+       when the AI is ported. The unknown enemy's is drawn last, as
+       Java's AI finds it.
+   - **Fixed on the way:** `Settlement.ownedTiles` copied the tiles as
+     `new HashMap<>(map)` does, but Java's `getOwnedTiles` is
+     `new HashSet<>(set)`, whose table is never smaller than 16, so
+     settlements with fewer than 12 tiles listed them in another order.
+   - **Not yet:** importing a map, the debug mode's extra units, and
+     the AI itself.
+   - **Checked:** `MapGenOracle.java` records five maps (one of each
+     land generator, hot and cold, two other sizes), made as
+     `SimpleMapGenerator.generateMap` begins, each with its land map,
+     saved game and generator state. With `--games` it records three
+     whole new games for a human Dutch player, made by Java's server
+     (`FreeColServer.buildGame`, called directly with a seeded
+     generator). The oracle makes Java's static cities of Cibola fresh
+     for each, as the server's own unseeded game would otherwise fill
+     them first. `MapGenTests.terrain` and `MapGenTests.newGames`
+     compare them. The recordings are in Tests/JavaOracle/mapgen.zip
+     (452 KB). `-Dmapgen.log=true` prints Java's generation log, and
+     `-Dmapgen.save=prefix` saves the games, for finding where Swift
+     differs.
+   - **Planted bugs:** 23 were planted and 20 are caught, across the
+     land generators, terrain types, land regions, hills, rivers and
+     deltas, fish, water styles, lakes, ocean filling, rumours,
+     settlement growth and skills, starting tiles, native alarm, the AI
+     seeds, settlement goods, and the owned tiles' order. The three
+     still passing:
+     - splitting the land in thirds with > for >=, which only matters
+       when a row's total lands exactly on a third;
+     - starting passengers left awake, whose saved state comes out the
+       same in these games;
+     - starting prices not flushed, which only clears the price change
+       record, and nothing reads it before the first turn.
 8. **The engine actor** and snapshots for the UI.
 
 ## Phase 4: AI (~25k lines)

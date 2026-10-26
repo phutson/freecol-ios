@@ -100,6 +100,12 @@ public final class NameCache {
         settlementNames[key] = names
     }
 
+    /// A native nation's capital's name (getCapitalName).
+    public func capitalName(_ player: Player, _ random: JavaRandom?) -> String? {
+        requireSettlementNames(player, random)
+        return capitalNames[ObjectIdentifier(player)]
+    }
+
     /// A name for a new settlement, not yet used, or a numbered
     /// fallback (getSettlementName).
     public func settlementName(_ player: Player, _ random: JavaRandom?) -> String {

@@ -119,3 +119,11 @@ public enum RandomUtils {
         }
     }
 }
+
+extension RandomUtils.RandomIntCache {
+    /// The next cached value reduced to 0..<tighterRange, as an Int,
+    /// for the map generators' arithmetic.
+    public func nextInt(_ tighterRange: Int) -> Int {
+        Int(nextInt(Int32(tighterRange)))
+    }
+}

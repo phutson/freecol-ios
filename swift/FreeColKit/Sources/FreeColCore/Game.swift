@@ -61,6 +61,11 @@ open class Game: FreeColGameObject {
     public private(set) var players: [Player] = []
     /// The player standing for enemies a player has not met.
     public private(set) var unknownEnemy: Player?
+
+    /// Set the player standing for unknown enemies.
+    public func setUnknownEnemy(_ player: Player?) {
+        unknownEnemy = player
+    }
     public var map: Map?
     public weak var currentPlayer: Player?
     public var turn = Turn(1)

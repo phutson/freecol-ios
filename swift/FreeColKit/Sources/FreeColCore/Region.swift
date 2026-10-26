@@ -107,6 +107,59 @@ public final class Region: FreeColGameObject, GameObjectReadable {
         super.init(game: game)
     }
 
+    /// A new region, as the map generator makes them
+    /// (ServerRegion(Game, String, RegionType, Region)): a predefined
+    /// one has a key, and a parent takes it as a child.
+    public init(game: Game, key: String?, type: RegionType, parent: Region?) {
+        super.init(game: game)
+        self.key = key
+        name = nil
+        self.type = type
+        self.parent = parent
+        parent?.addChild(self)
+    }
+
+    /// A new region of a type, which can be discovered
+    /// (ServerRegion(Game, RegionType)).
+    public convenience init(game: Game, type: RegionType) {
+        self.init(game: game, key: nil, type: type, parent: nil)
+        claimable = type.claimable
+        discoverable = true
+    }
+
+    // MARK: The server's region (ServerRegion)
+
+    /// The number of tiles added, or a total for a region with children.
+    /// Not saved.
+    public var size = 0
+    /// The bounds of the tiles added.  Not saved.
+    public var bounds = JavaRectangle()
+
+    /// Whether this is one of the predefined land regions.
+    public var isGeographic: Bool {
+        key != nil && type == .land
+    }
+
+    public var center: (x: Int, y: Int) {
+        (Int(bounds.x + bounds.width / 2), Int(bounds.y + bounds.height / 2))
+    }
+
+    public func containsCenter(_ other: Region) -> Bool {
+        let c = other.center
+        return bounds.contains(c.x, c.y)
+    }
+
+    /// Put a tile in this region (ServerRegion.addTile).
+    public func addTile(_ tile: Tile) {
+        tile.region = self
+        size += 1
+        if bounds.x == 0 && bounds.width == 0 || bounds.y == 0 && bounds.height == 0 {
+            bounds.setBounds(Int32(tile.x), Int32(tile.y), 0, 0)
+        } else {
+            bounds.add(tile.x, tile.y)
+        }
+    }
+
     public override var xmlTagName: String {
         Region.tag
     }

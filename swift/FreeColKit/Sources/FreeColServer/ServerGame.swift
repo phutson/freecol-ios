@@ -35,6 +35,46 @@ public final class ServerGame: Game {
     /// The sessions waiting for answers (Java's static Session map).
     public let sessions = Sessions()
 
+    /// A completely new game, before its players and map
+    /// (ServerGame(Specification, Random)): the nations to choose from,
+    /// the cities of Cibola in a random order, and the unknown enemy.
+    public static func newGame(_ specification: Specification, _ random: JavaRandom) -> ServerGame {
+        let game = ServerGame(specification: specification)
+        game.nationOptions = NationOptions(specification: specification)
+        game.requireCitiesOfCibola(random)
+        game.establishUnknownEnemy()
+        return game
+    }
+
+    /// The player standing for unknown enemies, made if there is none
+    /// (establishUnknownEnemy).
+    @discardableResult
+    public func establishUnknownEnemy() -> Player? {
+        if let enemy = unknownEnemy { return enemy }
+        guard let nation = specification?.unknownEnemyNation else { return nil }
+        let enemy = Player(game: self, nation: nation)
+        setUnknownEnemy(enemy)
+        return enemy
+    }
+
+    /// The keys of the cities of Cibola, shuffled, if there are none yet
+    /// (NameCache.requireCitiesOfCibola, which Java keeps in a static).
+    /// Java counts the names, from 0 if there is one, then from 1 while
+    /// they continue, and keeps that many keys from 0.
+    public func requireCitiesOfCibola(_ random: JavaRandom) {
+        guard citiesOfCibola.isEmpty else { return }
+        let prefix = "nameCache.lostCityRumour.cityName."
+        var count = Messages.containsKey(prefix + "0") ? 1 : 0
+        var i = 1
+        while Messages.containsKey(prefix + String(i)) {
+            count += 1
+            i += 1
+        }
+        var keys = (0..<count).map { prefix + String($0) }
+        RandomUtils.randomShuffle("Cibola", &keys, random)
+        citiesOfCibola = keys
+    }
+
     /// Issue the next identifier number, counting from the saved game's.
     public override func getNextId() -> Int {
         defer { nextId += 1 }

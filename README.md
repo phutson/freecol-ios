@@ -62,9 +62,9 @@ when the dumps are not present.
 
 The game model, data loading, XML, the new turn, the turn cycle, and the
 players' commands for units, colonies, goods, Europe, moving, dealing with
-natives, combat, diplomacy, the monarch and independence are ported. Map
-generation, the AI (which the REF needs to arrive) and the user interface
-are still to come. See `doc/swift-port-plan.md`.
+natives, combat, diplomacy, the monarch and independence, and making a new
+game with its map, are ported. The AI (which the REF needs to arrive) and
+the user interface are still to come. See `doc/swift-port-plan.md`.
 
 ## Licence
 

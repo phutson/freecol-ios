@@ -99,13 +99,19 @@ open class Settlement: GoodsLocation, Ownable {
     }
 
     /// The tiles this settlement owns, in the order of Java's copy of
-    /// its HashSet (getOwnedTiles).  The set is rebuilt from the order
-    /// the tiles were added in, so it has the capacity of its present
-    /// size, not of the largest it ever was (which Java's keeps).
+    /// its HashSet (getOwnedTiles, which is `new HashSet<>(set)`: a table
+    /// of at least 16, filled in the set's order).  The set is rebuilt
+    /// from the order the tiles were added in, so it has the capacity of
+    /// its present size, not of the largest it ever was (which Java's
+    /// keeps).
     public var ownedTiles: [Tile] {
         var set = JavaHashMap<Tile, Bool>(javaHash: { $0.javaGameObjectHash })
         for t in ownedTileList.compactMap(\.tile) { _ = set.put(t, true) }
-        return JavaHashMap(copying: set).keys
+        let n = set.count
+        var copy = JavaHashMap<Tile, Bool>(initialCapacity: max(Int(Float(n) / 0.75) + 1, 16),
+                                           javaHash: { $0.javaGameObjectHash })
+        for t in set.keys { _ = copy.put(t, true) }
+        return copy.keys
     }
 
     public func addTile(_ tile: Tile) {

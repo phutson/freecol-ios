@@ -85,6 +85,9 @@ public final class Player: FreeColGameObject, GameObjectReadable {
     public var gold = 0
     public var isAdmin = false
     public var isAI = false
+    /// The seed Java's AI player takes from the server's random source
+    /// when it is made, kept for when the AI is ported.  Not saved.
+    public var aiSeed: Int32?
     public var ready = false
     public var isDead = false
     public var attackedByPrivateers = false
