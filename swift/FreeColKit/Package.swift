@@ -24,6 +24,8 @@ import PackageDescription
 //
 // Dependencies only point downwards:
 //
+//                    FreeColEngine
+//                         |
 //   FreeColResources  FreeColServer
 //          |         /
 //   FreeColIO, FreeColI18n
@@ -44,7 +46,7 @@ let package = Package(
             name: "FreeColKit",
             targets: ["FreeColUtil", "FreeColXML", "FreeColCore",
                       "FreeColI18n", "FreeColIO", "FreeColResources",
-                      "FreeColServer"]),
+                      "FreeColServer", "FreeColEngine"]),
     ],
     targets: [
         // Java compatibility (random numbers, rounding) and collection
@@ -80,6 +82,13 @@ let package = Package(
         .target(name: "FreeColServer",
                 dependencies: ["FreeColUtil", "FreeColXML", "FreeColCore", "FreeColIO"]),
 
+        // The engine as the user interface sees it: an actor that owns
+        // the game, takes the human player's commands, plays the other
+        // players' turns, saves and loads, and hands out snapshots of
+        // what the human can see.
+        .target(name: "FreeColEngine",
+                dependencies: ["FreeColUtil", "FreeColXML", "FreeColCore", "FreeColIO", "FreeColServer"]),
+
         // Helpers shared by the tests: reading and writing the
         // canonical JSON dumps made by the Java tools, and the Java
         // oracle in Tests/JavaOracle (which is data, not a target).
@@ -104,6 +113,9 @@ let package = Package(
         .testTarget(name: "FreeColServerTests",
                     dependencies: ["FreeColUtil", "FreeColXML", "FreeColCore",
                                    "FreeColIO", "FreeColServer", "FreeColTestSupport"]),
+        .testTarget(name: "FreeColEngineTests",
+                    dependencies: ["FreeColUtil", "FreeColCore", "FreeColIO", "FreeColServer",
+                                   "FreeColEngine", "FreeColTestSupport"]),
         // The Java model tests (test/src/net/sf/freecol/common/model),
         // ported one file to one file.
         .testTarget(name: "FreeColModelTests",

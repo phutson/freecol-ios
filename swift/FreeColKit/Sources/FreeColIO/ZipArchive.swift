@@ -183,3 +183,57 @@ public struct ZipArchive: Sendable {
         return c ^ 0xffff_ffff
     }
 }
+
+extension ZipArchive {
+    /// A zip archive of files, each deflated (or stored, if that is no
+    /// smaller), as Java's JarOutputStream writes a saved game.
+    public static func archive(_ files: [(name: String, data: Data)]) -> Data {
+        var out: [UInt8] = []
+        var central: [UInt8] = []
+        func u16(_ v: Int, _ a: inout [UInt8]) { a += [UInt8(v & 0xff), UInt8((v >> 8) & 0xff)] }
+        func u32(_ v: UInt32, _ a: inout [UInt8]) {
+            a += [UInt8(v & 0xff), UInt8((v >> 8) & 0xff), UInt8((v >> 16) & 0xff), UInt8(v >> 24)]
+        }
+        for file in files {
+            let raw = [UInt8](file.data)
+            let crc = crc32(raw)
+            var method = 0
+            var body = raw
+            if !raw.isEmpty {
+                var buffer = [UInt8](repeating: 0, count: raw.count + 1024)
+                let n = raw.withUnsafeBufferPointer { src in
+                    buffer.withUnsafeMutableBufferPointer { dst in
+                        compression_encode_buffer(dst.baseAddress!, dst.count, src.baseAddress!, raw.count,
+                                                  nil, COMPRESSION_ZLIB)
+                    }
+                }
+                if n > 0 && n < raw.count {
+                    method = 8
+                    body = Array(buffer[0..<n])
+                }
+            }
+            let name = [UInt8](file.name.utf8)
+            let offset = out.count
+            // Local header.
+            u32(0x0403_4b50, &out); u16(20, &out); u16(0x0800, &out); u16(method, &out)
+            u16(0, &out); u16(0x21, &out) // time and date: 1980-01-01 00:00
+            u32(crc, &out); u32(UInt32(body.count), &out); u32(UInt32(raw.count), &out)
+            u16(name.count, &out); u16(0, &out)
+            out += name
+            out += body
+            // Its central directory entry.
+            u32(0x0201_4b50, &central); u16(20, &central); u16(20, &central); u16(0x0800, &central)
+            u16(method, &central); u16(0, &central); u16(0x21, &central)
+            u32(crc, &central); u32(UInt32(body.count), &central); u32(UInt32(raw.count), &central)
+            u16(name.count, &central); u16(0, &central); u16(0, &central); u16(0, &central); u16(0, &central)
+            u32(0, &central); u32(UInt32(offset), &central)
+            central += name
+        }
+        let centralOffset = out.count
+        out += central
+        // End of central directory.
+        u32(0x0605_4b50, &out); u16(0, &out); u16(0, &out); u16(files.count, &out); u16(files.count, &out)
+        u32(UInt32(central.count), &out); u32(UInt32(centralOffset), &out); u16(0, &out)
+        return Data(out)
+    }
+}

@@ -24,7 +24,10 @@ the game's data files. None of the Java code is here.
   - `FreeColCore`: the game model and rules;
   - `FreeColIO`, `FreeColResources`: saved games, data files and resources;
   - `FreeColServer`: turn processing and the players' commands, without a
-    network.
+    network;
+  - `FreeColEngine`: what the user interface uses, an actor that runs a
+    game (new, loaded, saved) and hands out snapshots of what the player
+    sees.
 - `data/`: FreeCol's rules, translations, maps, mods, images and sounds,
   unchanged from the original.
 - `test/expected-data/`: tile production figures checked against the
@@ -63,7 +66,8 @@ when the dumps are not present.
 The game model, data loading, XML, the new turn, the turn cycle, and the
 players' commands for units, colonies, goods, Europe, moving, dealing with
 natives, combat, diplomacy, the monarch and independence, and making a new
-game with its map, are ported. The AI (which the REF needs to arrive) and
+game with its map, are ported, and an engine actor runs them for a user
+interface. The AI (which the REF needs to arrive) and
 the user interface are still to come. See `doc/swift-port-plan.md`.
 
 ## Licence

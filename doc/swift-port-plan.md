@@ -158,6 +158,7 @@ FreeColKit/                 (Swift Package, no UIKit/SwiftUI imports)
   FreeColIO/                XML reading/writing, .fsg save files
   FreeColI18n/              .properties loader, StringTemplate
   FreeColServer/            (Phase 3)
+  FreeColEngine/            (Phase 3) the actor the UI talks to, and snapshots
   FreeColAI/                (Phase 4)
 FreeColApp/                 (Phase 5) SwiftUI (map in Canvas; SpriteKit if needed)
 ```
@@ -2029,6 +2030,49 @@ with Phase 4.
      - starting prices not flushed, which only clears the price change
        record, and nothing reads it before the first turn.
 8. **The engine actor** and snapshots for the UI.
+
+   **Status: done.** With this, Phase 3 is done, apart from the
+   milestone's turns with computer players, which need the AI (Phase 4).
+   - **`FreeColEngine`**, a new module above `FreeColServer`, is what
+     the user interface uses. `GameEngine` is an actor that owns one
+     single-player game:
+     - it starts a new game (rules, difficulty, map and game options,
+       a seed, the player's name) or loads a saved game, Java's or its
+       own;
+     - `perform` carries out one of the human player's commands, or
+       says why it was refused, changing nothing;
+     - `endTurn` plays the other players' turns, through the new turn,
+       until it is the human's turn again. Until the AI is ported, the
+       computer players end their turns at once;
+     - `save` writes a saved game as Java's server does (Java loads it),
+       without the AI's objects, which are not ported;
+     - `snapshot` describes what the human can see.
+   - **Snapshots** are `Sendable` values, so the interface can keep them
+     and read them on any thread, and nothing of the live game leaves the
+     actor. A `GameSnapshot` has the turn, the players (others' gold
+     hidden), the map as the player last saw each tile (unexplored tiles
+     blank, units only where it sees them now), the player's units,
+     colonies (buildings, work tiles, goods, build queue), the others'
+     settlements as last seen (skills once known, alarm), Europe's
+     recruits and units, market prices, and the turn's messages,
+     translated. Objects are named by identifier and types by their
+     specification identifiers.
+   - **What happened** comes back with each command and turn as
+     `EngineEvent`s: units moving and attacks to show, and messages.
+   - **Java behaviour kept:** loading forgets whose turn it was, and the
+     first human player takes it, as when it logs in (LoginMessage).
+   - **Also:** a zip writer (`ZipArchive.archive`), deflating as Java's
+     JarOutputStream does.
+   - **Checked:** `GameEngineTests` plays through the actor: a new game
+     (the same from the same seed), a ship sailing and a bad command
+     refused, turns ended, a game saved and loaded (the same snapshot
+     and generator, and the same next turn), one of Java's saved games
+     loaded, and snapshots read in another task. A game the engine saved
+     loads in Java. Of eight planted bugs, six are caught: others' gold
+     shown, computer players never ending their turns, the turn lost on
+     loading, moves not shown, the generator not saved, and unexplored
+     tiles shown. Units shown on tiles out of sight are not, as none of
+     these games has another player's unit out of the player's sight.
 
 ## Phase 4: AI (~25k lines)
 
