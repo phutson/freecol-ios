@@ -3,6 +3,13 @@
 A port of [FreeCol](http://www.freecol.org/), the turn-based strategy game
 based on Colonization, from Java to Swift, for iOS.
 
+> **This is a Claude Code conversion of the FreeCol project.** The Swift
+> code here was written by [Claude Code](https://claude.com/claude-code),
+> Anthropic's AI coding tool, by converting FreeCol's Java code, and checked
+> step by step against the original Java game (see "How the port is
+> checked" below). It is not an official FreeCol release, and is not made
+> or endorsed by the FreeCol Team.
+
 The original Java version came from
 <https://sourceforge.net/p/freecol/git/ci/master/tree/>.
 This repository holds only what the Swift version needs: the Swift code and
