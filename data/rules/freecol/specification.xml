@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    *  Copyright (C) 2002-2022  The FreeCol Team
+    *
+    *  This file is part of FreeCol.
+    *
+    *  FreeCol is free software: you can redistribute it and/or modify
+    *  it under the terms of the GNU General Public License as published by
+    *  the Free Software Foundation, either version 2 of the License, or
+    *  (at your option) any later version.
+    *
+    *  FreeCol is distributed in the hope that it will be useful,
+    *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+    *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    *  GNU General Public License for more details.
+    *
+    *  You should have received a copy of the GNU General Public License
+    *  along with FreeCol.  If not, see <http://www.gnu.org/licenses/>.
+
+    In case of incompatible changes, please update version number and
+    XSD schema for validation.
+-->
+<freecol-specification id="freecol" version="0.120" extends="classic">
+
+  <goods-types>
+    <goods-type id="model.goods.horses" is-farmed="false"
+                breeding-number="2"
+                made-from="model.goods.grain"> <!-- changed from food --> 
+      <market initial-amount="1000"  initial-price="1"  price-difference="2" />
+    </goods-type>
+  </goods-types>
+
+  <building-types>
+    <building-type id="model.building.stockade" preserve="true">
+      <modifier id="model.modifier.minimumColonySize" delete="true" />
+    </building-type>
+    <building-type id="model.building.fort" preserve="true">
+      <modifier id="model.modifier.minimumColonySize" delete="true" />
+    </building-type>
+    <building-type id="model.building.fortress" preserve="true">
+      <modifier id="model.modifier.minimumColonySize" delete="true" />
+    </building-type>
+    <building-type id="model.building.country" preserve="true">
+      <production delete="true"/>
+      <production unattended="true">
+        <input goods-type="model.goods.grain" value="1"/>
+        <output goods-type="model.goods.horses" value="1"/>
+      </production>
+    </building-type>
+    <building-type id="model.building.stables" extends="model.building.country"
+                   preserve="true">
+      <production delete="true"/>
+      <production unattended="true">
+        <input goods-type="model.goods.grain" value="1"/>
+        <output goods-type="model.goods.horses" value="1"/>
+      </production>
+    </building-type>
+  </building-types>
+
+  <founding-fathers>
+    <founding-father id="model.foundingFather.franciscoDeCoronado"
+                     type="exploration"
+                     weight1="3" weight2="5" weight3="7">
+      <!-- FreeCol extension -->
+      <ability id="model.ability.seeAllColonies"
+               value="true"/>
+      <event id="model.event.seeAllColonies"/>
+    </founding-father>
+    <founding-father id="model.foundingFather.pocahontas" type="political"
+                     weight1="7" weight2="5" weight3="3">
+      <modifier id="model.modifier.nativeAlarmModifier"
+                type="percentage" value="-50"/>
+      <event id="model.event.resetNativeAlarm"/>
+      <!-- In Col1 bans on missionaries persist forever.  Allow
+           Pocahontas to clear them as a FreeCol extension. -->
+      <event id="model.event.resetBannedMissions"/>
+    </founding-father>
+  </founding-fathers>
+
+  <european-nation-types>
+    <european-nation-type id="model.nationType.ref" preserve="true">
+      <!-- Shorten REF sail time. -->
+      <modifier id="model.modifier.sailHighSeas"
+                type="additive" value="-1"/>
+    </european-nation-type>
+  </european-nation-types>
+
+  <options>
+    <optionGroup id="difficultyLevels" recursive="false">
+      <optionGroup id="model.difficulty.veryEasy" editable="false">
+        <optionGroup id="model.difficulty.immigration" editable="false">
+          <integerOption id="model.option.crossesIncrement" value="2"/>
+        </optionGroup>
+      </optionGroup>
+      <optionGroup id="model.difficulty.easy" editable="false">
+        <optionGroup id="model.difficulty.immigration" editable="false">
+          <integerOption id="model.option.crossesIncrement" value="3"/>
+        </optionGroup>
+      </optionGroup>
+      <optionGroup id="model.difficulty.medium" editable="false"> 
+        <optionGroup id="model.difficulty.immigration" editable="false">
+          <integerOption id="model.option.crossesIncrement" value="4"/>
+        </optionGroup>
+      </optionGroup>
+      <optionGroup id="model.difficulty.hard" editable="false">
+        <optionGroup id="model.difficulty.immigration" editable="false">
+          <integerOption id="model.option.crossesIncrement" value="6"/>
+        </optionGroup>
+      </optionGroup>
+      <optionGroup id="model.difficulty.veryHard" editable="false">
+        <optionGroup id="model.difficulty.immigration" editable="false">
+          <integerOption id="model.option.crossesIncrement" value="10"/>
+        </optionGroup>
+      </optionGroup>
+      <optionGroup id="model.difficulty.custom" editable="true">
+        <optionGroup id="model.difficulty.immigration" editable="true">
+          <integerOption id="model.option.crossesIncrement" value="10"/>
+        </optionGroup>
+      </optionGroup>
+    </optionGroup>
+    <optionGroup id="gameOptions">
+      <optionGroup id="gameOptions.map">
+        <!-- Enables/disables fog of war -->
+        <booleanOption id="model.option.fogOfWar"
+                       defaultValue="true"/>
+        <!-- Whether to award exploration points or not -->
+        <booleanOption id="model.option.explorationPoints"
+                       defaultValue="true"/>
+        <!-- The number of turns it takes to sail between Europe and
+             the New World. -->
+        <integerOption id="model.option.turnsToSail"
+                       defaultValue="3" minimumValue="1" maximumValue="10"/>
+        <!-- Whether amphibious moves are allowed. -->
+        <booleanOption id="model.option.amphibiousMoves"
+                       defaultValue="true"/>
+        <!-- Allow trading with empty units. -->
+        <booleanOption id="model.option.emptyTraders"
+                       defaultValue="true"/>
+        <!-- Missionaries grant visibility and enhance trade and training -->
+        <booleanOption id="model.option.enhancedMissionaries"
+                       defaultValue="true"/>
+        <!-- Does the REF "teleport" to its first target or sail in. -->
+        <booleanOption id="model.option.teleportREF" defaultValue="false"/>
+      </optionGroup>
+      <optionGroup id="gameOptions.colony">
+        <!-- Is colony bell accumulation capped when 100% rebels achieved? -->
+        <booleanOption id="model.option.bellAccumulationCapped"
+                       defaultValue="false"/>
+        <!-- Capture units under repair when a colony is captured? -->
+        <booleanOption id="model.option.captureUnitsUnderRepair"
+                       defaultValue="true"/>
+        <!-- Does the Custom House sell boycotted goods -->
+        <booleanOption id="model.option.customIgnoreBoycott"
+                       defaultValue="false"/>
+        <!-- Disembark all units on arriving in a colony. -->
+        <booleanOption id="model.option.disembarkInColony"
+                       defaultValue="false"/>
+        <!-- Whether experts have connections, producing without raw
+             materials in factories. -->
+        <booleanOption id="model.option.expertsHaveConnections"
+                       defaultValue="false"/>
+        <!-- Can colonies be founded during the war of independence? -->
+        <booleanOption id="model.option.foundColonyDuringRebellion"
+                       defaultValue="true"/>
+        <!-- Overflow hammer and cross production is preserved? -->
+        <booleanOption id="model.option.saveProductionOverflow"
+                       defaultValue="false"/>
+        <!-- Whether to educate the least skilled unit first -->
+        <booleanOption id="model.option.allowStudentSelection"
+                       defaultValue="true"/>
+        <!-- Claim all available tiles on colony foundation. -->
+        <booleanOption id="model.option.claimAllTiles"
+                       defaultValue="false" />
+      </optionGroup>
+    </optionGroup>
+  </options>
+</freecol-specification>

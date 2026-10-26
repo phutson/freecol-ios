@@ -1,0 +1,4734 @@
+{
+  "derived": {
+    "ages": [
+      1,
+      109,
+      309
+    ],
+    "buildingTypes": {
+      "model.building.armory": {
+        "abilities": [
+          "[ model.ability.build (model.building.armory) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.armory",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 400,
+        "producedGoodsType": "model.goods.muskets",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:52"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.magazine",
+        "upkeep": 5,
+        "workPlaces": 3
+      },
+      "model.building.arsenal": {
+        "abilities": [
+          "[ model.ability.build (model.building.armory) = true ]",
+          "[ model.ability.expertsUseConnections (model.building.arsenal) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 3.0,
+        "defenceType": false,
+        "expertConnectionProduction": 4,
+        "firstLevel": "model.building.armory",
+        "level": 3,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 400,
+        "producedGoodsType": "model.goods.muskets",
+        "rebelFactor": 1.5,
+        "requiredAbilities": {
+          "model.ability.buildFactory": true
+        },
+        "requiredGoods": [
+          "model.goods.hammers:240",
+          "model.goods.tools:100"
+        ],
+        "requiredPopulation": 8,
+        "upgradesFrom": "model.building.magazine",
+        "upgradesTo": null,
+        "upkeep": 15,
+        "workPlaces": 3
+      },
+      "model.building.blacksmithHouse": {
+        "abilities": [],
+        "automaticBuild": true,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.blacksmithHouse",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.tools",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.blacksmithShop",
+        "upkeep": 0,
+        "workPlaces": 3
+      },
+      "model.building.blacksmithShop": {
+        "abilities": [],
+        "automaticBuild": false,
+        "competenceFactor": 2.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.blacksmithHouse",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.tools",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:64",
+          "model.goods.tools:20"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": "model.building.blacksmithHouse",
+        "upgradesTo": "model.building.ironWorks",
+        "upkeep": 5,
+        "workPlaces": 3
+      },
+      "model.building.carpenterHouse": {
+        "abilities": [
+          "[ model.ability.build (model.building.carpenterHouse) = true ]"
+        ],
+        "automaticBuild": true,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.carpenterHouse",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.hammers",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.lumberMill",
+        "upkeep": 0,
+        "workPlaces": 3
+      },
+      "model.building.cathedral": {
+        "abilities": [
+          "[ model.ability.dressMissionary (model.building.church) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 2.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.chapel",
+        "level": 3,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.crosses",
+        "rebelFactor": 2.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:176",
+          "model.goods.tools:100"
+        ],
+        "requiredPopulation": 8,
+        "upgradesFrom": "model.building.church",
+        "upgradesTo": null,
+        "upkeep": 15,
+        "workPlaces": 3
+      },
+      "model.building.chapel": {
+        "abilities": [],
+        "automaticBuild": true,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.chapel",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.crosses",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.church",
+        "upkeep": 0,
+        "workPlaces": 0
+      },
+      "model.building.church": {
+        "abilities": [
+          "[ model.ability.dressMissionary (model.building.church) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.chapel",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.crosses",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:64"
+        ],
+        "requiredPopulation": 3,
+        "upgradesFrom": "model.building.chapel",
+        "upgradesTo": "model.building.cathedral",
+        "upkeep": 5,
+        "workPlaces": 3
+      },
+      "model.building.cigarFactory": {
+        "abilities": [
+          "[ model.ability.expertsUseConnections (model.building.cigarFactory) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 3.0,
+        "defenceType": false,
+        "expertConnectionProduction": 4,
+        "firstLevel": "model.building.tobacconistHouse",
+        "level": 3,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.cigars",
+        "rebelFactor": 1.5,
+        "requiredAbilities": {
+          "model.ability.buildFactory": true
+        },
+        "requiredGoods": [
+          "model.goods.hammers:160",
+          "model.goods.tools:100"
+        ],
+        "requiredPopulation": 8,
+        "upgradesFrom": "model.building.tobacconistShop",
+        "upgradesTo": null,
+        "upkeep": 15,
+        "workPlaces": 3
+      },
+      "model.building.college": {
+        "abilities": [
+          "[ model.ability.teach (model.building.schoolhouse) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.schoolhouse",
+        "level": 2,
+        "maximumSkill": 2,
+        "minimumSkill": 1,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:160",
+          "model.goods.tools:50"
+        ],
+        "requiredPopulation": 8,
+        "upgradesFrom": "model.building.schoolhouse",
+        "upgradesTo": "model.building.university",
+        "upkeep": 10,
+        "workPlaces": 2
+      },
+      "model.building.country": {
+        "abilities": [
+          "[ model.ability.autoProduction (model.building.country) = true ]",
+          "[ model.ability.avoidExcessProduction (model.building.country) = true ]"
+        ],
+        "automaticBuild": true,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.country",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.horses (model.building.country) MULTIPLICATIVE 1.0 index=60]",
+          "[Modifier model.modifier.breedingDivisor (model.building.country) ADDITIVE 50.0 index=60]",
+          "[Modifier model.modifier.breedingFactor (model.building.country) ADDITIVE 2.0 index=60]",
+          "[Modifier model.modifier.consumeOnlySurplusProduction (model.building.country) MULTIPLICATIVE 0.5 index=60]"
+        ],
+        "priority": 700,
+        "producedGoodsType": "model.goods.horses",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.stables",
+        "upkeep": 0,
+        "workPlaces": 0
+      },
+      "model.building.customHouse": {
+        "abilities": [
+          "[ model.ability.coastalOnly (model.building.customHouse) = false ]",
+          "[ model.ability.coastalOnly = false ]",
+          "[ model.ability.export (model.building.customHouse) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.customHouse",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {
+          "model.ability.buildCustomHouse": true
+        },
+        "requiredGoods": [
+          "model.goods.hammers:160",
+          "model.goods.tools:50"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": null,
+        "upkeep": 15,
+        "workPlaces": 0
+      },
+      "model.building.depot": {
+        "abilities": [],
+        "automaticBuild": true,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.depot",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.warehouseStorage (model.building.depot) ADDITIVE 100.0 index=0]"
+        ],
+        "priority": 750,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.warehouse",
+        "upkeep": 0,
+        "workPlaces": 0
+      },
+      "model.building.distillerHouse": {
+        "abilities": [],
+        "automaticBuild": true,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.distillerHouse",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.rum",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.rumDistillery",
+        "upkeep": 0,
+        "workPlaces": 3
+      },
+      "model.building.docks": {
+        "abilities": [
+          "[ model.ability.produceInWater (model.building.docks) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.docks",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {
+          "model.ability.hasPort": true
+        },
+        "requiredGoods": [
+          "model.goods.hammers:52"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.drydock",
+        "upkeep": 5,
+        "workPlaces": 0
+      },
+      "model.building.drydock": {
+        "abilities": [
+          "[ model.ability.produceInWater (model.building.docks) = true ]",
+          "[ model.ability.repairUnits (model.building.drydock) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.docks",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:80",
+          "model.goods.tools:50"
+        ],
+        "requiredPopulation": 4,
+        "upgradesFrom": "model.building.docks",
+        "upgradesTo": "model.building.shipyard",
+        "upkeep": 10,
+        "workPlaces": 0
+      },
+      "model.building.fort": {
+        "abilities": [
+          "[ model.ability.bombardShips (model.building.fort) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": true,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.stockade",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.building.fort) PERCENTAGE 150.0 index=50]",
+          "[Modifier model.modifier.minimumColonySize (model.building.stockade) ADDITIVE 3.0 index=0]"
+        ],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:120",
+          "model.goods.tools:100"
+        ],
+        "requiredPopulation": 3,
+        "upgradesFrom": "model.building.stockade",
+        "upgradesTo": "model.building.fortress",
+        "upkeep": 10,
+        "workPlaces": 0
+      },
+      "model.building.fortress": {
+        "abilities": [
+          "[ model.ability.bombardShips (model.building.fort) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": true,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.stockade",
+        "level": 3,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.building.fortress) PERCENTAGE 200.0 index=50]",
+          "[Modifier model.modifier.minimumColonySize (model.building.stockade) ADDITIVE 3.0 index=0]"
+        ],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:320",
+          "model.goods.tools:200"
+        ],
+        "requiredPopulation": 8,
+        "upgradesFrom": "model.building.fort",
+        "upgradesTo": null,
+        "upkeep": 15,
+        "workPlaces": 0
+      },
+      "model.building.furFactory": {
+        "abilities": [
+          "[ model.ability.expertsUseConnections (model.building.furFactory) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 3.0,
+        "defenceType": false,
+        "expertConnectionProduction": 4,
+        "firstLevel": "model.building.furTraderHouse",
+        "level": 3,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.coats",
+        "rebelFactor": 1.5,
+        "requiredAbilities": {
+          "model.ability.buildFactory": true
+        },
+        "requiredGoods": [
+          "model.goods.hammers:160",
+          "model.goods.tools:100"
+        ],
+        "requiredPopulation": 6,
+        "upgradesFrom": "model.building.furTradingPost",
+        "upgradesTo": null,
+        "upkeep": 15,
+        "workPlaces": 3
+      },
+      "model.building.furTraderHouse": {
+        "abilities": [],
+        "automaticBuild": true,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.furTraderHouse",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.coats",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.furTradingPost",
+        "upkeep": 0,
+        "workPlaces": 3
+      },
+      "model.building.furTradingPost": {
+        "abilities": [],
+        "automaticBuild": false,
+        "competenceFactor": 2.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.furTraderHouse",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.coats",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:56",
+          "model.goods.tools:20"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": "model.building.furTraderHouse",
+        "upgradesTo": "model.building.furFactory",
+        "upkeep": 5,
+        "workPlaces": 3
+      },
+      "model.building.ironWorks": {
+        "abilities": [
+          "[ model.ability.expertsUseConnections (model.building.ironWorks) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 3.0,
+        "defenceType": false,
+        "expertConnectionProduction": 4,
+        "firstLevel": "model.building.blacksmithHouse",
+        "level": 3,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.tools",
+        "rebelFactor": 1.5,
+        "requiredAbilities": {
+          "model.ability.buildFactory": true
+        },
+        "requiredGoods": [
+          "model.goods.hammers:240",
+          "model.goods.tools:100"
+        ],
+        "requiredPopulation": 8,
+        "upgradesFrom": "model.building.blacksmithShop",
+        "upgradesTo": null,
+        "upkeep": 15,
+        "workPlaces": 3
+      },
+      "model.building.lumberMill": {
+        "abilities": [
+          "[ model.ability.build (model.building.carpenterHouse) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 2.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.carpenterHouse",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.tileTypeChangeProduction (model.building.lumberMill) MULTIPLICATIVE 3.0 index=0 [ [Scope model.goods.lumber matches-null] ]]"
+        ],
+        "priority": 800,
+        "producedGoodsType": "model.goods.hammers",
+        "rebelFactor": 2.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:52"
+        ],
+        "requiredPopulation": 3,
+        "upgradesFrom": "model.building.carpenterHouse",
+        "upgradesTo": null,
+        "upkeep": 10,
+        "workPlaces": 3
+      },
+      "model.building.magazine": {
+        "abilities": [
+          "[ model.ability.build (model.building.armory) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 2.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.armory",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 400,
+        "producedGoodsType": "model.goods.muskets",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:120",
+          "model.goods.tools:50"
+        ],
+        "requiredPopulation": 8,
+        "upgradesFrom": "model.building.armory",
+        "upgradesTo": "model.building.arsenal",
+        "upkeep": 10,
+        "workPlaces": 3
+      },
+      "model.building.newspaper": {
+        "abilities": [],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.printingPress",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.bells (model.building.newspaper) PERCENTAGE 100.0 index=70 [ [Scope null model.ability.person=true matches-null match-negated] ]]"
+        ],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:120",
+          "model.goods.tools:50"
+        ],
+        "requiredPopulation": 4,
+        "upgradesFrom": "model.building.printingPress",
+        "upgradesTo": null,
+        "upkeep": 10,
+        "workPlaces": 0
+      },
+      "model.building.printingPress": {
+        "abilities": [],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.printingPress",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.bells (model.building.printingPress) PERCENTAGE 50.0 index=70 [ [Scope null model.ability.person=true matches-null match-negated] ]]"
+        ],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:52",
+          "model.goods.tools:20"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.newspaper",
+        "upkeep": 5,
+        "workPlaces": 0
+      },
+      "model.building.rumDistillery": {
+        "abilities": [],
+        "automaticBuild": false,
+        "competenceFactor": 2.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.distillerHouse",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.rum",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:64",
+          "model.goods.tools:20"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": "model.building.distillerHouse",
+        "upgradesTo": "model.building.rumFactory",
+        "upkeep": 5,
+        "workPlaces": 3
+      },
+      "model.building.rumFactory": {
+        "abilities": [
+          "[ model.ability.expertsUseConnections (model.building.rumFactory) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 3.0,
+        "defenceType": false,
+        "expertConnectionProduction": 4,
+        "firstLevel": "model.building.distillerHouse",
+        "level": 3,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.rum",
+        "rebelFactor": 1.5,
+        "requiredAbilities": {
+          "model.ability.buildFactory": true
+        },
+        "requiredGoods": [
+          "model.goods.hammers:160",
+          "model.goods.tools:100"
+        ],
+        "requiredPopulation": 8,
+        "upgradesFrom": "model.building.rumDistillery",
+        "upgradesTo": null,
+        "upkeep": 15,
+        "workPlaces": 3
+      },
+      "model.building.schoolhouse": {
+        "abilities": [
+          "[ model.ability.teach (model.building.schoolhouse) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.schoolhouse",
+        "level": 1,
+        "maximumSkill": 1,
+        "minimumSkill": 1,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:64"
+        ],
+        "requiredPopulation": 4,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.college",
+        "upkeep": 5,
+        "workPlaces": 1
+      },
+      "model.building.shipyard": {
+        "abilities": [
+          "[ model.ability.build (model.building.shipyard) = true ]",
+          "[ model.ability.produceInWater (model.building.docks) = true ]",
+          "[ model.ability.repairUnits (model.building.drydock) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.docks",
+        "level": 3,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:240",
+          "model.goods.tools:100"
+        ],
+        "requiredPopulation": 8,
+        "upgradesFrom": "model.building.drydock",
+        "upgradesTo": null,
+        "upkeep": 15,
+        "workPlaces": 0
+      },
+      "model.building.stables": {
+        "abilities": [
+          "[ model.ability.autoProduction (model.building.country) = true ]",
+          "[ model.ability.avoidExcessProduction (model.building.country) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.country",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.horses (model.building.country) MULTIPLICATIVE 1.0 index=60]",
+          "[Modifier model.modifier.breedingDivisor (model.building.country) ADDITIVE 50.0 index=60]",
+          "[Modifier model.modifier.breedingDivisor (model.building.stables) MULTIPLICATIVE 0.5 index=60]",
+          "[Modifier model.modifier.breedingFactor (model.building.country) ADDITIVE 2.0 index=60]",
+          "[Modifier model.modifier.consumeOnlySurplusProduction (model.building.country) MULTIPLICATIVE 0.5 index=60]"
+        ],
+        "priority": 700,
+        "producedGoodsType": "model.goods.horses",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:64"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": "model.building.country",
+        "upgradesTo": null,
+        "upkeep": 5,
+        "workPlaces": 0
+      },
+      "model.building.stockade": {
+        "abilities": [],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": true,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.stockade",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.building.stockade) PERCENTAGE 100.0 index=50]",
+          "[Modifier model.modifier.minimumColonySize (model.building.stockade) ADDITIVE 3.0 index=0]"
+        ],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:64"
+        ],
+        "requiredPopulation": 3,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.fort",
+        "upkeep": 0,
+        "workPlaces": 0
+      },
+      "model.building.textileMill": {
+        "abilities": [
+          "[ model.ability.expertsUseConnections (model.building.textileMill) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 3.0,
+        "defenceType": false,
+        "expertConnectionProduction": 4,
+        "firstLevel": "model.building.weaverHouse",
+        "level": 3,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.cloth",
+        "rebelFactor": 1.5,
+        "requiredAbilities": {
+          "model.ability.buildFactory": true
+        },
+        "requiredGoods": [
+          "model.goods.hammers:160",
+          "model.goods.tools:100"
+        ],
+        "requiredPopulation": 8,
+        "upgradesFrom": "model.building.weaverShop",
+        "upgradesTo": null,
+        "upkeep": 15,
+        "workPlaces": 3
+      },
+      "model.building.tobacconistHouse": {
+        "abilities": [],
+        "automaticBuild": true,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.tobacconistHouse",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.cigars",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.tobacconistShop",
+        "upkeep": 0,
+        "workPlaces": 3
+      },
+      "model.building.tobacconistShop": {
+        "abilities": [],
+        "automaticBuild": false,
+        "competenceFactor": 2.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.tobacconistHouse",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.cigars",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:64",
+          "model.goods.tools:20"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": "model.building.tobacconistHouse",
+        "upgradesTo": "model.building.cigarFactory",
+        "upkeep": 5,
+        "workPlaces": 3
+      },
+      "model.building.townHall": {
+        "abilities": [],
+        "automaticBuild": true,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.townHall",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.bells",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": null,
+        "upkeep": 0,
+        "workPlaces": 3
+      },
+      "model.building.university": {
+        "abilities": [
+          "[ model.ability.teach (model.building.schoolhouse) = true ]"
+        ],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.schoolhouse",
+        "level": 3,
+        "maximumSkill": 4,
+        "minimumSkill": 1,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:200",
+          "model.goods.tools:100"
+        ],
+        "requiredPopulation": 10,
+        "upgradesFrom": "model.building.college",
+        "upgradesTo": null,
+        "upkeep": 15,
+        "workPlaces": 3
+      },
+      "model.building.warehouse": {
+        "abilities": [],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.depot",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.warehouseStorage (model.building.depot) ADDITIVE 100.0 index=0]",
+          "[Modifier model.modifier.warehouseStorage (model.building.warehouse) ADDITIVE 100.0 index=0]"
+        ],
+        "priority": 750,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:80"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": "model.building.depot",
+        "upgradesTo": "model.building.warehouseExpansion",
+        "upkeep": 5,
+        "workPlaces": 0
+      },
+      "model.building.warehouseExpansion": {
+        "abilities": [],
+        "automaticBuild": false,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.depot",
+        "level": 3,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.warehouseStorage (model.building.depot) ADDITIVE 100.0 index=0]",
+          "[Modifier model.modifier.warehouseStorage (model.building.warehouse) ADDITIVE 100.0 index=0]",
+          "[Modifier model.modifier.warehouseStorage (model.building.warehouseExpansion) ADDITIVE 100.0 index=0]"
+        ],
+        "priority": 750,
+        "producedGoodsType": null,
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:80",
+          "model.goods.tools:20"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": "model.building.warehouse",
+        "upgradesTo": null,
+        "upkeep": 5,
+        "workPlaces": 0
+      },
+      "model.building.weaverHouse": {
+        "abilities": [],
+        "automaticBuild": true,
+        "competenceFactor": 1.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.weaverHouse",
+        "level": 1,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.cloth",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "upgradesFrom": null,
+        "upgradesTo": "model.building.weaverShop",
+        "upkeep": 0,
+        "workPlaces": 3
+      },
+      "model.building.weaverShop": {
+        "abilities": [],
+        "automaticBuild": false,
+        "competenceFactor": 2.0,
+        "defenceType": false,
+        "expertConnectionProduction": 0,
+        "firstLevel": "model.building.weaverHouse",
+        "level": 2,
+        "maximumSkill": 2147483647,
+        "minimumSkill": -2147483648,
+        "modifiers": [],
+        "priority": 800,
+        "producedGoodsType": "model.goods.cloth",
+        "rebelFactor": 1.0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:64",
+          "model.goods.tools:20"
+        ],
+        "requiredPopulation": 1,
+        "upgradesFrom": "model.building.weaverHouse",
+        "upgradesTo": "model.building.textileMill",
+        "upkeep": 5,
+        "workPlaces": 3
+      }
+    },
+    "defaultUnitType": "model.unit.freeColonist",
+    "difficultyLevel": "model.difficulty.medium",
+    "foundingFathers": {
+      "model.foundingFather.adamSmith": {
+        "abilities": [
+          "[ model.ability.buildFactory (model.foundingFather.adamSmith) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.foundingFather.bartolomeDeLasCasas": {
+        "abilities": [
+          "[ model.ability.upgradeConvert (model.foundingFather.bartolomeDeLasCasas) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.foundingFather.benjaminFranklin": {
+        "abilities": [
+          "[ model.ability.alwaysOfferedPeace (model.foundingFather.benjaminFranklin) = true ]",
+          "[ model.ability.ignoreEuropeanWars (model.foundingFather.benjaminFranklin) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.peaceTreaty (model.foundingFather.benjaminFranklin) PERCENTAGE 50.0 index=0]"
+        ]
+      },
+      "model.foundingFather.fatherJeanDeBrebeuf": {
+        "abilities": [
+          "[ model.ability.expertMissionary (model.foundingFather.fatherJeanDeBrebeuf) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.foundingFather.ferdinandMagellan": {
+        "abilities": [],
+        "modifiers": [
+          "[Modifier model.modifier.movementBonus (model.foundingFather.ferdinandMagellan) ADDITIVE 3.0 index=0 [ [Scope null model.ability.navalUnit=true matches-null] ]]",
+          "[Modifier model.modifier.sailHighSeas (model.foundingFather.ferdinandMagellan) ADDITIVE -1.0 index=0 [ [Scope null model.ability.navalUnit=true matches-null] ]]"
+        ]
+      },
+      "model.foundingFather.francisDrake": {
+        "abilities": [],
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.foundingFather.francisDrake) PERCENTAGE 50.0 index=50 [ [Scope model.unit.privateer matches-null] ]]",
+          "[Modifier model.modifier.offence (model.foundingFather.francisDrake) PERCENTAGE 50.0 index=50 [ [Scope model.unit.privateer matches-null] ]]"
+        ]
+      },
+      "model.foundingFather.franciscoDeCoronado": {
+        "abilities": [],
+        "modifiers": [
+          "[Modifier model.modifier.exposedTilesRadius (model.foundingFather.franciscoDeCoronado) ADDITIVE 3.0 index=0]"
+        ]
+      },
+      "model.foundingFather.georgeWashington": {
+        "abilities": [
+          "[ model.ability.automaticPromotion (model.foundingFather.georgeWashington) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.foundingFather.henryHudson": {
+        "abilities": [],
+        "modifiers": [
+          "[Modifier model.goods.furs (model.foundingFather.henryHudson) PERCENTAGE 100.0 index=40 [ [Scope null model.ability.person=true matches-null] ]]"
+        ]
+      },
+      "model.foundingFather.hernanCortes": {
+        "abilities": [
+          "[ model.ability.plunderNatives (model.foundingFather.hernanCortes) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.treasureTransportFee (model.foundingFather.hernanCortes) PERCENTAGE -100.0 index=0]"
+        ]
+      },
+      "model.foundingFather.hernandoDeSoto": {
+        "abilities": [
+          "[ model.ability.rumoursAlwaysPositive (model.foundingFather.hernandoDeSoto) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.lineOfSightBonus (model.foundingFather.hernandoDeSoto) ADDITIVE 1.0 index=0 [ [Scope null model.ability.navalUnit=false matches-null] ]]"
+        ]
+      },
+      "model.foundingFather.jacobFugger": {
+        "abilities": [],
+        "modifiers": []
+      },
+      "model.foundingFather.janDeWitt": {
+        "abilities": [
+          "[ model.ability.betterForeignAffairsReport (model.foundingFather.janDeWitt) = true ]",
+          "[ model.ability.customHouseTradesWithForeignCountries (model.foundingFather.janDeWitt) = true ]",
+          "[ model.ability.tradeWithForeignColonies (model.foundingFather.janDeWitt) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.foundingFather.johnPaulJones": {
+        "abilities": [],
+        "modifiers": []
+      },
+      "model.foundingFather.juanDeSepulveda": {
+        "abilities": [],
+        "modifiers": [
+          "[Modifier model.modifier.nativeConvertBonus (model.foundingFather.juanDeSepulveda) PERCENTAGE 20.0 index=0]"
+        ]
+      },
+      "model.foundingFather.laSalle": {
+        "abilities": [],
+        "modifiers": [
+          "[Modifier model.modifier.buildingPriceBonus (model.foundingFather.laSalle) PERCENTAGE -100.0 index=0 [ [Scope model.building.stockade matches-null] ]]"
+        ]
+      },
+      "model.foundingFather.paulRevere": {
+        "abilities": [
+          "[ model.ability.automaticEquipment (model.foundingFather.paulRevere) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.foundingFather.peterMinuit": {
+        "abilities": [],
+        "modifiers": [
+          "[Modifier model.modifier.landPaymentModifier (model.foundingFather.peterMinuit) PERCENTAGE -100.0 index=0]"
+        ]
+      },
+      "model.foundingFather.peterStuyvesant": {
+        "abilities": [
+          "[ model.ability.buildCustomHouse (model.foundingFather.peterStuyvesant) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.foundingFather.pocahontas": {
+        "abilities": [],
+        "modifiers": [
+          "[Modifier model.modifier.nativeAlarmModifier (model.foundingFather.pocahontas) PERCENTAGE -50.0 index=0]"
+        ]
+      },
+      "model.foundingFather.simonBolivar": {
+        "abilities": [],
+        "modifiers": [
+          "[Modifier model.modifier.SoL (model.foundingFather.simonBolivar) ADDITIVE 20.0 index=0]"
+        ]
+      },
+      "model.foundingFather.thomasJefferson": {
+        "abilities": [],
+        "modifiers": [
+          "[Modifier model.goods.bells (model.foundingFather.thomasJefferson) PERCENTAGE 50.0 index=40 [ [Scope null model.ability.person=true matches-null match-negated] ]]"
+        ]
+      },
+      "model.foundingFather.thomasPaine": {
+        "abilities": [
+          "[ model.ability.addTaxToBells (model.foundingFather.thomasPaine) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.goods.bells (model.foundingFather.thomasPaine) PERCENTAGE 0.0 index=40 [ [Scope null model.ability.person=true matches-null match-negated] ]]"
+        ]
+      },
+      "model.foundingFather.williamBrewster": {
+        "abilities": [
+          "[ model.ability.canRecruitUnit (model.foundingFather.williamBrewster) = false ]",
+          "[ model.ability.selectRecruit (model.foundingFather.williamBrewster) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.foundingFather.williamPenn": {
+        "abilities": [],
+        "modifiers": [
+          "[Modifier model.goods.crosses (model.foundingFather.williamPenn) PERCENTAGE 50.0 index=40 [ [Scope null model.ability.person=true matches-null match-negated] ]]"
+        ]
+      }
+    },
+    "goodsTypes": {
+      "model.goods.bells": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": false,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 0,
+        "inputType": null,
+        "libertyType": true,
+        "modifiers": [
+          "[Modifier model.modifier.liberty (model.goods.bells) MULTIPLICATIVE 1.0 index=0]"
+        ],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.bells"
+        ],
+        "rawMaterial": false,
+        "refined": false,
+        "storable": false,
+        "storedAs": "model.goods.bells"
+      },
+      "model.goods.cigars": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": false,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 1000,
+        "inputType": "model.goods.tobacco",
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.tobacco",
+          "model.goods.cigars"
+        ],
+        "rawMaterial": false,
+        "refined": true,
+        "storable": true,
+        "storedAs": "model.goods.cigars"
+      },
+      "model.goods.cloth": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": false,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 1000,
+        "inputType": "model.goods.cotton",
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.cotton",
+          "model.goods.cloth"
+        ],
+        "rawMaterial": false,
+        "refined": true,
+        "storable": true,
+        "storedAs": "model.goods.cloth"
+      },
+      "model.goods.coats": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": false,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 1000,
+        "inputType": "model.goods.furs",
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.furs",
+          "model.goods.coats"
+        ],
+        "rawMaterial": false,
+        "refined": true,
+        "storable": true,
+        "storedAs": "model.goods.coats"
+      },
+      "model.goods.cotton": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": true,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 1500,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": "model.goods.cloth",
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.cotton"
+        ],
+        "rawMaterial": true,
+        "refined": false,
+        "storable": true,
+        "storedAs": "model.goods.cotton"
+      },
+      "model.goods.crosses": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": false,
+        "food": false,
+        "immigrationType": true,
+        "initialAmount": 0,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [
+          "[Modifier model.modifier.immigration (model.goods.crosses) MULTIPLICATIVE 1.0 index=0]"
+        ],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.crosses"
+        ],
+        "rawMaterial": false,
+        "refined": false,
+        "storable": false,
+        "storedAs": "model.goods.crosses"
+      },
+      "model.goods.fish": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": true,
+        "food": true,
+        "immigrationType": false,
+        "initialAmount": 0,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.fish"
+        ],
+        "rawMaterial": false,
+        "refined": false,
+        "storable": false,
+        "storedAs": "model.goods.food"
+      },
+      "model.goods.food": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": true,
+        "farmed": true,
+        "food": true,
+        "immigrationType": false,
+        "initialAmount": 10000,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": "model.goods.horses",
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.food"
+        ],
+        "rawMaterial": true,
+        "refined": false,
+        "storable": true,
+        "storedAs": "model.goods.food"
+      },
+      "model.goods.furs": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": true,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 1500,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": "model.goods.coats",
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.furs"
+        ],
+        "rawMaterial": true,
+        "refined": false,
+        "storable": true,
+        "storedAs": "model.goods.furs"
+      },
+      "model.goods.grain": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": true,
+        "food": true,
+        "immigrationType": false,
+        "initialAmount": 0,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.grain"
+        ],
+        "rawMaterial": false,
+        "refined": false,
+        "storable": false,
+        "storedAs": "model.goods.food"
+      },
+      "model.goods.hammers": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": true,
+        "farmed": false,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 0,
+        "inputType": "model.goods.lumber",
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": null,
+        "price": 20,
+        "productionChain": [
+          "model.goods.lumber",
+          "model.goods.hammers"
+        ],
+        "rawMaterial": false,
+        "refined": true,
+        "storable": false,
+        "storedAs": "model.goods.hammers"
+      },
+      "model.goods.horses": {
+        "abilities": [],
+        "breedingNumber": 2,
+        "buildingMaterial": true,
+        "farmed": false,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 1000,
+        "inputType": "model.goods.food",
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.food",
+          "model.goods.horses"
+        ],
+        "rawMaterial": false,
+        "refined": true,
+        "storable": true,
+        "storedAs": "model.goods.horses"
+      },
+      "model.goods.lumber": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": true,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 3000,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": "model.goods.hammers",
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.lumber"
+        ],
+        "rawMaterial": true,
+        "refined": false,
+        "storable": true,
+        "storedAs": "model.goods.lumber"
+      },
+      "model.goods.muskets": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": true,
+        "farmed": false,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 1000,
+        "inputType": "model.goods.tools",
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.ore",
+          "model.goods.tools",
+          "model.goods.muskets"
+        ],
+        "rawMaterial": false,
+        "refined": true,
+        "storable": true,
+        "storedAs": "model.goods.muskets"
+      },
+      "model.goods.ore": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": true,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 2000,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": "model.goods.tools",
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.ore"
+        ],
+        "rawMaterial": true,
+        "refined": false,
+        "storable": true,
+        "storedAs": "model.goods.ore"
+      },
+      "model.goods.rum": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": false,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 1000,
+        "inputType": "model.goods.sugar",
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.sugar",
+          "model.goods.rum"
+        ],
+        "rawMaterial": false,
+        "refined": true,
+        "storable": true,
+        "storedAs": "model.goods.rum"
+      },
+      "model.goods.silver": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": true,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 500,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.silver"
+        ],
+        "rawMaterial": false,
+        "refined": false,
+        "storable": true,
+        "storedAs": "model.goods.silver"
+      },
+      "model.goods.sugar": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": true,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 1500,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": "model.goods.rum",
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.sugar"
+        ],
+        "rawMaterial": true,
+        "refined": false,
+        "storable": true,
+        "storedAs": "model.goods.sugar"
+      },
+      "model.goods.tobacco": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": true,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 1500,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": "model.goods.cigars",
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.tobacco"
+        ],
+        "rawMaterial": true,
+        "refined": false,
+        "storable": true,
+        "storedAs": "model.goods.tobacco"
+      },
+      "model.goods.tools": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": true,
+        "farmed": false,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 1000,
+        "inputType": "model.goods.ore",
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": "model.goods.muskets",
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.ore",
+          "model.goods.tools"
+        ],
+        "rawMaterial": true,
+        "refined": true,
+        "storable": true,
+        "storedAs": "model.goods.tools"
+      },
+      "model.goods.tradeGoods": {
+        "abilities": [],
+        "breedingNumber": 2147483647,
+        "buildingMaterial": false,
+        "farmed": false,
+        "food": false,
+        "immigrationType": false,
+        "initialAmount": 3000,
+        "inputType": null,
+        "libertyType": false,
+        "modifiers": [],
+        "outputType": null,
+        "price": 2147483647,
+        "productionChain": [
+          "model.goods.tradeGoods"
+        ],
+        "rawMaterial": false,
+        "refined": false,
+        "storable": true,
+        "storedAs": "model.goods.tradeGoods"
+      }
+    },
+    "nationTypes": {
+      "model.nationType.agriculture": {
+        "abilities": [
+          "[ model.ability.canRecruitUnit (model.nationType.default) = true ]",
+          "[ model.ability.electFoundingFather (model.nationType.default) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.default) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.goods.grain (model.nationType.agriculture) ADDITIVE 2.0 index=80]"
+        ]
+      },
+      "model.nationType.apache": {
+        "abilities": [
+          "[ model.ability.ambushBonus (model.nationType.apache) = true ]",
+          "[ model.ability.automaticEquipment (model.nationType.apache) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.apache) = false ]",
+          "[ model.ability.native (model.nationType.apache) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.nationType.arawak": {
+        "abilities": [
+          "[ model.ability.ambushBonus (model.nationType.arawak) = true ]",
+          "[ model.ability.automaticEquipment (model.nationType.arawak) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.arawak) = false ]",
+          "[ model.ability.native (model.nationType.arawak) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.nationType.aztec": {
+        "abilities": [
+          "[ model.ability.ambushBonus (model.nationType.aztec) = true ]",
+          "[ model.ability.automaticEquipment (model.nationType.aztec) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.aztec) = false ]",
+          "[ model.ability.native (model.nationType.aztec) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.nationType.building": {
+        "abilities": [
+          "[ model.ability.canRecruitUnit (model.nationType.default) = true ]",
+          "[ model.ability.electFoundingFather (model.nationType.default) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.default) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.goods.hammers (model.nationType.building) ADDITIVE 2.0 index=80 [ [Scope null model.ability.person=true matches-null] ]]",
+          "[Modifier model.goods.lumber (model.nationType.building) ADDITIVE 2.0 index=80]"
+        ]
+      },
+      "model.nationType.cherokee": {
+        "abilities": [
+          "[ model.ability.ambushBonus (model.nationType.cherokee) = true ]",
+          "[ model.ability.automaticEquipment (model.nationType.cherokee) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.cherokee) = false ]",
+          "[ model.ability.native (model.nationType.cherokee) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.nationType.conquest": {
+        "abilities": [
+          "[ model.ability.canRecruitUnit (model.nationType.default) = true ]",
+          "[ model.ability.electFoundingFather (model.nationType.default) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.default) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.nativeConvertBonus (model.nationType.conquest) PERCENTAGE 200.0 index=0]",
+          "[Modifier model.modifier.offenceAgainst (model.nationType.conquest) PERCENTAGE 50.0 index=50 [ [Scope null isIndian=true matches-null] ]]"
+        ]
+      },
+      "model.nationType.cooperation": {
+        "abilities": [
+          "[ model.ability.canRecruitUnit (model.nationType.default) = true ]",
+          "[ model.ability.electFoundingFather (model.nationType.default) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.default) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.nativeAlarmModifier (model.nationType.cooperation) PERCENTAGE -50.0 index=0]"
+        ]
+      },
+      "model.nationType.default": {
+        "abilities": [
+          "[ model.ability.canRecruitUnit (model.nationType.default) = true ]",
+          "[ model.ability.electFoundingFather (model.nationType.default) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.default) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.nationType.furTrapping": {
+        "abilities": [
+          "[ model.ability.canRecruitUnit (model.nationType.default) = true ]",
+          "[ model.ability.electFoundingFather (model.nationType.default) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.default) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.goods.coats (model.nationType.furTrapping) ADDITIVE 2.0 index=80 [ [Scope null model.ability.person=true matches-null] ]]",
+          "[Modifier model.goods.furs (model.nationType.furTrapping) ADDITIVE 2.0 index=80]"
+        ]
+      },
+      "model.nationType.immigration": {
+        "abilities": [
+          "[ model.ability.canRecruitUnit (model.nationType.default) = true ]",
+          "[ model.ability.electFoundingFather (model.nationType.default) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.default) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.religiousUnrestBonus (model.nationType.immigration) PERCENTAGE -33.0 index=0]"
+        ]
+      },
+      "model.nationType.inca": {
+        "abilities": [
+          "[ model.ability.ambushBonus (model.nationType.inca) = true ]",
+          "[ model.ability.automaticEquipment (model.nationType.inca) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.inca) = false ]",
+          "[ model.ability.native (model.nationType.inca) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.nationType.iroquois": {
+        "abilities": [
+          "[ model.ability.ambushBonus (model.nationType.iroquois) = true ]",
+          "[ model.ability.automaticEquipment (model.nationType.iroquois) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.iroquois) = false ]",
+          "[ model.ability.native (model.nationType.iroquois) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.nationType.naval": {
+        "abilities": [
+          "[ model.ability.canRecruitUnit (model.nationType.default) = true ]",
+          "[ model.ability.electFoundingFather (model.nationType.default) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.default) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.movementBonus (model.nationType.naval) ADDITIVE 3.0 index=0 [ [Scope null model.ability.navalUnit=true matches-null] ]]"
+        ]
+      },
+      "model.nationType.optionOnly": {
+        "abilities": [
+          "[ model.ability.canRecruitUnit (model.nationType.default) = true ]",
+          "[ model.ability.dressMissionary (model.nationType.optionOnly) = true ]",
+          "[ model.ability.electFoundingFather (model.nationType.default) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.default) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.nationType.ref": {
+        "abilities": [
+          "[ model.ability.ambushPenalty (model.nationType.ref) = true ]",
+          "[ model.ability.independentNation (model.nationType.ref) = true ]",
+          "[ model.ability.royalExpeditionaryForce (model.nationType.ref) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.bombardBonus (model.nationType.ref) PERCENTAGE 50.0 index=50]"
+        ]
+      },
+      "model.nationType.sioux": {
+        "abilities": [
+          "[ model.ability.ambushBonus (model.nationType.sioux) = true ]",
+          "[ model.ability.automaticEquipment (model.nationType.sioux) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.sioux) = false ]",
+          "[ model.ability.native (model.nationType.sioux) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.nationType.trade": {
+        "abilities": [
+          "[ model.ability.canRecruitUnit (model.nationType.default) = true ]",
+          "[ model.ability.electFoundingFather (model.nationType.default) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.default) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.tradeBonus (model.nationType.trade) PERCENTAGE -50.0 index=0]"
+        ]
+      },
+      "model.nationType.tupi": {
+        "abilities": [
+          "[ model.ability.ambushBonus (model.nationType.tupi) = true ]",
+          "[ model.ability.automaticEquipment (model.nationType.tupi) = true ]",
+          "[ model.ability.foundsColonies (model.nationType.tupi) = false ]",
+          "[ model.ability.native (model.nationType.tupi) = true ]"
+        ],
+        "modifiers": []
+      }
+    },
+    "optionGroups": {
+      "difficultyLevels": {
+        "editable": true,
+        "group": "",
+        "id": "difficultyLevels",
+        "options": [
+          "model.difficulty.veryEasy",
+          "model.difficulty.easy",
+          "model.difficulty.medium",
+          "model.difficulty.hard",
+          "model.difficulty.veryHard",
+          "model.difficulty.custom"
+        ],
+        "visible": true
+      },
+      "gameOptions": {
+        "editable": true,
+        "group": "",
+        "id": "gameOptions",
+        "options": [
+          "gameOptions.map",
+          "gameOptions.colony",
+          "gameOptions.victoryConditions",
+          "gameOptions.years"
+        ],
+        "visible": true
+      },
+      "gameOptions.colony": {
+        "editable": true,
+        "group": "gameOptions",
+        "id": "gameOptions.colony",
+        "options": [
+          "model.option.bellAccumulationCapped",
+          "model.option.captureUnitsUnderRepair",
+          "model.option.customIgnoreBoycott",
+          "model.option.customsOnCoast",
+          "model.option.disembarkInColony",
+          "model.option.expertsHaveConnections",
+          "model.option.foundColonyDuringRebellion",
+          "model.option.payForBuilding",
+          "model.option.saveProductionOverflow",
+          "model.option.clearHammersOnConstructionSwitch",
+          "model.option.allowStudentSelection",
+          "model.option.claimAllTiles",
+          "model.option.enableUpkeep",
+          "model.option.onlyNaturalImprovements",
+          "model.option.naturalDisasters"
+        ],
+        "visible": true
+      },
+      "gameOptions.map": {
+        "editable": true,
+        "group": "gameOptions",
+        "id": "gameOptions.map",
+        "options": [
+          "model.option.turnsToSail",
+          "model.option.settlementLimitModifier",
+          "model.option.fogOfWar",
+          "model.option.explorationPoints",
+          "model.option.amphibiousMoves",
+          "model.option.emptyTraders",
+          "model.option.settlementActionsContactChief",
+          "model.option.enhancedMissionaries",
+          "model.option.missionInfluence",
+          "model.option.giftProbability",
+          "model.option.demandProbability",
+          "model.option.alarmBonusBuy",
+          "model.option.alarmBonusSell",
+          "model.option.alarmBonusGift",
+          "model.option.settlementNumberOfGoodsToSell",
+          "model.option.continueFoundingFatherRecruitment",
+          "model.option.teleportREF",
+          "model.option.mapDefinedStartingPositions",
+          "model.option.startingPositions",
+          "model.option.initialImmigration",
+          "model.option.peaceProbability",
+          "model.option.europeanUnitImmigrationPenalty",
+          "model.option.playerImmigrationBonus",
+          "model.option.equipEuropeanRecruits",
+          "model.option.enhancedTradeRoutes"
+        ],
+        "visible": true
+      },
+      "gameOptions.victoryConditions": {
+        "editable": true,
+        "group": "gameOptions",
+        "id": "gameOptions.victoryConditions",
+        "options": [
+          "model.option.victoryDefeatREF",
+          "model.option.victoryDefeatEuropeans",
+          "model.option.victoryDefeatHumans"
+        ],
+        "visible": true
+      },
+      "gameOptions.years": {
+        "editable": true,
+        "group": "gameOptions",
+        "id": "gameOptions.years",
+        "options": [
+          "model.option.startingYear",
+          "model.option.seasonYear",
+          "model.option.mandatoryColonyYear",
+          "model.option.lastYear",
+          "model.option.lastColonialYear",
+          "model.option.independenceTurn",
+          "model.option.ages",
+          "model.option.seasons"
+        ],
+        "visible": true
+      },
+      "mapGeneratorOptions": {
+        "editable": true,
+        "group": "",
+        "id": "mapGeneratorOptions",
+        "options": [
+          "mapGeneratorOptions.import",
+          "mapGeneratorOptions.landGenerator",
+          "mapGeneratorOptions.terrainGenerator"
+        ],
+        "visible": true
+      },
+      "mapGeneratorOptions.import": {
+        "editable": true,
+        "group": "mapGeneratorOptions",
+        "id": "mapGeneratorOptions.import",
+        "options": [
+          "model.option.importFile",
+          "model.option.importTerrain",
+          "model.option.importBonuses",
+          "model.option.importRumours",
+          "model.option.importSettlements"
+        ],
+        "visible": true
+      },
+      "mapGeneratorOptions.landGenerator": {
+        "editable": true,
+        "group": "mapGeneratorOptions",
+        "id": "mapGeneratorOptions.landGenerator",
+        "options": [
+          "model.option.mapWidth",
+          "model.option.mapHeight",
+          "model.option.landMass",
+          "model.option.landGeneratorType",
+          "model.option.preferredDistanceToEdge",
+          "model.option.maximumDistanceToEdge",
+          "model.option.distanceToHighSea"
+        ],
+        "visible": true
+      },
+      "mapGeneratorOptions.terrainGenerator": {
+        "editable": true,
+        "group": "mapGeneratorOptions",
+        "id": "mapGeneratorOptions.terrainGenerator",
+        "options": [
+          "model.option.minimumLatitude",
+          "model.option.maximumLatitude",
+          "mapGeneratorOptions.enableGreatRivers",
+          "model.option.riverNumber",
+          "model.option.mountainNumber",
+          "model.option.rumourNumber",
+          "model.option.forestNumber",
+          "model.option.bonusNumber",
+          "model.option.humidity",
+          "model.option.temperature"
+        ],
+        "visible": true
+      },
+      "model.difficulty.cheat": {
+        "editable": false,
+        "group": "model.difficulty.medium",
+        "id": "model.difficulty.cheat",
+        "options": [
+          "model.option.liftBoycottCheat",
+          "model.option.equipScoutCheat",
+          "model.option.equipPioneerCheat",
+          "model.option.landUnitCheat",
+          "model.option.offensiveLandUnitCheat",
+          "model.option.offensiveNavalUnitCheat",
+          "model.option.transportNavalUnitCheat",
+          "model.option.tradeProfitMultiplierCheat",
+          "model.option.tradeProfitMultiplierCheatTurns"
+        ],
+        "visible": true
+      },
+      "model.difficulty.custom": {
+        "editable": true,
+        "group": "difficultyLevels",
+        "id": "model.difficulty.custom",
+        "options": [
+          "model.difficulty.immigration",
+          "model.difficulty.natives",
+          "model.difficulty.monarch",
+          "model.difficulty.government",
+          "model.difficulty.other",
+          "model.difficulty.cheat"
+        ],
+        "visible": true
+      },
+      "model.difficulty.easy": {
+        "editable": false,
+        "group": "difficultyLevels",
+        "id": "model.difficulty.easy",
+        "options": [
+          "model.difficulty.immigration",
+          "model.difficulty.natives",
+          "model.difficulty.monarch",
+          "model.difficulty.government",
+          "model.difficulty.other",
+          "model.difficulty.cheat"
+        ],
+        "visible": true
+      },
+      "model.difficulty.government": {
+        "editable": false,
+        "group": "model.difficulty.medium",
+        "id": "model.difficulty.government",
+        "options": [
+          "model.option.badGovernmentLimit",
+          "model.option.veryBadGovernmentLimit",
+          "model.option.goodGovernmentLimit",
+          "model.option.veryGoodGovernmentLimit"
+        ],
+        "visible": true
+      },
+      "model.difficulty.hard": {
+        "editable": false,
+        "group": "difficultyLevels",
+        "id": "model.difficulty.hard",
+        "options": [
+          "model.difficulty.immigration",
+          "model.difficulty.natives",
+          "model.difficulty.monarch",
+          "model.difficulty.government",
+          "model.difficulty.other",
+          "model.difficulty.cheat"
+        ],
+        "visible": true
+      },
+      "model.difficulty.immigration": {
+        "editable": false,
+        "group": "model.difficulty.medium",
+        "id": "model.difficulty.immigration",
+        "options": [
+          "model.option.crossesIncrement",
+          "model.option.recruitPriceIncrease",
+          "model.option.lowerCapIncrease",
+          "model.option.priceIncrease.artillery",
+          "model.option.priceIncreasePerType",
+          "model.option.expertStartingUnits",
+          "model.option.immigrants"
+        ],
+        "visible": true
+      },
+      "model.difficulty.medium": {
+        "editable": false,
+        "group": "difficultyLevels",
+        "id": "model.difficulty.medium",
+        "options": [
+          "model.difficulty.immigration",
+          "model.difficulty.natives",
+          "model.difficulty.monarch",
+          "model.difficulty.government",
+          "model.difficulty.other",
+          "model.difficulty.cheat"
+        ],
+        "visible": true
+      },
+      "model.difficulty.monarch": {
+        "editable": false,
+        "group": "model.difficulty.medium",
+        "id": "model.difficulty.monarch",
+        "options": [
+          "model.option.monarchMeddling",
+          "model.option.taxAdjustment",
+          "model.option.mercenaryPrice",
+          "model.option.maximumTax",
+          "model.option.monarchSupport",
+          "model.option.treasureTransportFee",
+          "model.option.interventionBells",
+          "model.option.interventionTurns",
+          "model.option.refSize",
+          "model.option.interventionForce",
+          "model.option.mercenaryForce",
+          "model.option.warSupportForce",
+          "model.option.warSupportGold"
+        ],
+        "visible": true
+      },
+      "model.difficulty.natives": {
+        "editable": false,
+        "group": "model.difficulty.medium",
+        "id": "model.difficulty.natives",
+        "options": [
+          "model.option.landPriceFactor",
+          "model.option.nativeConvertProbability",
+          "model.option.burnProbability",
+          "model.option.nativeDemands",
+          "model.option.rumourDifficulty",
+          "model.option.shipTradePenalty",
+          "model.option.destroySettlementScore",
+          "model.option.buildOnNativeLand",
+          "model.option.settlementNumber"
+        ],
+        "visible": true
+      },
+      "model.difficulty.other": {
+        "editable": false,
+        "group": "model.difficulty.medium",
+        "id": "model.difficulty.other",
+        "options": [
+          "model.option.startingMoney",
+          "model.option.foundingFatherFactor",
+          "model.option.arrearsFactor",
+          "model.option.unitsThatUseNoBells",
+          "model.option.tileProduction",
+          "model.option.badRumour",
+          "model.option.goodRumour"
+        ],
+        "visible": true
+      },
+      "model.difficulty.veryEasy": {
+        "editable": false,
+        "group": "difficultyLevels",
+        "id": "model.difficulty.veryEasy",
+        "options": [
+          "model.difficulty.immigration",
+          "model.difficulty.natives",
+          "model.difficulty.monarch",
+          "model.difficulty.government",
+          "model.difficulty.other",
+          "model.difficulty.cheat"
+        ],
+        "visible": true
+      },
+      "model.difficulty.veryHard": {
+        "editable": false,
+        "group": "difficultyLevels",
+        "id": "model.difficulty.veryHard",
+        "options": [
+          "model.difficulty.immigration",
+          "model.difficulty.natives",
+          "model.difficulty.monarch",
+          "model.difficulty.government",
+          "model.difficulty.other",
+          "model.difficulty.cheat"
+        ],
+        "visible": true
+      }
+    },
+    "options": {
+      "mapGeneratorOptions.enableGreatRivers": "BooleanOption [mapGeneratorOptions.enableGreatRivers value=false]",
+      "model.option.ages": "TextOption [model.option.ages value=1600,1700]",
+      "model.option.alarmBonusBuy": "PercentageOption [model.option.alarmBonusBuy 20%]",
+      "model.option.alarmBonusGift": "PercentageOption [model.option.alarmBonusGift 40%]",
+      "model.option.alarmBonusSell": "PercentageOption [model.option.alarmBonusSell 20%]",
+      "model.option.allowStudentSelection": "BooleanOption [model.option.allowStudentSelection value=false]",
+      "model.option.amphibiousMoves": "BooleanOption [model.option.amphibiousMoves value=false]",
+      "model.option.arrearsFactor": "IntegerOption [model.option.arrearsFactor value=500]",
+      "model.option.badGovernmentLimit": "IntegerOption [model.option.badGovernmentLimit value=6]",
+      "model.option.badRumour": "PercentageOption [model.option.badRumour 23%]",
+      "model.option.bellAccumulationCapped": "BooleanOption [model.option.bellAccumulationCapped value=true]",
+      "model.option.bonusNumber": "RangeOption [model.option.bonusNumber value=10 localized=true]",
+      "model.option.buildOnNativeLand": "StringOption [model.option.buildOnNativeLand value=model.option.buildOnNativeLand.firstAndUncontacted choices=[]]",
+      "model.option.burnProbability": "IntegerOption [model.option.burnProbability value=6]",
+      "model.option.captureUnitsUnderRepair": "BooleanOption [model.option.captureUnitsUnderRepair value=false]",
+      "model.option.claimAllTiles": "BooleanOption [model.option.claimAllTiles value=true]",
+      "model.option.clearHammersOnConstructionSwitch": "BooleanOption [model.option.clearHammersOnConstructionSwitch value=false]",
+      "model.option.continueFoundingFatherRecruitment": "BooleanOption [model.option.continueFoundingFatherRecruitment value=false]",
+      "model.option.crossesIncrement": "IntegerOption [model.option.crossesIncrement value=2]",
+      "model.option.customIgnoreBoycott": "BooleanOption [model.option.customIgnoreBoycott value=true]",
+      "model.option.customsOnCoast": "BooleanOption [model.option.customsOnCoast value=false]",
+      "model.option.demandProbability": "PercentageOption [model.option.demandProbability 10%]",
+      "model.option.destroySettlementScore": "IntegerOption [model.option.destroySettlementScore value=-4]",
+      "model.option.disembarkInColony": "BooleanOption [model.option.disembarkInColony value=true]",
+      "model.option.distanceToHighSea": "IntegerOption [model.option.distanceToHighSea value=4 min=3 max=10]",
+      "model.option.emptyTraders": "BooleanOption [model.option.emptyTraders value=false]",
+      "model.option.enableUpkeep": "BooleanOption [model.option.enableUpkeep value=false]",
+      "model.option.enhancedMissionaries": "BooleanOption [model.option.enhancedMissionaries value=false]",
+      "model.option.enhancedTradeRoutes": "BooleanOption [model.option.enhancedTradeRoutes value=false]",
+      "model.option.equipEuropeanRecruits": "BooleanOption [model.option.equipEuropeanRecruits value=true]",
+      "model.option.equipPioneerCheat": "IntegerOption [model.option.equipPioneerCheat value=10]",
+      "model.option.equipScoutCheat": "IntegerOption [model.option.equipScoutCheat value=10]",
+      "model.option.europeanUnitImmigrationPenalty": "IntegerOption [model.option.europeanUnitImmigrationPenalty value=-4 min=-100 max=0]",
+      "model.option.expertStartingUnits": "BooleanOption [model.option.expertStartingUnits value=false]",
+      "model.option.expertsHaveConnections": "BooleanOption [model.option.expertsHaveConnections value=true]",
+      "model.option.explorationPoints": "BooleanOption [model.option.explorationPoints value=false]",
+      "model.option.fogOfWar": "BooleanOption [model.option.fogOfWar value=true]",
+      "model.option.forestNumber": "RangeOption [model.option.forestNumber value=50 localized=true]",
+      "model.option.foundColonyDuringRebellion": "BooleanOption [model.option.foundColonyDuringRebellion value=false]",
+      "model.option.foundingFatherFactor": "IntegerOption [model.option.foundingFatherFactor value=40]",
+      "model.option.giftProbability": "PercentageOption [model.option.giftProbability 5%]",
+      "model.option.goodGovernmentLimit": "IntegerOption [model.option.goodGovernmentLimit value=50]",
+      "model.option.goodRumour": "PercentageOption [model.option.goodRumour 48%]",
+      "model.option.humidity": "RangeOption [model.option.humidity value=40 localized=true]",
+      "model.option.immigrants": "UnitListOption [model.option.immigrants [ [model.option.immigrants.1 1 model.unit.masterCarpenter (model.role.default) [model.option.immigrants.1.unitType value=model.unit.masterCarpenter addNone=false selector=null choices=[ model.unit.masterCarpenter ]] [model.option.immigrants.1.role value=model.role.default choices=[ model.role.default]] [model.option.immigrants.1.number value=1]] ]]",
+      "model.option.importBonuses": "BooleanOption [model.option.importBonuses value=false]",
+      "model.option.importFile": "FileOption [model.option.importFile value=null type=map]",
+      "model.option.importRumours": "BooleanOption [model.option.importRumours value=false]",
+      "model.option.importSettlements": "BooleanOption [model.option.importSettlements value=false]",
+      "model.option.importTerrain": "BooleanOption [model.option.importTerrain value=true]",
+      "model.option.independenceTurn": "IntegerOption [model.option.independenceTurn value=468 min=308]",
+      "model.option.initialImmigration": "IntegerOption [model.option.initialImmigration value=15 min=0 max=99]",
+      "model.option.interventionBells": "IntegerOption [model.option.interventionBells value=5000]",
+      "model.option.interventionForce": "UnitListOption [model.option.interventionForce [ [model.option.interventionForce.regulars 2 model.unit.colonialRegular (model.role.soldier) [model.option.interventionForce.regulars.unitType value=model.unit.colonialRegular addNone=false selector=null choices=[ model.unit.colonialRegular ]] [model.option.interventionForce.regulars.role value=model.role.soldier choices=[ model.role.soldier]] [model.option.interventionForce.regulars.number value=2]] [model.option.interventionForce.dragoons 2 model.unit.colonialRegular (model.role.dragoon) [model.option.interventionForce.dragoons.unitType value=model.unit.colonialRegular addNone=false selector=null choices=[ model.unit.colonialRegular ]] [model.option.interventionForce.dragoons.role value=model.role.dragoon choices=[ model.role.dragoon]] [model.option.interventionForce.dragoons.number value=2]] [model.option.interventionForce.artillery 2 model.unit.artillery (model.role.default) [model.option.interventionForce.artillery.unitType value=model.unit.artillery addNone=false selector=null choices=[ model.unit.artillery ]] [model.option.interventionForce.artillery.role value=model.role.default choices=[ model.role.default]] [model.option.interventionForce.artillery.number value=2]] [model.option.interventionForce.menOfWar 2 model.unit.manOWar (model.role.default) [model.option.interventionForce.menOfWar.unitType value=model.unit.manOWar addNone=false selector=null choices=[ model.unit.manOWar ]] [model.option.interventionForce.menOfWar.role value=model.role.default choices=[ model.role.default]] [model.option.interventionForce.menOfWar.number value=2]] ]]",
+      "model.option.interventionTurns": "IntegerOption [model.option.interventionTurns value=52]",
+      "model.option.landGeneratorType": "SelectOption [model.option.landGeneratorType value=0 localized=true]",
+      "model.option.landMass": "IntegerOption [model.option.landMass value=25 min=15 max=50]",
+      "model.option.landPriceFactor": "IntegerOption [model.option.landPriceFactor value=60]",
+      "model.option.landUnitCheat": "IntegerOption [model.option.landUnitCheat value=10]",
+      "model.option.lastColonialYear": "IntegerOption [model.option.lastColonialYear value=1800 min=1492 max=1900]",
+      "model.option.lastYear": "IntegerOption [model.option.lastYear value=1850 min=1492 max=1900]",
+      "model.option.liftBoycottCheat": "IntegerOption [model.option.liftBoycottCheat value=10]",
+      "model.option.lowerCapIncrease": "IntegerOption [model.option.lowerCapIncrease value=0]",
+      "model.option.mandatoryColonyYear": "IntegerOption [model.option.mandatoryColonyYear value=1600 min=1492 max=1900]",
+      "model.option.mapDefinedStartingPositions": "BooleanOption [model.option.mapDefinedStartingPositions value=true]",
+      "model.option.mapHeight": "IntegerOption [model.option.mapHeight value=100 min=20 max=200]",
+      "model.option.mapWidth": "IntegerOption [model.option.mapWidth value=40 min=30 max=200]",
+      "model.option.maximumDistanceToEdge": "IntegerOption [model.option.maximumDistanceToEdge value=10 min=5 max=20]",
+      "model.option.maximumLatitude": "IntegerOption [model.option.maximumLatitude value=90 min=-90 max=90]",
+      "model.option.maximumTax": "IntegerOption [model.option.maximumTax value=65]",
+      "model.option.mercenaryForce": "UnitListOption [model.option.mercenaryForce [ [model.option.mercenaryForce.regulars 3 model.unit.veteranSoldier (model.role.soldier) [model.option.mercenaryForce.regulars.unitType value=model.unit.veteranSoldier addNone=false selector=null choices=[ model.unit.veteranSoldier ]] [model.option.mercenaryForce.regulars.role value=model.role.soldier choices=[ model.role.soldier]] [model.option.mercenaryForce.regulars.number value=3]] [model.option.mercenaryForce.dragoons 3 model.unit.veteranSoldier (model.role.dragoon) [model.option.mercenaryForce.dragoons.unitType value=model.unit.veteranSoldier addNone=false selector=null choices=[ model.unit.veteranSoldier ]] [model.option.mercenaryForce.dragoons.role value=model.role.dragoon choices=[ model.role.dragoon]] [model.option.mercenaryForce.dragoons.number value=3]] [model.option.mercenaryForce.artillery 3 model.unit.artillery (model.role.default) [model.option.mercenaryForce.artillery.unitType value=model.unit.artillery addNone=false selector=null choices=[ model.unit.artillery ]] [model.option.mercenaryForce.artillery.role value=model.role.default choices=[ model.role.default]] [model.option.mercenaryForce.artillery.number value=3]] [model.option.mercenaryForce.menOfWar 2 model.unit.manOWar (model.role.default) [model.option.mercenaryForce.menOfWar.unitType value=model.unit.manOWar addNone=false selector=null choices=[ model.unit.manOWar ]] [model.option.mercenaryForce.menOfWar.role value=model.role.default choices=[ model.role.default]] [model.option.mercenaryForce.menOfWar.number value=2]] ]]",
+      "model.option.mercenaryPrice": "IntegerOption [model.option.mercenaryPrice value=65]",
+      "model.option.minimumLatitude": "IntegerOption [model.option.minimumLatitude value=-90 min=-90 max=90]",
+      "model.option.missionInfluence": "IntegerOption [model.option.missionInfluence value=-10 min=-1000 max=0]",
+      "model.option.monarchMeddling": "IntegerOption [model.option.monarchMeddling value=2]",
+      "model.option.monarchSupport": "IntegerOption [model.option.monarchSupport value=2]",
+      "model.option.mountainNumber": "RangeOption [model.option.mountainNumber value=10 localized=true]",
+      "model.option.nativeConvertProbability": "IntegerOption [model.option.nativeConvertProbability value=30]",
+      "model.option.nativeDemands": "IntegerOption [model.option.nativeDemands value=2]",
+      "model.option.naturalDisasters": "PercentageOption [model.option.naturalDisasters 0%]",
+      "model.option.offensiveLandUnitCheat": "IntegerOption [model.option.offensiveLandUnitCheat value=4]",
+      "model.option.offensiveNavalUnitCheat": "IntegerOption [model.option.offensiveNavalUnitCheat value=10]",
+      "model.option.onlyNaturalImprovements": "BooleanOption [model.option.onlyNaturalImprovements value=true]",
+      "model.option.payForBuilding": "BooleanOption [model.option.payForBuilding value=true]",
+      "model.option.peaceProbability": "PercentageOption [model.option.peaceProbability 90%]",
+      "model.option.playerImmigrationBonus": "IntegerOption [model.option.playerImmigrationBonus value=2 min=0]",
+      "model.option.preferredDistanceToEdge": "IntegerOption [model.option.preferredDistanceToEdge value=5 min=1 max=10]",
+      "model.option.priceIncrease.artillery": "IntegerOption [model.option.priceIncrease.artillery value=100]",
+      "model.option.priceIncreasePerType": "BooleanOption [model.option.priceIncreasePerType value=true]",
+      "model.option.recruitPriceIncrease": "IntegerOption [model.option.recruitPriceIncrease value=30]",
+      "model.option.refSize": "UnitListOption [model.option.refSize [ [model.option.refSize.soldiers 31 model.unit.kingsRegular (model.role.infantry) [model.option.refSize.soldiers.unitType value=model.unit.kingsRegular addNone=false selector=null choices=[ model.unit.kingsRegular ]] [model.option.refSize.soldiers.role value=model.role.infantry choices=[ model.role.infantry]] [model.option.refSize.soldiers.number value=31]] [model.option.refSize.dragoons 15 model.unit.kingsRegular (model.role.cavalry) [model.option.refSize.dragoons.unitType value=model.unit.kingsRegular addNone=false selector=null choices=[ model.unit.kingsRegular ]] [model.option.refSize.dragoons.role value=model.role.cavalry choices=[ model.role.cavalry]] [model.option.refSize.dragoons.number value=15]] [model.option.refSize.artillery 14 model.unit.artillery (model.role.default) [model.option.refSize.artillery.unitType value=model.unit.artillery addNone=false selector=null choices=[ model.unit.artillery ]] [model.option.refSize.artillery.role value=model.role.default choices=[ model.role.default]] [model.option.refSize.artillery.number value=14]] [model.option.refSize.menOfWar 8 model.unit.manOWar (model.role.default) [model.option.refSize.menOfWar.unitType value=model.unit.manOWar addNone=false selector=null choices=[ model.unit.manOWar ]] [model.option.refSize.menOfWar.role value=model.role.default choices=[ model.role.default]] [model.option.refSize.menOfWar.number value=8]] ]]",
+      "model.option.riverNumber": "RangeOption [model.option.riverNumber value=15 localized=true]",
+      "model.option.rumourDifficulty": "IntegerOption [model.option.rumourDifficulty value=2]",
+      "model.option.rumourNumber": "RangeOption [model.option.rumourNumber value=35 localized=true]",
+      "model.option.saveProductionOverflow": "BooleanOption [model.option.saveProductionOverflow value=true]",
+      "model.option.seasonYear": "IntegerOption [model.option.seasonYear value=1600 min=1492 max=1900]",
+      "model.option.seasons": "IntegerOption [model.option.seasons value=2 min=2 max=366]",
+      "model.option.settlementActionsContactChief": "BooleanOption [model.option.settlementActionsContactChief value=false]",
+      "model.option.settlementLimitModifier": "IntegerOption [model.option.settlementLimitModifier value=0]",
+      "model.option.settlementNumber": "RangeOption [model.option.settlementNumber value=7 localized=true]",
+      "model.option.settlementNumberOfGoodsToSell": "IntegerOption [model.option.settlementNumberOfGoodsToSell value=3 min=1 max=99]",
+      "model.option.shipTradePenalty": "IntegerOption [model.option.shipTradePenalty value=-30]",
+      "model.option.startingMoney": "IntegerOption [model.option.startingMoney value=0]",
+      "model.option.startingPositions": "SelectOption [model.option.startingPositions value=0 localized=true]",
+      "model.option.startingYear": "IntegerOption [model.option.startingYear value=1492 min=1492 max=1900]",
+      "model.option.taxAdjustment": "IntegerOption [model.option.taxAdjustment value=2]",
+      "model.option.teleportREF": "BooleanOption [model.option.teleportREF value=true]",
+      "model.option.temperature": "RangeOption [model.option.temperature value=2 localized=true]",
+      "model.option.tileProduction": "StringOption [model.option.tileProduction value=medium choices=[]]",
+      "model.option.tradeProfitMultiplierCheat": "IntegerOption [model.option.tradeProfitMultiplierCheat value=4]",
+      "model.option.tradeProfitMultiplierCheatTurns": "IntegerOption [model.option.tradeProfitMultiplierCheatTurns value=200]",
+      "model.option.transportNavalUnitCheat": "IntegerOption [model.option.transportNavalUnitCheat value=4]",
+      "model.option.treasureTransportFee": "IntegerOption [model.option.treasureTransportFee value=60]",
+      "model.option.turnsToSail": "IntegerOption [model.option.turnsToSail value=3 min=1 max=10]",
+      "model.option.unitsThatUseNoBells": "IntegerOption [model.option.unitsThatUseNoBells value=2]",
+      "model.option.veryBadGovernmentLimit": "IntegerOption [model.option.veryBadGovernmentLimit value=10]",
+      "model.option.veryGoodGovernmentLimit": "IntegerOption [model.option.veryGoodGovernmentLimit value=100]",
+      "model.option.victoryDefeatEuropeans": "BooleanOption [model.option.victoryDefeatEuropeans value=true]",
+      "model.option.victoryDefeatHumans": "BooleanOption [model.option.victoryDefeatHumans value=false]",
+      "model.option.victoryDefeatREF": "BooleanOption [model.option.victoryDefeatREF value=true]",
+      "model.option.warSupportForce": "UnitListOption [model.option.warSupportForce [ [model.option.warSupportForce.veteranSoldier 4 model.unit.veteranSoldier (model.role.soldier) [model.option.warSupportForce.veteranSoldier.unitType value=model.unit.veteranSoldier addNone=false selector=null choices=[ model.unit.veteranSoldier ]] [model.option.warSupportForce.veteranSoldier.role value=model.role.soldier choices=[ model.role.soldier]] [model.option.warSupportForce.veteranSoldier.number value=4]] ]]",
+      "model.option.warSupportGold": "IntegerOption [model.option.warSupportGold value=1500]"
+    },
+    "roles": {
+      "model.role.armedBrave": {
+        "abilities": [
+          "[ model.ability.armed (model.role.armedBrave) = true ]",
+          "[ model.ability.disposeOnCombatLoss (model.role.armedBrave) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.role.armedBrave) ADDITIVE 1.0 index=30]",
+          "[Modifier model.modifier.offence (model.role.armedBrave) ADDITIVE 2.0 index=30]"
+        ]
+      },
+      "model.role.cavalry": {
+        "abilities": [
+          "[ model.ability.armed (model.role.cavalry) = true ]",
+          "[ model.ability.captureUnits (model.role.cavalry) = true ]",
+          "[ model.ability.demandTribute (model.role.cavalry) = true ]",
+          "[ model.ability.mounted (model.role.cavalry) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.role.cavalry) ADDITIVE 2.0 index=30]",
+          "[Modifier model.modifier.movementBonus (model.role.cavalry) ADDITIVE 9.0 index=0]",
+          "[Modifier model.modifier.offence (model.role.cavalry) ADDITIVE 3.0 index=30]"
+        ]
+      },
+      "model.role.default": {
+        "abilities": [],
+        "modifiers": []
+      },
+      "model.role.dragoon": {
+        "abilities": [
+          "[ model.ability.armed (model.role.dragoon) = true ]",
+          "[ model.ability.canBeCaptured (model.role.dragoon) = false ]",
+          "[ model.ability.captureUnits (model.role.dragoon) = true ]",
+          "[ model.ability.demandTribue (model.role.dragoon) = true ]",
+          "[ model.ability.mounted (model.role.dragoon) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.role.dragoon) ADDITIVE 2.0 index=30]",
+          "[Modifier model.modifier.movementBonus (model.role.dragoon) ADDITIVE 9.0 index=0]",
+          "[Modifier model.modifier.offence (model.role.dragoon) ADDITIVE 3.0 index=30]"
+        ]
+      },
+      "model.role.infantry": {
+        "abilities": [
+          "[ model.ability.armed (model.role.infantry) = true ]",
+          "[ model.ability.captureUnits (model.role.infantry) = true ]",
+          "[ model.ability.demandTribute (model.role.infantry) = true ]",
+          "[ model.ability.disposeOnCombatLoss (model.role.infantry) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.role.infantry) ADDITIVE 1.0 index=30]",
+          "[Modifier model.modifier.offence (model.role.infantry) ADDITIVE 2.0 index=30]"
+        ]
+      },
+      "model.role.missionary": {
+        "abilities": [
+          "[ model.ability.denounceHeresy (model.role.missionary) = true ]",
+          "[ model.ability.establishMission (model.role.missionary) = true ]",
+          "[ model.ability.inciteNatives (model.role.missionary) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.missionaryTradeBonus (model.role.missionary) PERCENTAGE 10.0 index=0]",
+          "[Modifier model.modifier.movementBonus (model.role.missionary) ADDITIVE 3.0 index=0]"
+        ]
+      },
+      "model.role.mountedBrave": {
+        "abilities": [
+          "[ model.ability.disposeOnCombatLoss (model.role.mountedBrave) = true ]",
+          "[ model.ability.mounted (model.role.mountedBrave) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.role.mountedBrave) ADDITIVE 1.0 index=30]",
+          "[Modifier model.modifier.movementBonus (model.role.mountedBrave) ADDITIVE 9.0 index=0]",
+          "[Modifier model.modifier.offence (model.role.mountedBrave) ADDITIVE 1.0 index=30]"
+        ]
+      },
+      "model.role.nativeDragoon": {
+        "abilities": [
+          "[ model.ability.armed (model.role.nativeDragoon) = true ]",
+          "[ model.ability.mounted (model.role.nativeDragoon) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.role.nativeDragoon) ADDITIVE 2.0 index=30]",
+          "[Modifier model.modifier.movementBonus (model.role.nativeDragoon) ADDITIVE 9.0 index=0]",
+          "[Modifier model.modifier.offence (model.role.nativeDragoon) ADDITIVE 3.0 index=30]"
+        ]
+      },
+      "model.role.pioneer": {
+        "abilities": [
+          "[ model.ability.disposeOnCombatLoss (model.role.pioneer) = true ]",
+          "[ model.ability.improveTerrain (model.role.pioneer) = true ]"
+        ],
+        "modifiers": []
+      },
+      "model.role.scout": {
+        "abilities": [
+          "[ model.ability.armed (model.role.scout) = true ]",
+          "[ model.ability.canBeCaptured (model.role.scout) = false ]",
+          "[ model.ability.captureUnits (model.role.scout) = true ]",
+          "[ model.ability.demandTribute (model.role.scout) = true ]",
+          "[ model.ability.disposeOnCombatLoss (model.role.scout) = true ]",
+          "[ model.ability.mounted (model.role.scout) = true ]",
+          "[ model.ability.negotiate (model.role.scout) = true ]",
+          "[ model.ability.speakWithChief (model.role.scout) = true ]",
+          "[ model.ability.spyOnColony (model.role.scout) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.role.scout) ADDITIVE 1.0 index=30]",
+          "[Modifier model.modifier.lineOfSightBonus (model.role.scout) ADDITIVE 1.0 index=0]",
+          "[Modifier model.modifier.movementBonus (model.role.scout) ADDITIVE 9.0 index=0]",
+          "[Modifier model.modifier.offence (model.role.scout) ADDITIVE 1.0 index=30]"
+        ]
+      },
+      "model.role.soldier": {
+        "abilities": [
+          "[ model.ability.armed (model.role.soldier) = true ]",
+          "[ model.ability.canBeCaptured (model.role.soldier) = false ]",
+          "[ model.ability.captureUnits (model.role.soldier) = true ]",
+          "[ model.ability.demandTribute (model.role.soldier) = true ]"
+        ],
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.role.soldier) ADDITIVE 1.0 index=30]",
+          "[Modifier model.modifier.offence (model.role.soldier) ADDITIVE 2.0 index=30]"
+        ]
+      }
+    },
+    "tileTypes": {
+      "model.tile.arctic": {
+        "abilities": [],
+        "basicMoveCost": 6,
+        "basicWorkTurns": 4,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [],
+        "potentialByDefaultUnit": {},
+        "potentialUnattended": {},
+        "resourceTypes": [],
+        "water": false
+      },
+      "model.tile.borealForest": {
+        "abilities": [
+          "[ model.ability.ambushTerrain (model.tile.borealForest) = true ]"
+        ],
+        "basicMoveCost": 6,
+        "basicWorkTurns": 4,
+        "elevation": false,
+        "forested": true,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.borealForest) PERCENTAGE 50.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.furs": 3,
+          "model.goods.grain": 2,
+          "model.goods.lumber": 4,
+          "model.goods.ore": 1
+        },
+        "potentialUnattended": {
+          "model.goods.furs": 3,
+          "model.goods.grain": 2
+        },
+        "resourceTypes": [
+          "model.resource.game"
+        ],
+        "water": false
+      },
+      "model.tile.broadleafForest": {
+        "abilities": [
+          "[ model.ability.ambushTerrain (model.tile.broadleafForest) = true ]"
+        ],
+        "basicMoveCost": 6,
+        "basicWorkTurns": 4,
+        "elevation": false,
+        "forested": true,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.broadleafForest) PERCENTAGE 50.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.cotton": 1,
+          "model.goods.furs": 2,
+          "model.goods.grain": 2,
+          "model.goods.lumber": 4
+        },
+        "potentialUnattended": {
+          "model.goods.furs": 2,
+          "model.goods.grain": 2
+        },
+        "resourceTypes": [
+          "model.resource.game"
+        ],
+        "water": false
+      },
+      "model.tile.coniferForest": {
+        "abilities": [
+          "[ model.ability.ambushTerrain (model.tile.coniferForest) = true ]"
+        ],
+        "basicMoveCost": 6,
+        "basicWorkTurns": 4,
+        "elevation": false,
+        "forested": true,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.coniferForest) PERCENTAGE 50.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.furs": 2,
+          "model.goods.grain": 2,
+          "model.goods.lumber": 6,
+          "model.goods.tobacco": 1
+        },
+        "potentialUnattended": {
+          "model.goods.furs": 2,
+          "model.goods.grain": 2
+        },
+        "resourceTypes": [
+          "model.resource.lumber"
+        ],
+        "water": false
+      },
+      "model.tile.desert": {
+        "abilities": [],
+        "basicMoveCost": 3,
+        "basicWorkTurns": 3,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [],
+        "potentialByDefaultUnit": {
+          "model.goods.cotton": 1,
+          "model.goods.grain": 2,
+          "model.goods.ore": 2
+        },
+        "potentialUnattended": {
+          "model.goods.grain": 1,
+          "model.goods.ore": 2
+        },
+        "resourceTypes": [
+          "model.resource.oasis"
+        ],
+        "water": false
+      },
+      "model.tile.grassland": {
+        "abilities": [],
+        "basicMoveCost": 3,
+        "basicWorkTurns": 3,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [],
+        "potentialByDefaultUnit": {
+          "model.goods.grain": 3,
+          "model.goods.tobacco": 3
+        },
+        "potentialUnattended": {
+          "model.goods.grain": 3,
+          "model.goods.tobacco": 3
+        },
+        "resourceTypes": [
+          "model.resource.tobacco"
+        ],
+        "water": false
+      },
+      "model.tile.greatRiver": {
+        "abilities": [],
+        "basicMoveCost": 3,
+        "basicWorkTurns": 4,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [],
+        "potentialByDefaultUnit": {
+          "model.goods.fish": 2
+        },
+        "potentialUnattended": {},
+        "resourceTypes": [
+          "model.resource.fish"
+        ],
+        "water": true
+      },
+      "model.tile.highSeas": {
+        "abilities": [
+          "[ model.ability.moveToEurope (model.tile.highSeas) = true ]"
+        ],
+        "basicMoveCost": 3,
+        "basicWorkTurns": 4,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [],
+        "potentialByDefaultUnit": {
+          "model.goods.fish": 2
+        },
+        "potentialUnattended": {},
+        "resourceTypes": [],
+        "water": true
+      },
+      "model.tile.hills": {
+        "abilities": [
+          "[ model.ability.ambushTerrain (model.tile.hills) = true ]"
+        ],
+        "basicMoveCost": 6,
+        "basicWorkTurns": 4,
+        "elevation": true,
+        "forested": false,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.hills) PERCENTAGE 100.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.grain": 2,
+          "model.goods.ore": 4
+        },
+        "potentialUnattended": {
+          "model.goods.grain": 2,
+          "model.goods.ore": 4
+        },
+        "resourceTypes": [
+          "model.resource.ore"
+        ],
+        "water": false
+      },
+      "model.tile.lake": {
+        "abilities": [],
+        "basicMoveCost": 3,
+        "basicWorkTurns": 4,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [],
+        "potentialByDefaultUnit": {
+          "model.goods.fish": 2
+        },
+        "potentialUnattended": {},
+        "resourceTypes": [
+          "model.resource.fish"
+        ],
+        "water": true
+      },
+      "model.tile.marsh": {
+        "abilities": [],
+        "basicMoveCost": 6,
+        "basicWorkTurns": 5,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.marsh) PERCENTAGE 25.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.grain": 3,
+          "model.goods.ore": 2,
+          "model.goods.tobacco": 2
+        },
+        "potentialUnattended": {
+          "model.goods.grain": 3,
+          "model.goods.tobacco": 2
+        },
+        "resourceTypes": [
+          "model.resource.minerals"
+        ],
+        "water": false
+      },
+      "model.tile.mixedForest": {
+        "abilities": [
+          "[ model.ability.ambushTerrain (model.tile.mixedForest) = true ]"
+        ],
+        "basicMoveCost": 6,
+        "basicWorkTurns": 4,
+        "elevation": false,
+        "forested": true,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.mixedForest) PERCENTAGE 50.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.cotton": 1,
+          "model.goods.furs": 3,
+          "model.goods.grain": 3,
+          "model.goods.lumber": 6
+        },
+        "potentialUnattended": {
+          "model.goods.furs": 3,
+          "model.goods.grain": 2
+        },
+        "resourceTypes": [
+          "model.resource.furs",
+          "model.resource.lumber"
+        ],
+        "water": false
+      },
+      "model.tile.mountains": {
+        "abilities": [
+          "[ model.ability.ambushTerrain (model.tile.mountains) = true ]"
+        ],
+        "basicMoveCost": 9,
+        "basicWorkTurns": 7,
+        "elevation": true,
+        "forested": false,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.mountains) PERCENTAGE 150.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.ore": 4,
+          "model.goods.silver": 1
+        },
+        "potentialUnattended": {},
+        "resourceTypes": [
+          "model.resource.silver"
+        ],
+        "water": false
+      },
+      "model.tile.ocean": {
+        "abilities": [],
+        "basicMoveCost": 3,
+        "basicWorkTurns": 4,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [],
+        "potentialByDefaultUnit": {
+          "model.goods.fish": 2
+        },
+        "potentialUnattended": {},
+        "resourceTypes": [
+          "model.resource.fish"
+        ],
+        "water": true
+      },
+      "model.tile.plains": {
+        "abilities": [],
+        "basicMoveCost": 3,
+        "basicWorkTurns": 3,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [],
+        "potentialByDefaultUnit": {
+          "model.goods.cotton": 2,
+          "model.goods.grain": 5,
+          "model.goods.ore": 1
+        },
+        "potentialUnattended": {
+          "model.goods.cotton": 2,
+          "model.goods.grain": 3
+        },
+        "resourceTypes": [
+          "model.resource.grain"
+        ],
+        "water": false
+      },
+      "model.tile.prairie": {
+        "abilities": [],
+        "basicMoveCost": 3,
+        "basicWorkTurns": 3,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [],
+        "potentialByDefaultUnit": {
+          "model.goods.cotton": 3,
+          "model.goods.grain": 3
+        },
+        "potentialUnattended": {
+          "model.goods.cotton": 3,
+          "model.goods.grain": 3
+        },
+        "resourceTypes": [
+          "model.resource.cotton"
+        ],
+        "water": false
+      },
+      "model.tile.rainForest": {
+        "abilities": [
+          "[ model.ability.ambushTerrain (model.tile.rainForest) = true ]"
+        ],
+        "basicMoveCost": 9,
+        "basicWorkTurns": 7,
+        "elevation": false,
+        "forested": true,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.rainForest) PERCENTAGE 75.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.furs": 1,
+          "model.goods.grain": 2,
+          "model.goods.lumber": 4,
+          "model.goods.ore": 1,
+          "model.goods.sugar": 1
+        },
+        "potentialUnattended": {
+          "model.goods.grain": 2,
+          "model.goods.sugar": 1
+        },
+        "resourceTypes": [
+          "model.resource.minerals"
+        ],
+        "water": false
+      },
+      "model.tile.savannah": {
+        "abilities": [],
+        "basicMoveCost": 3,
+        "basicWorkTurns": 3,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [],
+        "potentialByDefaultUnit": {
+          "model.goods.grain": 4,
+          "model.goods.sugar": 3
+        },
+        "potentialUnattended": {
+          "model.goods.grain": 3,
+          "model.goods.sugar": 3
+        },
+        "resourceTypes": [
+          "model.resource.sugar"
+        ],
+        "water": false
+      },
+      "model.tile.scrubForest": {
+        "abilities": [
+          "[ model.ability.ambushTerrain (model.tile.scrubForest) = true ]"
+        ],
+        "basicMoveCost": 3,
+        "basicWorkTurns": 4,
+        "elevation": false,
+        "forested": true,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.scrubForest) PERCENTAGE 50.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.cotton": 1,
+          "model.goods.furs": 2,
+          "model.goods.grain": 2,
+          "model.goods.lumber": 2,
+          "model.goods.ore": 1
+        },
+        "potentialUnattended": {
+          "model.goods.furs": 2,
+          "model.goods.grain": 1
+        },
+        "resourceTypes": [
+          "model.resource.oasis"
+        ],
+        "water": false
+      },
+      "model.tile.swamp": {
+        "abilities": [],
+        "basicMoveCost": 6,
+        "basicWorkTurns": 7,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.swamp) PERCENTAGE 25.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.grain": 3,
+          "model.goods.ore": 2,
+          "model.goods.sugar": 2
+        },
+        "potentialUnattended": {
+          "model.goods.grain": 3,
+          "model.goods.sugar": 2
+        },
+        "resourceTypes": [
+          "model.resource.minerals"
+        ],
+        "water": false
+      },
+      "model.tile.tropicalForest": {
+        "abilities": [
+          "[ model.ability.ambushTerrain (model.tile.tropicalForest) = true ]"
+        ],
+        "basicMoveCost": 6,
+        "basicWorkTurns": 6,
+        "elevation": false,
+        "forested": true,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.tropicalForest) PERCENTAGE 50.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.furs": 2,
+          "model.goods.grain": 3,
+          "model.goods.lumber": 4,
+          "model.goods.sugar": 1
+        },
+        "potentialUnattended": {
+          "model.goods.furs": 2,
+          "model.goods.grain": 2
+        },
+        "resourceTypes": [
+          "model.resource.lumber"
+        ],
+        "water": false
+      },
+      "model.tile.tundra": {
+        "abilities": [],
+        "basicMoveCost": 3,
+        "basicWorkTurns": 4,
+        "elevation": false,
+        "forested": false,
+        "modifiers": [],
+        "potentialByDefaultUnit": {
+          "model.goods.grain": 3,
+          "model.goods.ore": 2
+        },
+        "potentialUnattended": {
+          "model.goods.grain": 3,
+          "model.goods.ore": 2
+        },
+        "resourceTypes": [
+          "model.resource.minerals"
+        ],
+        "water": false
+      },
+      "model.tile.wetlandForest": {
+        "abilities": [
+          "[ model.ability.ambushTerrain (model.tile.wetlandForest) = true ]"
+        ],
+        "basicMoveCost": 9,
+        "basicWorkTurns": 6,
+        "elevation": false,
+        "forested": true,
+        "modifiers": [
+          "[Modifier model.modifier.defence (model.tile.wetlandForest) PERCENTAGE 50.0 index=50]"
+        ],
+        "potentialByDefaultUnit": {
+          "model.goods.furs": 2,
+          "model.goods.grain": 2,
+          "model.goods.lumber": 4,
+          "model.goods.ore": 1,
+          "model.goods.tobacco": 1
+        },
+        "potentialUnattended": {
+          "model.goods.furs": 2,
+          "model.goods.grain": 2
+        },
+        "resourceTypes": [
+          "model.resource.minerals"
+        ],
+        "water": false
+      }
+    },
+    "turnCalendar": {
+      "seasonNumber": 2,
+      "seasonYear": 1600,
+      "startingYear": 1492
+    },
+    "unitTypes": {
+      "model.unit.artillery": {
+        "abilities": [
+          "[ model.ability.bombard (model.unit.artillery) = true ]",
+          "[ model.ability.canBeSurrendered (model.unit.artillery) = true ]",
+          "[ model.ability.captureUnits (model.unit.artillery) = true ]",
+          "[ model.ability.foundColony (model.unit.artillery) = false ]",
+          "[ model.ability.mercenaryUnit (model.unit.artillery) = true ]",
+          "[ model.ability.refUnit (model.unit.artillery) = true ]",
+          "[ model.ability.supportUnit (model.unit.artillery) = true ]"
+        ],
+        "baseDefence": 5,
+        "baseOffence": 7,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 5.0,
+        "expertProduction": null,
+        "hitPoints": 6,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [],
+        "movement": 3,
+        "naval": false,
+        "offence": 7.0,
+        "person": false,
+        "price": 500,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:192",
+          "model.goods.tools:40"
+        ],
+        "requiredPopulation": 1,
+        "scoreValue": 2,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.artillery",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.brave": {
+        "abilities": [
+          "[ model.ability.bornInIndianSettlement (model.unit.brave) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.brave) = true ]",
+          "[ model.ability.captureEquipment (model.unit.brave) = true ]",
+          "[ model.ability.captureUnits (model.unit.brave) = false ]",
+          "[ model.ability.carryGoods (model.unit.brave) = true ]",
+          "[ model.ability.disposeOnCombatLoss (model.unit.brave) = true ]",
+          "[ model.ability.foundColony (model.unit.brave) = true ]",
+          "[ model.ability.person (model.unit.brave) = true ]",
+          "[ model.ability.pillageUnprotectedColony (model.unit.brave) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 1,
+        "consumedGoods": [
+          "model.goods.tradeGoods:1",
+          "model.goods.ore:1",
+          "model.goods.food:2",
+          "model.goods.cloth:1",
+          "model.goods.rum:1",
+          "model.goods.silver:1",
+          "model.goods.coats:1",
+          "model.goods.cigars:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [],
+        "movement": 3,
+        "naval": false,
+        "offence": 1.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {
+          "model.ability.native": true
+        },
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 0,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.brave",
+        "space": 1,
+        "spaceTaken": 2
+      },
+      "model.unit.caravel": {
+        "abilities": [
+          "[ model.ability.carryGoods (model.unit.caravel) = true ]",
+          "[ model.ability.carryUnits (model.unit.caravel) = true ]",
+          "[ model.ability.evadeAttack (model.unit.caravel) = true ]",
+          "[ model.ability.foundColony (model.unit.caravel) = false ]",
+          "[ model.ability.navalUnit (model.unit.caravel) = true ]"
+        ],
+        "baseDefence": 2,
+        "baseOffence": 0,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 2.0,
+        "expertProduction": null,
+        "hitPoints": 6,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.tradeVolumePenalty (model.unit.caravel) PERCENTAGE -75.0 index=0]"
+        ],
+        "movement": 12,
+        "naval": true,
+        "offence": 0.0,
+        "person": false,
+        "price": 1000,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:128",
+          "model.goods.tools:40"
+        ],
+        "requiredPopulation": 1,
+        "scoreValue": 3,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.caravel",
+        "space": 2,
+        "spaceTaken": 24
+      },
+      "model.unit.colonialRegular": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.colonialRegular) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.colonialRegular) = true ]",
+          "[ model.ability.demoteOnAllEquipLost (model.unit.colonialRegular) = true ]",
+          "[ model.ability.expertSoldier (model.unit.colonialRegular) = true ]",
+          "[ model.ability.foundColony (model.unit.colonialRegular) = true ]",
+          "[ model.ability.person (model.unit.colonialRegular) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 4.0,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.colonialRegular) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.colonialRegular) ADDITIVE 6.0 index=0]",
+          "[Modifier model.modifier.defence (model.unit.colonialRegular) ADDITIVE 3.0 index=20]",
+          "[Modifier model.modifier.offence (model.unit.colonialRegular) ADDITIVE 3.0 index=20]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 3.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {
+          "model.ability.independenceDeclared": true
+        },
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 0,
+        "skill": 3,
+        "skillTaught": "model.unit.veteranSoldier",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.damagedArtillery": {
+        "abilities": [
+          "[ model.ability.bombard (model.unit.damagedArtillery) = true ]",
+          "[ model.ability.captureUnits (model.unit.damagedArtillery) = true ]",
+          "[ model.ability.foundColony (model.unit.damagedArtillery) = false ]"
+        ],
+        "baseDefence": 3,
+        "baseOffence": 5,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 3.0,
+        "expertProduction": null,
+        "hitPoints": 6,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [],
+        "movement": 3,
+        "naval": false,
+        "offence": 5.0,
+        "person": false,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 1,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.damagedArtillery",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.elderStatesman": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.elderStatesman) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.elderStatesman) = true ]",
+          "[ model.ability.foundColony (model.unit.elderStatesman) = true ]",
+          "[ model.ability.person (model.unit.elderStatesman) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.bells",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.bells (model.unit.elderStatesman) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.elderStatesman) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.elderStatesman) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 1900,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 6,
+        "skill": 3,
+        "skillTaught": "model.unit.elderStatesman",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.expertFarmer": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.expertFarmer) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.expertFarmer) = true ]",
+          "[ model.ability.foundColony (model.unit.expertFarmer) = true ]",
+          "[ model.ability.person (model.unit.expertFarmer) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.grain",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.grain (model.unit.expertFarmer) ADDITIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.expertFarmer) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.expertFarmer) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 1100,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 4,
+        "skill": 1,
+        "skillTaught": "model.unit.expertFarmer",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.expertFisherman": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.expertFisherman) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.expertFisherman) = true ]",
+          "[ model.ability.foundColony (model.unit.expertFisherman) = true ]",
+          "[ model.ability.person (model.unit.expertFisherman) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.fish",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.fish (model.unit.expertFisherman) ADDITIVE 3.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.expertFisherman) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.expertFisherman) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 1000,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 4,
+        "skill": 1,
+        "skillTaught": "model.unit.expertFisherman",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.expertFurTrapper": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.expertFurTrapper) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.expertFurTrapper) = true ]",
+          "[ model.ability.foundColony (model.unit.expertFurTrapper) = true ]",
+          "[ model.ability.person (model.unit.expertFurTrapper) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.furs",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.furs (model.unit.expertFurTrapper) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.expertFurTrapper) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.expertFurTrapper) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 4,
+        "skill": 1,
+        "skillTaught": "model.unit.expertFurTrapper",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.expertLumberJack": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.expertLumberJack) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.expertLumberJack) = true ]",
+          "[ model.ability.foundColony (model.unit.expertLumberJack) = true ]",
+          "[ model.ability.person (model.unit.expertLumberJack) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.lumber",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.lumber (model.unit.expertLumberJack) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.expertLumberJack) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.expertLumberJack) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 700,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 4,
+        "skill": 1,
+        "skillTaught": "model.unit.expertLumberJack",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.expertOreMiner": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.expertOreMiner) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.expertOreMiner) = true ]",
+          "[ model.ability.foundColony (model.unit.expertOreMiner) = true ]",
+          "[ model.ability.person (model.unit.expertOreMiner) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.ore",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.ore (model.unit.expertOreMiner) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.expertOreMiner) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.expertOreMiner) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 600,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 4,
+        "skill": 1,
+        "skillTaught": "model.unit.expertOreMiner",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.expertSilverMiner": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.expertSilverMiner) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.expertSilverMiner) = true ]",
+          "[ model.ability.foundColony (model.unit.expertSilverMiner) = true ]",
+          "[ model.ability.person (model.unit.expertSilverMiner) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.silver",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.silver (model.unit.expertSilverMiner) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.expertSilverMiner) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.expertSilverMiner) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 900,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 4,
+        "skill": 1,
+        "skillTaught": "model.unit.expertSilverMiner",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.firebrandPreacher": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.firebrandPreacher) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.firebrandPreacher) = true ]",
+          "[ model.ability.foundColony (model.unit.firebrandPreacher) = true ]",
+          "[ model.ability.person (model.unit.firebrandPreacher) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.crosses",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.crosses (model.unit.firebrandPreacher) ADDITIVE 3.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.firebrandPreacher) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.firebrandPreacher) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 1500,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 6,
+        "skill": 3,
+        "skillTaught": "model.unit.firebrandPreacher",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.flyingDutchman": {
+        "abilities": [
+          "[ model.ability.captureGoods (model.unit.flyingDutchman) = true ]",
+          "[ model.ability.carryGoods (model.unit.flyingDutchman) = true ]",
+          "[ model.ability.carryUnits (model.unit.flyingDutchman) = true ]",
+          "[ model.ability.evadeAttack (model.unit.flyingDutchman) = true ]",
+          "[ model.ability.foundColony (model.unit.flyingDutchman) = false ]",
+          "[ model.ability.navalUnit (model.unit.flyingDutchman) = true ]",
+          "[ model.ability.undead (model.unit.flyingDutchman) = true ]"
+        ],
+        "baseDefence": 666,
+        "baseOffence": 666,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 666.0,
+        "expertProduction": null,
+        "hitPoints": 6,
+        "lineOfSight": 3,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.tradeVolumePenalty (model.unit.flyingDutchman) PERCENTAGE -75.0 index=0]"
+        ],
+        "movement": 36,
+        "naval": true,
+        "offence": 666.0,
+        "person": false,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {
+          "model.ability.undead": true
+        },
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 0,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.flyingDutchman",
+        "space": 6,
+        "spaceTaken": 7
+      },
+      "model.unit.freeColonist": {
+        "abilities": [
+          "[ model.ability.bornInColony (model.unit.freeColonist) = true ]",
+          "[ model.ability.canBeCaptured (model.unit.freeColonist) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.freeColonist) = true ]",
+          "[ model.ability.foundColony (model.unit.freeColonist) = true ]",
+          "[ model.ability.foundInLostCity (model.unit.freeColonist) = true ]",
+          "[ model.ability.person (model.unit.freeColonist) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 200,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.freeColonist) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.freeColonist) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 20,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.food:200"
+        ],
+        "requiredPopulation": 1,
+        "scoreValue": 3,
+        "skill": 0,
+        "skillTaught": "model.unit.freeColonist",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.frigate": {
+        "abilities": [
+          "[ model.ability.captureGoods (model.unit.frigate) = true ]",
+          "[ model.ability.carryGoods (model.unit.frigate) = true ]",
+          "[ model.ability.carryUnits (model.unit.frigate) = true ]",
+          "[ model.ability.evadeAttack (model.unit.frigate) = true ]",
+          "[ model.ability.foundColony (model.unit.frigate) = false ]",
+          "[ model.ability.navalUnit (model.unit.frigate) = true ]",
+          "[ model.ability.supportUnit (model.unit.frigate) = true ]"
+        ],
+        "baseDefence": 16,
+        "baseOffence": 16,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 16.0,
+        "expertProduction": null,
+        "hitPoints": 6,
+        "lineOfSight": 2,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.tradeVolumePenalty (model.unit.frigate) PERCENTAGE -75.0 index=0]"
+        ],
+        "movement": 18,
+        "naval": true,
+        "offence": 16.0,
+        "person": false,
+        "price": 5000,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:512",
+          "model.goods.tools:200"
+        ],
+        "requiredPopulation": 1,
+        "scoreValue": 6,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.frigate",
+        "space": 4,
+        "spaceTaken": 32
+      },
+      "model.unit.galleon": {
+        "abilities": [
+          "[ model.ability.carryGoods (model.unit.galleon) = true ]",
+          "[ model.ability.carryUnits (model.unit.galleon) = true ]",
+          "[ model.ability.evadeAttack (model.unit.galleon) = true ]",
+          "[ model.ability.foundColony (model.unit.galleon) = false ]",
+          "[ model.ability.navalUnit (model.unit.galleon) = true ]"
+        ],
+        "baseDefence": 10,
+        "baseOffence": 0,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 10.0,
+        "expertProduction": null,
+        "hitPoints": 6,
+        "lineOfSight": 2,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.tradeVolumePenalty (model.unit.galleon) PERCENTAGE -75.0 index=0]"
+        ],
+        "movement": 18,
+        "naval": true,
+        "offence": 0.0,
+        "person": false,
+        "price": 3000,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:320",
+          "model.goods.tools:100"
+        ],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.galleon",
+        "space": 6,
+        "spaceTaken": 64
+      },
+      "model.unit.hardyPioneer": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.hardyPioneer) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.hardyPioneer) = true ]",
+          "[ model.ability.expertPioneer (model.unit.hardyPioneer) = true ]",
+          "[ model.ability.foundColony (model.unit.hardyPioneer) = true ]",
+          "[ model.ability.person (model.unit.hardyPioneer) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.pioneer",
+        "defence": 1.0,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.hardyPioneer) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.hardyPioneer) ADDITIVE 6.0 index=0]",
+          "[Modifier model.modifier.tileTypeChangeProduction (model.unit.hardyPioneer) MULTIPLICATIVE 2.0 index=0 [ [Scope model.goods.lumber matches-null] ]]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 1200,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 4,
+        "skill": 1,
+        "skillTaught": "model.unit.hardyPioneer",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.indenturedServant": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.indenturedServant) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.indenturedServant) = true ]",
+          "[ model.ability.foundColony (model.unit.indenturedServant) = true ]",
+          "[ model.ability.person (model.unit.indenturedServant) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.bells (model.unit.indenturedServant) ADDITIVE -1.0 index=30]",
+          "[Modifier model.goods.cigars (model.unit.indenturedServant) ADDITIVE -1.0 index=30]",
+          "[Modifier model.goods.cloth (model.unit.indenturedServant) ADDITIVE -1.0 index=30]",
+          "[Modifier model.goods.coats (model.unit.indenturedServant) ADDITIVE -1.0 index=30]",
+          "[Modifier model.goods.crosses (model.unit.indenturedServant) ADDITIVE -1.0 index=30]",
+          "[Modifier model.goods.hammers (model.unit.indenturedServant) ADDITIVE -1.0 index=30]",
+          "[Modifier model.goods.muskets (model.unit.indenturedServant) ADDITIVE -1.0 index=30]",
+          "[Modifier model.goods.rum (model.unit.indenturedServant) ADDITIVE -1.0 index=30]",
+          "[Modifier model.goods.tools (model.unit.indenturedServant) ADDITIVE -1.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.indenturedServant) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.indenturedServant) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 20,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 2,
+        "skill": -1,
+        "skillTaught": "model.unit.indenturedServant",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.indianConvert": {
+        "abilities": [
+          "[ model.ability.foundColony (model.unit.indianConvert) = false ]",
+          "[ model.ability.person (model.unit.indianConvert) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.bells (model.unit.indianConvert) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.cigars (model.unit.indianConvert) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.cloth (model.unit.indianConvert) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.coats (model.unit.indianConvert) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.cotton (model.unit.indianConvert) ADDITIVE 1.0 index=30]",
+          "[Modifier model.goods.crosses (model.unit.indianConvert) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.fish (model.unit.indianConvert) ADDITIVE 1.0 index=30]",
+          "[Modifier model.goods.furs (model.unit.indianConvert) ADDITIVE 1.0 index=30]",
+          "[Modifier model.goods.grain (model.unit.indianConvert) ADDITIVE 1.0 index=30]",
+          "[Modifier model.goods.hammers (model.unit.indianConvert) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.muskets (model.unit.indianConvert) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.rum (model.unit.indianConvert) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.sugar (model.unit.indianConvert) ADDITIVE 1.0 index=30]",
+          "[Modifier model.goods.tobacco (model.unit.indianConvert) ADDITIVE 1.0 index=30]",
+          "[Modifier model.goods.tools (model.unit.indianConvert) ADDITIVE -2.0 index=30]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 3,
+        "skill": 0,
+        "skillTaught": "model.unit.indianConvert",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.jesuitMissionary": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.jesuitMissionary) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.jesuitMissionary) = true ]",
+          "[ model.ability.dressMissionary (model.unit.jesuitMissionary) = true ]",
+          "[ model.ability.expertMissionary (model.unit.jesuitMissionary) = true ]",
+          "[ model.ability.foundColony (model.unit.jesuitMissionary) = true ]",
+          "[ model.ability.person (model.unit.jesuitMissionary) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.missionary",
+        "defence": 1.0,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.jesuitMissionary) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.jesuitMissionary) ADDITIVE 6.0 index=0]",
+          "[Modifier model.modifier.missionaryTradeBonus (model.unit.jesuitMissionary) PERCENTAGE 10.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 1400,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": 3,
+        "skillTaught": "model.unit.jesuitMissionary",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.kingsRegular": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.kingsRegular) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.kingsRegular) = true ]",
+          "[ model.ability.canBeSurrendered (model.unit.kingsRegular) = false ]",
+          "[ model.ability.disposeOnAllEquipLost (model.unit.kingsRegular) = true ]",
+          "[ model.ability.expertSoldier (model.unit.kingsRegular) = true ]",
+          "[ model.ability.foundColony (model.unit.kingsRegular) = true ]",
+          "[ model.ability.person (model.unit.kingsRegular) = true ]",
+          "[ model.ability.refUnit (model.unit.kingsRegular) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 5.0,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.kingsRegular) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.kingsRegular) ADDITIVE 6.0 index=0]",
+          "[Modifier model.modifier.defence (model.unit.kingsRegular) ADDITIVE 4.0 index=20]",
+          "[Modifier model.modifier.offence (model.unit.kingsRegular) ADDITIVE 4.0 index=20]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 4.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {
+          "model.ability.royalExpeditionaryForce": true
+        },
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 0,
+        "skill": 4,
+        "skillTaught": "model.unit.kingsRegular",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.manOWar": {
+        "abilities": [
+          "[ model.ability.canBeSurrendered (model.unit.manOWar) = false ]",
+          "[ model.ability.captureGoods (model.unit.manOWar) = true ]",
+          "[ model.ability.carryGoods (model.unit.manOWar) = true ]",
+          "[ model.ability.carryUnits (model.unit.manOWar) = true ]",
+          "[ model.ability.evadeAttack (model.unit.manOWar) = true ]",
+          "[ model.ability.foundColony (model.unit.manOWar) = false ]",
+          "[ model.ability.navalUnit (model.unit.manOWar) = true ]",
+          "[ model.ability.refUnit (model.unit.manOWar) = true ]"
+        ],
+        "baseDefence": 24,
+        "baseOffence": 24,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 24.0,
+        "expertProduction": null,
+        "hitPoints": 6,
+        "lineOfSight": 2,
+        "maximumExperience": 0,
+        "mercenaryPrice": 10000,
+        "modifiers": [
+          "[Modifier model.modifier.tradeVolumePenalty (model.unit.manOWar) PERCENTAGE -75.0 index=0]"
+        ],
+        "movement": 18,
+        "naval": true,
+        "offence": 24.0,
+        "person": false,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {
+          "model.ability.independentNation": true
+        },
+        "requiredGoods": [
+          "model.goods.hammers:1024",
+          "model.goods.tools:300"
+        ],
+        "requiredPopulation": 1,
+        "scoreValue": 8,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.manOWar",
+        "space": 6,
+        "spaceTaken": 64
+      },
+      "model.unit.masterBlacksmith": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.masterBlacksmith) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.masterBlacksmith) = true ]",
+          "[ model.ability.foundColony (model.unit.masterBlacksmith) = true ]",
+          "[ model.ability.person (model.unit.masterBlacksmith) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.tools",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.tools (model.unit.masterBlacksmith) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.masterBlacksmith) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.masterBlacksmith) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 1050,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": 2,
+        "skillTaught": "model.unit.masterBlacksmith",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.masterCarpenter": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.masterCarpenter) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.masterCarpenter) = true ]",
+          "[ model.ability.foundColony (model.unit.masterCarpenter) = true ]",
+          "[ model.ability.person (model.unit.masterCarpenter) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.hammers",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.hammers (model.unit.masterCarpenter) ADDITIVE 3.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.masterCarpenter) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.masterCarpenter) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 1000,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 4,
+        "skill": 1,
+        "skillTaught": "model.unit.masterCarpenter",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.masterCottonPlanter": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.masterCottonPlanter) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.masterCottonPlanter) = true ]",
+          "[ model.ability.foundColony (model.unit.masterCottonPlanter) = true ]",
+          "[ model.ability.person (model.unit.masterCottonPlanter) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.cotton",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.cotton (model.unit.masterCottonPlanter) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.masterCottonPlanter) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.masterCottonPlanter) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": 2,
+        "skillTaught": "model.unit.masterCottonPlanter",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.masterDistiller": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.masterDistiller) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.masterDistiller) = true ]",
+          "[ model.ability.foundColony (model.unit.masterDistiller) = true ]",
+          "[ model.ability.person (model.unit.masterDistiller) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.rum",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.rum (model.unit.masterDistiller) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.masterDistiller) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.masterDistiller) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 1100,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": 2,
+        "skillTaught": "model.unit.masterDistiller",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.masterFurTrader": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.masterFurTrader) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.masterFurTrader) = true ]",
+          "[ model.ability.foundColony (model.unit.masterFurTrader) = true ]",
+          "[ model.ability.person (model.unit.masterFurTrader) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.coats",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.coats (model.unit.masterFurTrader) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.masterFurTrader) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.masterFurTrader) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 950,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": 2,
+        "skillTaught": "model.unit.masterFurTrader",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.masterGunsmith": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.masterGunsmith) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.masterGunsmith) = true ]",
+          "[ model.ability.foundColony (model.unit.masterGunsmith) = true ]",
+          "[ model.ability.person (model.unit.masterGunsmith) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.muskets",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.muskets (model.unit.masterGunsmith) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.masterGunsmith) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.masterGunsmith) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 850,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": 2,
+        "skillTaught": "model.unit.masterGunsmith",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.masterSugarPlanter": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.masterSugarPlanter) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.masterSugarPlanter) = true ]",
+          "[ model.ability.foundColony (model.unit.masterSugarPlanter) = true ]",
+          "[ model.ability.person (model.unit.masterSugarPlanter) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.sugar",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.sugar (model.unit.masterSugarPlanter) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.masterSugarPlanter) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.masterSugarPlanter) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": 2,
+        "skillTaught": "model.unit.masterSugarPlanter",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.masterTobaccoPlanter": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.masterTobaccoPlanter) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.masterTobaccoPlanter) = true ]",
+          "[ model.ability.foundColony (model.unit.masterTobaccoPlanter) = true ]",
+          "[ model.ability.person (model.unit.masterTobaccoPlanter) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.tobacco",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.tobacco (model.unit.masterTobaccoPlanter) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.masterTobaccoPlanter) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.masterTobaccoPlanter) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": 2,
+        "skillTaught": "model.unit.masterTobaccoPlanter",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.masterTobacconist": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.masterTobacconist) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.masterTobacconist) = true ]",
+          "[ model.ability.foundColony (model.unit.masterTobacconist) = true ]",
+          "[ model.ability.person (model.unit.masterTobacconist) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.cigars",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.cigars (model.unit.masterTobacconist) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.masterTobacconist) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.masterTobacconist) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 1200,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": 2,
+        "skillTaught": "model.unit.masterTobacconist",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.masterWeaver": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.masterWeaver) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.masterWeaver) = true ]",
+          "[ model.ability.foundColony (model.unit.masterWeaver) = true ]",
+          "[ model.ability.person (model.unit.masterWeaver) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": "model.goods.cloth",
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.cloth (model.unit.masterWeaver) MULTIPLICATIVE 2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.masterWeaver) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.masterWeaver) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 1300,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": 2,
+        "skillTaught": "model.unit.masterWeaver",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.merchantman": {
+        "abilities": [
+          "[ model.ability.carryGoods (model.unit.merchantman) = true ]",
+          "[ model.ability.carryUnits (model.unit.merchantman) = true ]",
+          "[ model.ability.evadeAttack (model.unit.merchantman) = true ]",
+          "[ model.ability.foundColony (model.unit.merchantman) = false ]",
+          "[ model.ability.navalUnit (model.unit.merchantman) = true ]"
+        ],
+        "baseDefence": 6,
+        "baseOffence": 0,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 6.0,
+        "expertProduction": null,
+        "hitPoints": 6,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.tradeVolumePenalty (model.unit.merchantman) PERCENTAGE -75.0 index=0]"
+        ],
+        "movement": 15,
+        "naval": true,
+        "offence": 0.0,
+        "person": false,
+        "price": 2000,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:192",
+          "model.goods.tools:80"
+        ],
+        "requiredPopulation": 1,
+        "scoreValue": 4,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.merchantman",
+        "space": 4,
+        "spaceTaken": 32
+      },
+      "model.unit.pettyCriminal": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.pettyCriminal) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.pettyCriminal) = true ]",
+          "[ model.ability.foundColony (model.unit.pettyCriminal) = true ]",
+          "[ model.ability.person (model.unit.pettyCriminal) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.goods.bells (model.unit.pettyCriminal) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.cigars (model.unit.pettyCriminal) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.cloth (model.unit.pettyCriminal) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.coats (model.unit.pettyCriminal) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.crosses (model.unit.pettyCriminal) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.hammers (model.unit.pettyCriminal) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.muskets (model.unit.pettyCriminal) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.rum (model.unit.pettyCriminal) ADDITIVE -2.0 index=30]",
+          "[Modifier model.goods.tools (model.unit.pettyCriminal) ADDITIVE -2.0 index=30]",
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.pettyCriminal) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.pettyCriminal) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 20,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 1,
+        "skill": -2,
+        "skillTaught": "model.unit.pettyCriminal",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.privateer": {
+        "abilities": [
+          "[ model.ability.captureGoods (model.unit.privateer) = true ]",
+          "[ model.ability.carryGoods (model.unit.privateer) = true ]",
+          "[ model.ability.carryUnits (model.unit.privateer) = true ]",
+          "[ model.ability.evadeAttack (model.unit.privateer) = true ]",
+          "[ model.ability.foundColony (model.unit.privateer) = false ]",
+          "[ model.ability.navalUnit (model.unit.privateer) = true ]",
+          "[ model.ability.piracy (model.unit.privateer) = true ]"
+        ],
+        "baseDefence": 8,
+        "baseOffence": 8,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 8.0,
+        "expertProduction": null,
+        "hitPoints": 6,
+        "lineOfSight": 2,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.tradeVolumePenalty (model.unit.privateer) PERCENTAGE -75.0 index=0]"
+        ],
+        "movement": 24,
+        "naval": true,
+        "offence": 8.0,
+        "person": false,
+        "price": 2000,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:256",
+          "model.goods.tools:120"
+        ],
+        "requiredPopulation": 1,
+        "scoreValue": 4,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.privateer",
+        "space": 2,
+        "spaceTaken": 24
+      },
+      "model.unit.revenger": {
+        "abilities": [
+          "[ model.ability.multipleAttacks (model.unit.revenger) = true ]",
+          "[ model.ability.undead (model.unit.revenger) = true ]"
+        ],
+        "baseDefence": 666,
+        "baseOffence": 666,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 666.0,
+        "expertProduction": null,
+        "hitPoints": 0,
+        "lineOfSight": 3,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [],
+        "movement": 18,
+        "naval": false,
+        "offence": 666.0,
+        "person": false,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {
+          "model.ability.undead": true
+        },
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 0,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.revenger",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.seasonedScout": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.seasonedScout) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.seasonedScout) = true ]",
+          "[ model.ability.expertScout (model.unit.seasonedScout) = true ]",
+          "[ model.ability.foundColony (model.unit.seasonedScout) = true ]",
+          "[ model.ability.person (model.unit.seasonedScout) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.scout",
+        "defence": 1.0,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.seasonedScout) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.seasonedScout) ADDITIVE 6.0 index=0]",
+          "[Modifier model.modifier.exploreLostCityRumour (model.unit.seasonedScout) PERCENTAGE 10.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 4,
+        "skill": 1,
+        "skillTaught": "model.unit.seasonedScout",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.treasureTrain": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.treasureTrain) = true ]",
+          "[ model.ability.carryTreasure (model.unit.treasureTrain) = true ]",
+          "[ model.ability.foundColony (model.unit.treasureTrain) = false ]"
+        ],
+        "baseDefence": 0,
+        "baseOffence": 0,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 0.0,
+        "expertProduction": null,
+        "hitPoints": 1,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": false,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 1,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.treasureTrain",
+        "space": 0,
+        "spaceTaken": 6
+      },
+      "model.unit.undead": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.undead) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.undead) = true ]",
+          "[ model.ability.foundColony (model.unit.undead) = true ]",
+          "[ model.ability.person (model.unit.undead) = true ]",
+          "[ model.ability.undead (model.unit.undead) = true ]"
+        ],
+        "baseDefence": 4,
+        "baseOffence": 18,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.default",
+        "defence": 4.0,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.undead) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.undead) ADDITIVE 6.0 index=0]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 18.0,
+        "person": true,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {
+          "model.ability.undead": true
+        },
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 0,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.undead",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.veteranSoldier": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.veteranSoldier) = true ]",
+          "[ model.ability.canBeEquipped (model.unit.veteranSoldier) = true ]",
+          "[ model.ability.expertSoldier (model.unit.veteranSoldier) = true ]",
+          "[ model.ability.foundColony (model.unit.veteranSoldier) = true ]",
+          "[ model.ability.mercenaryUnit (model.unit.veteranSoldier) = true ]",
+          "[ model.ability.person (model.unit.veteranSoldier) = true ]",
+          "[ model.ability.supportUnit (model.unit.veteranSoldier) = true ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [
+          "model.goods.food:2",
+          "model.goods.bells:1"
+        ],
+        "defaultRole": "model.role.soldier",
+        "defence": 1.5,
+        "expertProduction": null,
+        "hitPoints": 5,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [
+          "[Modifier model.modifier.conversionAlarmRate (model.unit.veteranSoldier) PERCENTAGE 2.0 index=0]",
+          "[Modifier model.modifier.conversionSkill (model.unit.veteranSoldier) ADDITIVE 6.0 index=0]",
+          "[Modifier model.modifier.defence (model.unit.veteranSoldier) PERCENTAGE 50.0 index=40]",
+          "[Modifier model.modifier.offence (model.unit.veteranSoldier) PERCENTAGE 50.0 index=40]"
+        ],
+        "movement": 3,
+        "naval": false,
+        "offence": 0.0,
+        "person": true,
+        "price": 2000,
+        "recruitProbability": 1,
+        "requiredAbilities": {},
+        "requiredGoods": [],
+        "requiredPopulation": 1,
+        "scoreValue": 5,
+        "skill": 2,
+        "skillTaught": "model.unit.veteranSoldier",
+        "space": 0,
+        "spaceTaken": 1
+      },
+      "model.unit.wagonTrain": {
+        "abilities": [
+          "[ model.ability.canBeCaptured (model.unit.wagonTrain) = true ]",
+          "[ model.ability.carryGoods (model.unit.wagonTrain) = true ]",
+          "[ model.ability.foundColony (model.unit.wagonTrain) = false ]"
+        ],
+        "baseDefence": 1,
+        "baseOffence": 0,
+        "consumedGoods": [],
+        "defaultRole": "model.role.default",
+        "defence": 1.0,
+        "expertProduction": null,
+        "hitPoints": 1,
+        "lineOfSight": 1,
+        "maximumExperience": 0,
+        "mercenaryPrice": -2147483648,
+        "modifiers": [],
+        "movement": 6,
+        "naval": false,
+        "offence": 0.0,
+        "person": false,
+        "price": -2147483648,
+        "recruitProbability": 0,
+        "requiredAbilities": {},
+        "requiredGoods": [
+          "model.goods.hammers:40"
+        ],
+        "requiredPopulation": 1,
+        "scoreValue": 1,
+        "skill": -2147483648,
+        "skillTaught": "model.unit.wagonTrain",
+        "space": 2,
+        "spaceTaken": 12
+      }
+    }
+  },
+  "difficulty": "model.difficulty.medium",
+  "format": 1,
+  "kind": "specification",
+  "mods": [],
+  "rules": "classic"
+}
