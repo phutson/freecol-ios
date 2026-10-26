@@ -28,8 +28,8 @@ import Foundation
 /// message XML (init(tag:attributes:children:)).  Objects a message
 /// carries whole (goods, a native trade) are kept as their XML, and read
 /// into the game when the command is carried out.  So far: managing
-/// units, colonies and goods, Europe, moving, dealing with natives, and
-/// combat.
+/// units, colonies and goods, Europe, moving, dealing with natives,
+/// combat, diplomacy, the monarch and independence.
 public enum PlayerCommand: Equatable, Sendable {
     case abandonColony(colony: String?)
     /// Ask a native settlement what it teaches.
@@ -48,18 +48,26 @@ public enum PlayerCommand: Equatable, Sendable {
     /// price steals the land.
     case claimLand(tile: String?, claimant: String?, price: String?)
     case clearSpeciality(unit: String?)
+    /// Declare independence, naming the new nation and country.
+    case declareIndependence(nationName: String?, countryName: String?)
     /// Leave the mounds on the tile in a direction unexplored.
     case declineMounds(unit: String?, direction: String?)
     /// Tribute from a native settlement, by an armed unit or a scout.
     case demandTribute(unit: String?, direction: String?)
     /// Give goods to a native settlement, in a trade session.
     case deliverGift(unit: String?, settlement: String?, goods: CommandElement?)
+    /// A step in negotiating with another European, from either side.
+    case diplomacy(our: String?, other: String?, agreement: CommandElement?)
     case disbandUnit(unit: String?)
     case disembark(unit: String?)
     /// With a direction the unit moves onto the carrier beside it.
     case embark(unit: String?, carrier: String?, direction: String?)
     case emigrateUnit(slot: String?)
+    /// End the player's turn.
+    case endTurn
     case equipForRole(unit: String?, role: String?, count: String?)
+    /// The answer to meeting natives: peace, and any land they offered.
+    case firstContact(player: String?, other: String?, tile: String?, result: String?)
     /// Ask natives to make war on another European; a negative gold
     /// asks the price.
     case incite(unit: String?, settlement: String?, enemy: String?, gold: String?)
@@ -71,6 +79,8 @@ public enum PlayerCommand: Equatable, Sendable {
     /// Establish or denounce a mission.
     case missionary(unit: String?, direction: String?, denounce: String?)
     case loadGoods(location: String?, type: String?, amount: String?, carrier: String?)
+    /// The answer to the monarch's demand or offer.
+    case monarchAction(action: String?, result: String?)
     /// Take cargo from a beaten ship.
     case lootCargo(winner: String?, loser: String?, goods: [CommandElement])
     /// Move to the tile in a direction.
@@ -112,6 +122,15 @@ public enum PlayerCommand: Equatable, Sendable {
         case "abandonColony": self = .abandonColony(colony: a["colony"])
         case "askSkill": self = .askSkill(unit: a["unit"], direction: a["direction"])
         case "attack": self = .attack(unit: a["unit"], direction: a["direction"])
+        case "declareIndependence":
+            self = .declareIndependence(nationName: a["nationName"], countryName: a["countryName"])
+        case "diplomacy":
+            self = .diplomacy(our: a["ourId"], other: a["otherId"],
+                              agreement: children.first { $0.tag == "diplomaticTrade" })
+        case "endTurn": self = .endTurn
+        case "firstContact":
+            self = .firstContact(player: a["player"], other: a["other"], tile: a["tile"], result: a["result"])
+        case "monarchAction": self = .monarchAction(action: a["action"], result: a["result"])
         case "lootCargo":
             self = .lootCargo(winner: a["winner"], loser: a["loser"], goods: children.filter { $0.tag == "goods" })
         case "deliverGift":

@@ -237,6 +237,8 @@ public final class Player: FreeColGameObject, GameObjectReadable {
         isAdmin = admin
         nationId = nation.id
         immigrationPoints = 0
+        // Java's field starts at 0; the pre-game sets it.
+        immigrationRequired = 0
         if nation.isUnknownEnemy {
             nationType = nil
             playerType = .colonial

@@ -40,6 +40,12 @@ extension InGameController {
         case .attack, .lootCargo:
             return try performCombat(command, by: player)
 
+        case .declareIndependence, .diplomacy, .firstContact, .monarchAction:
+            return try performDiplomacy(command, by: player)
+
+        case .endTurn:
+            return try endTurn(player)
+
         case let .abandonColony(colonyId):
             let colony = try ours(player, colonyId, Colony.self)
             let count = colony.unitCount

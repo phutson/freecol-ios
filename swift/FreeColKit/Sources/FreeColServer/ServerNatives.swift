@@ -196,7 +196,7 @@ extension InGameController {
     // MARK: Checks
 
     /// A reader on an element a command carries.
-    private func reader(_ element: CommandElement) throws -> FreeColXMLReader {
+    func reader(_ element: CommandElement) throws -> FreeColXMLReader {
         let xr = try FreeColXMLReader(string: element.xml)
         try xr.nextTag()
         return xr

@@ -81,6 +81,20 @@ struct CommandTests {
         }
     }
 
+    /// Diplomacy and independence: first contacts with natives (land
+    /// accepted, peace refused) and Europeans (peace made and refused),
+    /// a negotiation with a counter-proposal (gold, and inciting war),
+    /// a colony ceded, tribute refused, a carrier's trade, answers with
+    /// no session; the monarch's tax raises accepted, refused (a goods
+    /// party), answered wrongly and ignored; declaring independence,
+    /// accepting the mercenaries offered, and the turns until the REF,
+    /// too weak to fight, gives independence.
+    @Test func diplomacy() throws {
+        try Messages.$scopedBundle.withValue(ColonyTurnTests.english) {
+            try check("diplomacy", game: "freecol-diplomacy-seed1.fsg")
+        }
+    }
+
     static func element(_ tree: JSONValue) -> CommandElement {
         var attributes: [String: String] = [:]
         if case .object(let attrs)? = tree["attrs"] {
@@ -126,7 +140,8 @@ struct CommandTests {
         for (i, expected) in commands.enumerated() {
             let label = "\(i) \(expected["label"]?.stringValue ?? "?")"
             let startTurn = expected["startTurn"] == .bool(true)
-            let newTurn = expected["newTurn"] == .bool(true) || startTurn
+            let monarchAction = expected["monarch"]?.stringValue.flatMap { Monarch.MonarchAction(javaName: $0) }
+            let newTurn = expected["newTurn"] == .bool(true) || startTurn || monarchAction != nil
             let player = try #require(newTurn ? game.liveEuropeanPlayers.first
                                           : game.player(byNationId: expected["player"]?.stringValue))
             let javaReply = expected["reply"] ?? .null
@@ -134,7 +149,14 @@ struct CommandTests {
             sent = []
             var diffs: [String] = []
             var cs: ChangeSet?
-            if startTurn {
+            if let monarchAction {
+                // The monarch acts on the Dutch, telling every player.
+                let turnChanges = ChangeSet()
+                try igc.csMonarchAction(player, monarchAction, turnChanges)
+                for p in game.players {
+                    if let update = try turnChanges.build(p) { igc.deliver(p, update) }
+                }
+            } else if startTurn {
                 // The start of the Dutch turn, telling every player.
                 let turnChanges = ChangeSet()
                 try player.csStartTurn(random, turnChanges)

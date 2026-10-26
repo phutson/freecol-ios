@@ -890,7 +890,25 @@ extension Player {
             cs.add(.only(self), message: MonarchActionMessage(Monarch.MonarchAction.forceTax, StringTemplate.template(
                 Monarch.MonarchAction.forceTax.textKey).addAmount("%amount%", tax + extraTax), nationId ?? ""))
         } else {
-            throw NotYetPorted("a goods party (refusing a tax raise)")
+            // A goods party.
+            guard let spec = specification, let market else { return }
+            colony.goodsContainer?.saveState()
+            _ = colony.removeGoods(goodsType, amount)
+            let arrears = market.paidForSale(goodsType) * (spec.getInteger(GameOptions.arrearsFactor) ?? 0)
+            market.setArrears(goodsType, arrears)
+            if let tpm = makeTeaPartyModifier() { cs.addModifier(self, colony, tpm, true) }
+            if let container = colony.goodsContainer { cs.add(.only(self), container) }
+            if let data = market.marketData(goodsType) { cs.add(.only(self), data) }
+            var messageId = "model.player.colonyGoodsParty." + (goodsType.suffix ?? "")
+            if !Messages.containsKey(messageId) {
+                messageId = colony.isLandLocked ? "model.player.colonyGoodsParty.landLocked"
+                    : "model.player.colonyGoodsParty.harbour"
+            }
+            cs.addMessage(self, ModelMessage(.foreignDiplomacy, messageId, self)
+                .addName("%colony%", colony.name)
+                .addAmount("%amount%", amount)
+                .addNamed("%goods%", goodsType))
+            cs.addAttribute(.only(self), "flush", "true")
         }
     }
 
@@ -919,13 +937,38 @@ extension Player {
         MonarchSession.register(self, action, mercenaries: mercenaries, price: price, in: game.sessions)
     }
 
-    /// Take on mercenaries the player accepted, if it can pay
-    /// (csAddMercenaries).
-    ///
-    /// - Throws: NotYetPorted, as accepting comes with player actions.
+    /// Take on mercenaries the player accepted, if it can pay; if not,
+    /// the monarch is displeased (csAddMercenaries).
     public func csAddMercenaries(_ mercs: [AbstractUnit], _ price: Int, _ random: JavaRandom?,
                                  _ cs: ChangeSet) throws {
-        throw NotYetPorted("accepting mercenaries (csAddMercenaries)")
+        guard let spec = specification else { return }
+        if checkGold(price) {
+            let naval = mercs.filter { $0.type(spec)?.isNaval ?? false }
+            let dst: Tile
+            if naval.isEmpty {
+                // To the first colony.
+                guard let t = colonyList.first?.tile else { return }
+                dst = t
+                createUnits(mercs, dst, nil)
+                cs.add(.only(self), dst)
+            } else {
+                // They sail in.
+                guard let t = entryTile else { return }
+                dst = t
+                loadShips(createUnits(mercs.filter { !($0.type(spec)?.isNaval ?? false) }, nil, nil),
+                          createUnits(naval, dst, random), nil)
+                invalidateCanSeeTiles()
+                cs.add(.perhaps(), dst)
+            }
+            cs.addMessage(self, ModelMessage(.unitArrived, "model.player.mercenariesArrived", self)
+                .addStringTemplate("%location%", locationLabel(dst.up(), for: self)))
+            _ = modifyGold(-price)
+            cs.addPartial(.only(self), self, ("gold", String(gold)))
+        } else {
+            monarch?.displeasure = true
+            cs.add(.only(self), message: MonarchActionMessage(.displeasure,
+                StringTemplate.template(Monarch.MonarchAction.displeasure.textKey), nationId ?? ""))
+        }
     }
 }
 

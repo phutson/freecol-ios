@@ -1559,10 +1559,10 @@ with Phase 4.
      before player actions exist:
      - the REF arriving (it needs the REF's AI, Phase 4);
      - granting independence (there is no REF until independence is
-       declared, step 6);
-     - forts bombarding ships (`csCombat`, step 6);
+       declared, step 6; ported in 6e);
+     - forts bombarding ships (`csCombat`, step 6; ported in 6d);
      - a goods party, and accepting mercenaries (both are answers to the
-       monarch);
+       monarch; ported in 6e);
      - high scores for a human winner.
    - **Checked:** `TurnCycleGameMaker.java` makes three games from the
      new turn game. In each the Dutch are human and start, the Europeans
@@ -1701,7 +1701,8 @@ with Phase 4.
      - `csContact` and `csNativeFirstContact`;
      - the newLandName, newRegionName, firstContact and fountainOfYouth
        messages.
-   - **Not yet** (`NotYetPorted`, both need diplomacy sessions, 6e):
+   - **Not yet** (`NotYetPorted`, both need diplomacy sessions; both
+     ported in 6e):
      - first contact between Europeans;
      - natives offering land at a first landing on it.
    - **Java behaviour kept:**
@@ -1870,6 +1871,85 @@ with Phase 4.
        at the same value here;
      - a ship's hit points from the combat model, which no result here
        sets (damage is set by the result handlers).
+
+   **6e status: done.** Diplomacy, the answers to the monarch, declaring
+   independence and the REF giving up behave as Java's server does. With
+   this, step 6 is done.
+   - **Commands:** diplomacy (proposing, counter-proposing, accepting
+     and rejecting, from a unit or from the colony it deals with),
+     answering a first contact with natives, answering the monarch,
+     declaring independence, and ending the turn.
+   - **Also:**
+     - `DiplomaticTrade` and its trade items (gold, stance, colony,
+       unit, inciting), read and written as XML;
+     - the diplomacy session, `csDiplomacy`, `csAcceptTrade`, and first
+       contacts between Europeans (a peace treaty to agree) and at a
+       first landing on native land (the land offered);
+     - a goods party when a tax raise is refused, and accepting
+       mercenaries (or the monarch's displeasure when they can not be
+       paid for);
+     - `declareIndependence`, with the REF's player made (as an AI
+       player that does nothing, until the AI is ported), the
+       continental army mustered, a native ally and enemy, and
+       mercenaries offered;
+     - `csGiveIndependence`, when the REF is defeated at the start of
+       its turn;
+     - the Spanish succession, which the REF's turns reached
+       (`csSpanishSuccession`).
+   - **Java behaviour kept:**
+     - a session can not be made while a complete one with its key has
+       not been looked up since, as Java's constructor checks its map
+       directly;
+     - finding a contact session finds complete ones too;
+     - a new player's `immigrationRequired` is 0 until the pre-game sets
+       it.
+   - **Not yet:** the REF arriving, which needs the REF's AI (Phase 4).
+     Java also ends a diplomacy session, refused, after a timeout in
+     real time; here only the new turn ends it.
+   - **Checked:** `DiplomacyGameMaker.java` makes a game from the
+     command game. The Dutch have not named the new world, are at peace
+     with the French, have Jan de Witt, liberty enough to declare
+     independence and a tax to raise. The French have gold. The Dutch
+     have not met the English, the Spanish or two native nations. Dutch
+     units stand ready:
+     - a colonist on a caravel beside land of the first native nation;
+     - a scout two tiles from a settlement of the second;
+     - two soldiers two tiles from an English and a Spanish colonist;
+     - two scouts and a soldier beside French colonies, and a
+       merchantman with furs beside a coastal one.
+
+     The monarch's expeditionary force is two regulars and a
+     man-of-war, so the REF gives up at once.
+
+     The oracle's diplomacy script lands (the land is offered and
+     accepted), names the new world, meets the second natives (peace
+     refused), meets the English (peace) and the Spanish (no peace),
+     negotiates with the French (gold for inciting them against the
+     Spanish, with a counter-proposal), buys a colony, demands tribute
+     (refused), trades from the merchantman, and answers with no session.
+     The monarch raises the tax (accepted), again (refused: a goods
+     party), and a third time (ignored until the new turn). The Dutch
+     declare (and again, refused), accept the mercenaries offered, and
+     end turns until the REF gives independence. That is 48 steps (five
+     refused). Java's REF has an AI, which this does not compare; the
+     oracle gives Java's server an AI main so it can make the REF,
+     records what the REF is sent as it is made, and records it as the
+     others after. `CommandTests.diplomacy` compares every step. The
+     five scripts are in Tests/JavaOracle/commands.zip (807 KB).
+   - **Planted bugs:** 20 were planted and 18 are caught: the
+     agreement's version, the gold received, the incited war not shown,
+     the traded goods, a unit's moves after a session and after a
+     contact, the offered land not given, no mission ban and less
+     tension when peace is refused, a wrong answer to the monarch
+     accepted, the arrears of a goods party, free mercenaries, the
+     declaration's score, the native ally not hating the REF, the REF
+     knowing nothing of the map, the units in Europe kept, the
+     independent nation still taxed, and units' moves in the Spanish
+     succession. The two still passing:
+     - reassigning a ceded colony's units, which makes no difference
+       for this colony;
+     - a larger continental army, as every unit that could change
+       already did.
 
 7. **Map and game generation** (`server/generator`): checked by
    generating the same seed as Java.

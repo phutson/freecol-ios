@@ -30,9 +30,10 @@ open class Session {
     public let key: String
     public private(set) var isComplete = false
 
-    /// - Throws: A duplicate session for the key is a bug, as in Java.
+    /// - Throws: A duplicate session for the key is a bug, as in Java,
+    ///   even a complete one that has not been looked up since.
     init(key: String, in sessions: Sessions) {
-        precondition(sessions.lookup(key) == nil, "Duplicate session: \(key)")
+        precondition(sessions.all[key] == nil, "Duplicate session: \(key)")
         self.key = key
     }
 
@@ -59,7 +60,7 @@ open class Session {
 /// The open sessions of a game (Session's static map).
 public final class Sessions {
 
-    private var all = JavaHashMap<String, Session>(javaHash: JavaString.hashCode)
+    fileprivate(set) var all = JavaHashMap<String, Session>(javaHash: JavaString.hashCode)
 
     func register(_ session: Session) {
         _ = all.put(session.key, session)

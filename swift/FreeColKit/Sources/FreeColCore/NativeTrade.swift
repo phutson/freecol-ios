@@ -24,9 +24,9 @@ import FreeColXML
 /// (common/model/TradeItem).  Trade items are not registered with the
 /// game.
 ///
-/// Only goods are ported, for native trade; the diplomatic items
-/// (colonies, gold, stances, units, incitement) come with diplomacy in
-/// Phase 3.  The players are weak.
+/// The goods items are here, for native trade; the diplomatic items
+/// (colonies, gold, stances, units, incitement) are with DiplomaticTrade.
+/// The players are weak.
 open class TradeItem: FreeColGameObject {
 
     /// The value of an item that is not valid.
@@ -59,6 +59,13 @@ open class TradeItem: FreeColGameObject {
     open var isValid: Bool { false }
     open var isUnique: Bool { false }
     open var goods: Goods? { nil }
+    /// What the item gives, by kind (TradeItem.getColony, getGold,
+    /// getStance, getUnit and getVictim).
+    open func colony(_ game: Game) -> Colony? { nil }
+    open var tradeGold: Int { 0 }
+    open var tradeStance: Player.Stance? { nil }
+    open var tradeUnit: Unit? { nil }
+    open var tradeVictim: Player? { nil }
 
     /// The value of the item to a player.
     open func evaluateFor(_ player: Player) -> Int {

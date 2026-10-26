@@ -128,15 +128,69 @@ public final class ServerGame: Game {
         return (ready, strongAI, weakAI)
     }
 
-    /// The Spanish succession: the weakest AI cedes everything to the
-    /// strongest (csSpanishSuccession).
-    ///
-    /// - Throws: NotYetPorted when it happens, as changing the owner of
-    ///   colonies and units comes with player actions.
+    /// The Spanish succession: the weakest AI cedes its missions,
+    /// colonies and units to the strongest, and withdraws
+    /// (csSpanishSuccession).
     private func csSpanishSuccession(_ event: Event, _ cs: ChangeSet) throws {
         let (ready, strong, weak) = spanishSuccessionReady(event)
-        guard ready, let strong, let weak, strong !== weak else { return }
-        throw NotYetPorted("the Spanish succession (csSpanishSuccession)")
+        guard ready, let strongAI = strong, let weakAI = weak, strongAI !== weakAI else { return }
+        var tiles: [Tile] = []
+        var updated: [Tile] = []
+        for np in liveNativePlayers() {
+            for settlement in np.indianSettlementsWithMissionary(weakAI) {
+                guard let tile = settlement.tile else { continue }
+                try tile.cacheUnseen(except: strongAI)
+                tiles.append(tile)
+                settlement.setContacted(strongAI)
+                if let missionary = settlement.missionary,
+                   try weakAI.csChangeOwner(missionary, strongAI, nil, nil, cs) {
+                    tile.updateIndianSettlement(strongAI)
+                    cs.add(.perhaps().always(strongAI), settlement)
+                }
+            }
+        }
+        let colonies = weakAI.colonyList
+        var contacts = JavaHashMap<String, Unit>(initialCapacity: colonies.count, javaHash: JavaString.hashCode)
+        for c in colonies {
+            updated.append(contentsOf: c.ownedTiles)
+            try c.csChangeOwner(strongAI, false, nil, cs)
+            if let u = c.firstUnit { contacts.put(u.id ?? "", u) }
+        }
+        for unit in weakAI.units {
+            if unit.isOnCarrier {
+                // The carrier takes it.
+            } else if try weakAI.csChangeOwner(unit, strongAI, nil, nil, cs) {
+                unit.movesLeft = 0
+                unit.setState(.active)
+                if unit.location is Europe {
+                    _ = unit.setLocation(strongAI.europe)
+                    cs.add(.only(strongAI), unit)
+                } else if unit.location is HighSeas {
+                    _ = unit.setLocation(strongAI.highSeas)
+                    cs.add(.only(strongAI), unit)
+                } else if unit.isOnTile, let tile = unit.tile {
+                    if !tiles.contains(where: { $0 === tile }) { tiles.append(tile) }
+                }
+                contacts.put(unit.id ?? "", unit)
+            }
+        }
+        for u in contacts.values {
+            if let tile = u.tile { try u.csNewContactCheck(tile, false, cs) }
+        }
+        let loser = weakAI.nationLabel
+        let winner = strongAI.nationLabel
+        spanishSuccession = true
+        cs.addPartial(.all(), self, ("spanishSuccession", "true"))
+        tiles.removeAll { t in updated.contains { $0 === t } }
+        cs.add(.perhaps(), tiles)
+        try weakAI.csWithdraw(cs,
+            ModelMessage(.foreignDiplomacy, "model.game.spanishSuccession", strongAI)
+                .addStringTemplate("%loserNation%", loser)
+                .addStringTemplate("%nation%", winner),
+            HistoryEvent(turn, .spanishSuccession, nil)
+                .addStringTemplate("%loserNation%", loser)
+                .addStringTemplate("%nation%", winner))
+        strongAI.invalidateCanSeeTiles()
     }
 }
 

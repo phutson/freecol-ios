@@ -182,19 +182,11 @@ public final class InGameController {
         }
     }
 
-    /// The REF grants independence (csGiveIndependence).
-    ///
-    /// - Throws: NotYetPorted, as there is no REF until independence is
-    ///   declared (step 6).
-    private func csGiveIndependence(_ ref: Player, _ independent: Player, _ cs: ChangeSet) throws {
-        throw NotYetPorted("granting independence (csGiveIndependence)")
-    }
-
     // MARK: The monarch
 
     /// A European nation that no one plays, at random, as a message key
     /// (Nation.getRandomNonPlayerNationNameKey).
-    private func randomNonPlayerNationNameKey() -> String {
+    func randomNonPlayerNationNameKey() -> String {
         let nations = ["dutch", "english", "french", "spanish", "danish", "portuguese", "swedish", "russian",
                        "austrian", "german", "prussian", "turkish"]
         let start = Int(RandomUtils.randomInt("Random nation", random, Int32(nations.count)))
@@ -209,7 +201,7 @@ public final class InGameController {
     /// the REF, making war or peace, sending support, or offering
     /// mercenaries.  Tax raises and the monarch's mercenaries wait for
     /// an answer, in a session.
-    private func csMonarchAction(_ player: Player, _ action: Monarch.MonarchAction, _ cs: ChangeSet) throws {
+    public func csMonarchAction(_ player: Player, _ action: Monarch.MonarchAction, _ cs: ChangeSet) throws {
         guard let monarch = player.monarch, monarch.actionIsValid(action), let spec = game.specification
         else { return }
         let messageId = action.textKey

@@ -327,7 +327,7 @@ extension Unit {
                         let offer = (firstLanding && other.owns(newTile)) ? newTile : nil
                         try owner.csNativeFirstContact(other, offer, cs)
                     } else {
-                        throw NotYetPorted("first contact between Europeans (a diplomacy session)")
+                        try owner.csEuropeanFirstContact(self, settlement, unit, cs)
                     }
                 } else if !other.isIndian {
                     try other.csNativeFirstContact(owner, nil, cs)
@@ -401,14 +401,16 @@ extension Player {
     }
 
     /// A European meets a native nation: peace, and the European is told
-    /// (csNativeFirstContact).
-    ///
-    /// - Throws: NotYetPorted for a first landing on the natives' land,
-    ///   where they offer it in a diplomacy session.
+    /// (csNativeFirstContact).  At a first landing on the natives' land
+    /// they offer it, in a session, so that accepting can be checked.
     public func csNativeFirstContact(_ other: Player, _ tile: Tile?, _ cs: ChangeSet) throws {
         cs.add(.only(self), message: FirstContactMessage(self, other, tile))
         try csChangeStance(.peace, other, true, cs)
-        if tile != nil { throw NotYetPorted("the natives offering land at a first landing (a diplomacy session)") }
+        if let tile, let unit = tile.firstUnit, let game = game as? ServerGame {
+            let ds = DiplomacySession.register(unit, settlement: tile.owningSettlement, otherUnit: nil,
+                                               in: game.sessions)
+            ds.agreement = DiplomaticTrade.makePeaceTreaty(.contact, self, other)
+        }
     }
 }
 
