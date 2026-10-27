@@ -21,6 +21,7 @@ import func Foundation.pow
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// A location as a key, compared by identity and hashed as Java hashes
 /// its game object.
@@ -123,12 +124,12 @@ class EuropeanAIPlayer: MissionAIPlayer {
             do {
                 for _ in 0..<3 {
                     try rearrangeColonies()
-                    giveNormalMissions(&normalAIUnits)
+                    try giveMissions(&normalAIUnits)
                     if units.isEmpty { break }
                     units = doMissions(units)
                 }
             } catch {
-                aiMain.record(error, "\(player.nationId ?? "") rearranging colonies")
+                aiMain.record(error, "\(player.nationId ?? "") giving missions")
                 return
             }
         }
@@ -461,6 +462,12 @@ class EuropeanAIPlayer: MissionAIPlayer {
         return super.determineStance(other)
     }
 
+    /// Missions for the units without (giveNormalMissions), which the
+    /// REF's AI does its own way first.
+    func giveMissions(_ aiUnits: inout [AIUnit]) throws {
+        giveNormalMissions(&aiUnits)
+    }
+
     private func determineStances() {
         for p in game.livePlayers(excluding: player) {
             let newStance = determineStance(p)
@@ -690,10 +697,4 @@ class EuropeanAIPlayer: MissionAIPlayer {
     }
 }
 
-/// The REF's computer player (server/ai/REFAIPlayer), which comes with
-/// Phase 4's last step.
-final class REFAIPlayer: EuropeanAIPlayer {
-    override func startWorking() {
-        aiMain.record(NotYetPorted("the REF's AI"), "\(player.nationId ?? "")")
-    }
-}
+

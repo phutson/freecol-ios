@@ -30,9 +30,8 @@ import FreeColUtil
 ///
 /// The players' commands are in InGameCommands.swift.
 ///
-/// Not yet ported: the Royal Expeditionary Force arriving (it needs the
-/// REF's AI to place it), independence being granted, high scores, the
-/// debug runs, and the commands not in PlayerCommand.
+/// Not yet ported: high scores, the debug runs, and the commands not in
+/// PlayerCommand.
 public final class InGameController {
 
     public let game: ServerGame
@@ -44,6 +43,10 @@ public final class InGameController {
     public var isConnected: (Player) -> Bool = { _ in true }
     /// Where the changes sent to a player go.
     public var deliver: (Player, PlayerUpdate) -> Void = { _, _ in }
+    /// Ask a newly made REF's AI where it should arrive, given whether
+    /// it may teleport in (REFAIPlayer.initialize), which says whether
+    /// it could.
+    public var initializeREF: (Player, Bool) -> Bool = { _, _ in false }
 
     private var debugMonarch: (player: Player, action: Monarch.MonarchAction)?
 
@@ -161,7 +164,10 @@ public final class InGameController {
             // What waits until just before the player moves.
             game.currentPlayer = current
             if current.isREF && current.entryTile == nil {
-                throw NotYetPorted("the REF arriving (csLaunchREF, which needs the REF's AI)")
+                // A newly made REF, which its AI places; Java logs a
+                // failure and tries again next turn.
+                let teleport = game.specification?.getBoolean(GameOptions.teleportRef) ?? false
+                if initializeREF(current, teleport) { csLaunchREF(current, teleport, cs) }
             }
             try current.csStartTurn(random, cs)
 

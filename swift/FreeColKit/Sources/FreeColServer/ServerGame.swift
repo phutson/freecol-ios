@@ -48,6 +48,19 @@ public final class ServerGame: Game {
         return game
     }
 
+    /// What Java's server does with a game it has read from a saved
+    /// game (FreeColServer.loadGame): the map's land and water regions
+    /// worked out again, the unknown enemy made if missing, and the
+    /// players sorted by rank, humans first.  The AI is read between the
+    /// last two, which comes to the same.  Java also checks the game's
+    /// integrity, which is not ported, and has each European work out
+    /// what it can see, which this engine does when asked.
+    public func finishLoading() {
+        map?.resetContiguity()
+        establishUnknownEnemy()
+        sortPlayers(Player.comparePlayers)
+    }
+
     /// The player standing for unknown enemies, made if there is none
     /// (establishUnknownEnemy).
     @discardableResult

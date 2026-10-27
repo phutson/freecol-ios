@@ -20,10 +20,21 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// An AI object with a value (server/ai/ValuedAIObject).
 open class ValuedAIObject: AIObject {
     public var value = 0
+
+    open override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        xw.writeAttribute("value", value)
+    }
+
+    open override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        value = xr.attribute("value", default: -1)
+    }
 }
 
 /// Something a carrier can take somewhere (server/ai/TransportableAIObject):
@@ -38,6 +49,17 @@ open class TransportableAIObject: ValuedAIObject {
     static let toolsForBuilding = 100
 
     public var transport: AIUnit?
+
+    open override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let u = transport?.unit, !u.isDisposed { xw.writeAttribute("transport", u) }
+    }
+
+    open override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        transport = xr.hasAttribute("transport")
+            ? aiMain.reference(xr.attribute("transport", default: nil as String?), AIUnit.self) : nil
+    }
 
     /// The priority for transport (getTransportPriority).
     var transportPriority: Int {
@@ -117,6 +139,56 @@ public final class AIUnit: TransportableAIObject {
         self.unit = unit
         super.init(aiMain, unit.id)
         initialized = true
+    }
+
+    /// An AI unit referred to in a saved game before it is read.
+    init(_ aiMain: AIMain, placeholder unit: Unit) {
+        self.unit = unit
+        super.init(aiMain, unit.id)
+    }
+
+    // MARK: Saving
+
+    static let tag = "aiUnit"
+
+    public override var xmlTag: String { AIUnit.tag }
+
+    public override func setInitialized() {
+        initialized = true
+    }
+
+    public override func checkIntegrity(_ fix: Bool) -> Integrity {
+        let result = super.checkIntegrity(fix)
+        return unit.isDisposed ? .fail : result
+    }
+
+    public override func writeChildren(_ xw: FreeColXMLWriter) {
+        super.writeChildren(xw)
+        if let mission, !mission.isOneTime, mission.isValid { mission.toXML(xw) }
+    }
+
+    public override func readChild(_ xr: FreeColXMLReader) throws {
+        mission = nil
+        switch xr.localName {
+        case "buildColonyMission": _ = try BuildColonyMission(loading: aiMain, self, xr)
+        case "cashInTreasureTrainMission": _ = try CashInTreasureTrainMission(loading: aiMain, self, xr)
+        case "defendSettlementMission": _ = try DefendSettlementMission(loading: aiMain, self, xr)
+        case "escortUnitMission": _ = try EscortUnitMission(loading: aiMain, self, xr)
+        case "idleAtSettlementMission": _ = try IdleAtSettlementMission(loading: aiMain, self, xr)
+        case "indianBringGiftMission": _ = try IndianBringGiftMission(loading: aiMain, self, xr)
+        case "indianDemandMission": _ = try IndianDemandMission(loading: aiMain, self, xr)
+        case "missionaryMission": _ = try MissionaryMission(loading: aiMain, self, xr)
+        case "pioneeringMission": _ = try PioneeringMission(loading: aiMain, self, xr)
+        case "privateerMission": _ = try PrivateerMission(loading: aiMain, self, xr)
+        case "scoutingMission": _ = try ScoutingMission(loading: aiMain, self, xr)
+        case "transportMission": _ = try TransportMission(loading: aiMain, self, xr)
+        case "unitSeekAndDestroyMission": _ = try UnitSeekAndDestroyMission(loading: aiMain, self, xr)
+        case "unitWanderHostileMission": _ = try UnitWanderHostileMission(loading: aiMain, self, xr)
+        case "unitWanderMission": _ = try UnitWanderMission(loading: aiMain, self, xr)
+        case "wishRealizationMission": _ = try WishRealizationMission(loading: aiMain, self, xr)
+        case "workInsideColonyMission": _ = try WorkInsideColonyMission(loading: aiMain, self, xr)
+        default: try super.readChild(xr)
+        }
     }
 
     public var owner: Player? { unit.owner }

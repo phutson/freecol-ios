@@ -86,6 +86,19 @@ public final class FreeColXMLReader {
         try self.init(data: Data(string.utf8))
     }
 
+    private init(tags: [XMLTag]) {
+        self.tags = tags
+    }
+
+    /// A reader of its own for the current element, standing before its
+    /// start tag, while this one moves to the element's end: for an
+    /// element to be read later, by something else.
+    public func subReader() throws -> FreeColXMLReader {
+        let start = index
+        try swallowTag(localName)
+        return FreeColXMLReader(tags: Array(tags[start...index]))
+    }
+
     private var current: XMLTag {
         precondition(index >= 0 && index < tags.count, "Reader is not on a tag")
         return tags[index]

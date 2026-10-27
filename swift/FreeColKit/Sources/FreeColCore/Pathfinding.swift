@@ -472,10 +472,17 @@ final class ClosureGoalDecider: GoalDecider {
 }
 
 /// The goal deciders (common/model/pathfinding/GoalDeciders).
-///
-/// Not yet ported: getStealthyGoalDecider, which asks what an enemy
-/// can see, for the AI (Phase 4).
 public enum GoalDeciders {
+
+    /// The last tile reached that an enemy can not see
+    /// (getStealthyGoalDecider).
+    public static func stealthy(_ enemy: Player) -> GoalDecider {
+        ClosureGoalDecider(hasSubGoals: true) { gd, _, path in
+            if enemy.canSee(path.tile) { return false }
+            gd.goal = path
+            return true
+        }
+    }
 
     /// Several deciders together: with `all`, a node must satisfy each;
     /// otherwise any one, and later deciders are not asked once an

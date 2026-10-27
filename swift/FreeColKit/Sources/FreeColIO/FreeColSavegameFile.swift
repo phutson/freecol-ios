@@ -126,6 +126,7 @@ public struct FreeColSavegameFile: Sendable {
         let active = xr.attribute("activeUnit", default: nil as String?)
 
         var game: Game?
+        var aiMain: FreeColXMLReader?
         while try xr.moreTags() {
             switch xr.localName {
             case "serverObjects": // @compat 0.11.6, no longer used
@@ -136,8 +137,8 @@ public struct FreeColSavegameFile: Sendable {
                 g.currentPlayer = nil
                 game = g
             case "aiMain":
-                // The AI comes in Phase 4.
-                try xr.swallowTag("aiMain")
+                // Kept for the AI to read, once it is made.
+                aiMain = try xr.subReader()
             default:
                 throw FreeColXMLError("Unknown tag reading server game: \(xr.localName)")
             }
@@ -148,7 +149,7 @@ public struct FreeColSavegameFile: Sendable {
         return SavedGame(game: game, version: version, owner: owner, singlePlayer: singlePlayer,
                          publicServer: publicServer,
                          serverRandom: randomState.flatMap(JavaRandom.init(serializedState:)),
-                         debugModes: debug, warnings: xr.warnings)
+                         debugModes: debug, aiMain: aiMain, warnings: xr.warnings)
     }
 }
 
@@ -164,6 +165,9 @@ public struct SavedGame {
     /// The server's random number generator, as saved.
     public let serverRandom: JavaRandom?
     public let debugModes: String?
+    /// The AI's objects (the aiMain element), for the AI to read, if the
+    /// game was saved with them.
+    public let aiMain: FreeColXMLReader?
     /// What Java would have logged as warnings while reading.
     public let warnings: [String]
 }

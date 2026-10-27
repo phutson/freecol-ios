@@ -354,11 +354,19 @@ public final class IndianSettlement: Settlement, GameObjectReadable {
         if let id = player.id { alarms[id] = alarm }
     }
 
+    /// Whether this is a settlement of the server's game, as Java's
+    /// ServerIndianSettlement, and not a copy a player remembers (which
+    /// Java reads as a plain IndianSettlement).
+    private var isServerSettlement: Bool {
+        guard let game, game.isServer, let id else { return false }
+        return game.getFreeColGameObject(id) === self
+    }
+
     /// Set the alarm towards a player.  In the server's game, as Java's
     /// ServerIndianSettlement does, not towards the owner, and the most
     /// hated player is worked out again.
     public func setAlarm(_ player: Player, _ newAlarm: Tension) {
-        if game?.isServer ?? false {
+        if isServerSettlement {
             guard player !== owner else { return }
             if let id = player.id { alarms[id] = newAlarm }
             updateMostHated()
@@ -376,7 +384,7 @@ public final class IndianSettlement: Settlement, GameObjectReadable {
     /// Forget the alarm towards a player.
     public func removeAlarm(_ player: Player) {
         if let id = player.id { alarms[id] = nil }
-        if game?.isServer ?? false { updateMostHated() }
+        if isServerSettlement { updateMostHated() }
     }
 
     /// Work out the most hated player again: the live European the

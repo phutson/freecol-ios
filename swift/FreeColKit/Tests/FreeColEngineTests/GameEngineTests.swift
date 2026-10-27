@@ -126,7 +126,12 @@ struct GameEngineTests {
         #expect(r2.snapshot.turn == 3)
     }
 
-    /// A saved game loads as the same game, which plays on the same.
+    /// A saved game loads as the same game, apart from the order of the
+    /// players, which Java's server sorts by rank when loading (the
+    /// natives, the computer Europeans, and the human administrator
+    /// last).  It does not play on as the
+    /// live one, as the AI keeps more than it saves (Java's too), but
+    /// every load of it plays on the same.
     @Test func saveAndLoad() async throws {
         let engine = try Self.newEngine()
         _ = try await engine.endTurn()
@@ -134,13 +139,34 @@ struct GameEngineTests {
         defer { try? FileManager.default.removeItem(at: url) }
         try await engine.save(to: url)
         let loaded = try GameEngine(loading: url, messages: Self.english)
-        let s = await engine.snapshot()
-        #expect(await loaded.snapshot() == s)
+        let s = await engine.snapshot(), l = await loaded.snapshot()
+        #expect(l.turn == s.turn && l.currentPlayerId == s.currentPlayerId)
+        #expect(l.players.sorted { $0.id < $1.id } == s.players.sorted { $0.id < $1.id })
+        #expect(l.map == s.map && l.units == s.units && l.colonies == s.colonies)
+        #expect(l.settlements == s.settlements && l.europe == s.europe && l.market == s.market)
         #expect(await loaded.randomState == engine.randomState)
-        // The saved generator plays on as the live one.
-        let a = try await engine.endTurn().snapshot
-        let b = try await loaded.endTurn().snapshot
+        let again = try GameEngine(loading: url, messages: Self.english)
+        let a = try await loaded.endTurn().snapshot
+        let b = try await again.endTurn().snapshot
         #expect(a == b)
+        #expect(await loaded.aiProblems.isEmpty)
+    }
+
+    /// The engine's computer players play as Java's: ten rounds of the
+    /// new game Java's AI played (AIOracle.java, as in NativeAITests),
+    /// the server's generator as Java's after each, which it is only if
+    /// every computer player chose as Java's did.
+    @Test func computerPlayersPlayAsJava() async throws {
+        let archive = try ZipArchive(contentsOf: JavaOracle.url.deletingLastPathComponent()
+            .appendingPathComponent("ai.zip"))
+        let java = try JSONValue.parse(try #require(try archive.contents(of: "all.json")))
+        let rounds = try #require(java["rounds"]?.arrayValue)
+        let engine = try Self.newEngine(seed: Int64(try #require(java["seed"]?.intValue)))
+        for (i, expected) in rounds.enumerated() {
+            if i > 0 { _ = try await engine.endTurn() }
+            #expect(await engine.randomState == expected["random"]?.stringValue, "round \(i)")
+        }
+        #expect(await engine.aiProblems.isEmpty)
     }
 
     /// One of Java's saved games, from the oracle.

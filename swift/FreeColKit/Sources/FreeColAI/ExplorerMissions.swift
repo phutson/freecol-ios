@@ -20,9 +20,28 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// Scout native settlements and rumours (server/ai/mission/ScoutingMission).
 final class ScoutingMission: Mission {
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "scoutingMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let scoutTarget { xw.writeLocationAttribute("target", scoutTarget) }
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        scoutTarget = aiMain.location(xr, "target")
+    }
 
     private var scoutTarget: (any Location)?
     /// A tile beside a settlement on another land mass, to be carried
@@ -209,6 +228,24 @@ final class ScoutingMission: Mission {
 /// (server/ai/mission/MissionaryMission).
 final class MissionaryMission: Mission {
 
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "missionaryMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let missionTarget { xw.writeLocationAttribute("target", missionTarget) }
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        missionTarget = aiMain.location(xr, "target")
+    }
+
     private var missionTarget: (any Location)?
 
     init(_ aiMain: AIMain, _ aiUnit: AIUnit, _ target: (any Location)?) {
@@ -338,6 +375,24 @@ final class MissionaryMission: Mission {
 
 /// Raid other players' ships (server/ai/mission/PrivateerMission).
 final class PrivateerMission: Mission {
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "privateerMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let privateerTarget { xw.writeLocationAttribute("target", privateerTarget) }
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        privateerTarget = aiMain.location(xr, "target")
+    }
 
     private var privateerTarget: (any Location)?
 
@@ -490,6 +545,24 @@ final class PrivateerMission: Mission {
 
 /// Escort another unit (server/ai/mission/EscortUnitMission).
 final class EscortUnitMission: Mission {
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "escortUnitMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let escortTarget { xw.writeLocationAttribute("target", escortTarget) }
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        escortTarget = aiMain.location(xr, "target")
+    }
 
     private var escortTarget: (any Location)?
     private var escortTransportTarget: (any Location)?

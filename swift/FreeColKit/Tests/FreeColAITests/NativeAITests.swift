@@ -25,6 +25,7 @@ import FreeColIO
 import FreeColServer
 import FreeColTestSupport
 import FreeColUtil
+import FreeColXML
 import Testing
 
 /// The natives' AI, compared with Java's playing the same new game
@@ -212,7 +213,8 @@ struct NativeAITests {
 
     /// Twenty rounds of a saved game, its AI made afresh, compared with
     /// a recording.
-    func playSaved(_ recording: String, _ file: String, _ works: AIMain.Works) throws {
+    func playSaved(_ recording: String, _ file: String, _ works: AIMain.Works,
+                   rounds count: Int = 20, beforeRound: ((Int, InGameController, Player) throws -> Void)? = nil) throws {
         try Messages.$scopedBundle.withValue(Self.english) {
             let java = try Self.recorded(recording)
             let saved = try FreeColSavegameFile(url: Self.oracleDirectory
@@ -222,7 +224,7 @@ struct NativeAITests {
             let random = JavaRandom(seed: try #require(java["seed"]?.intValue))
             let controller = InGameController(game: game, random: random)
             let ai = AIMain(remaking: game, controller: controller, works: works)
-            try play(java, game, controller, ai, random, rounds: 20)
+            try play(java, game, controller, ai, random, rounds: count, beforeRound: beforeRound)
         }
     }
 
@@ -250,10 +252,125 @@ struct NativeAITests {
         try playSaved("all-units", "freecol-unitai-seed1.fsg", .all)
     }
 
+    /// The milestone of doc/swift-port-plan.md's Phase 3: sixty rounds
+    /// of two new games, the computer players playing as Java's every
+    /// round.
+    @Test(arguments: [11, 2])
+    func longGame(_ seed: Int) throws {
+        try Messages.$scopedBundle.withValue(Self.english) {
+            let java = try Self.recorded("long-\(seed)")
+            let spec = try Self.data.loadSpecification("freecol", difficulty: "model.difficulty.medium")
+            let random = JavaRandom(seed: try #require(java["seed"]?.intValue))
+            let game = ServerGame.startNewGame(spec, random, playerName: "Player")
+            let controller = InGameController(game: game, random: random)
+            let ai = AIMain(game: game, controller: controller, works: .all)
+            try play(java, game, controller, ai, random, rounds: 60)
+        }
+    }
+
+    /// The REF game (from REFGameMaker): the human declares independence
+    /// at the start of the first round, as AIOracle --declare has it,
+    /// and the REF arrives, lands and fights, with every AI working.
+    @Test func allWorkingREF() throws {
+        try playSaved("all-ref", "freecol-ref-seed1.fsg", .all) { round, controller, human in
+            guard round == 1 else { return }
+            let cs = try controller.perform(.declareIndependence(nationName: "Free Dutch",
+                                                                 countryName: "New Holland"), by: human)
+            _ = try cs?.build(human)
+            #expect(human.isRebel)
+        }
+    }
+
+    /// A recording of a game saved and loaded again (AIOracle
+    /// --reload-at), cut to some of its rounds.
+    static func reloadRounds(_ name: String, _ range: ClosedRange<Int>) throws -> JSONValue {
+        let java = try recorded(name)
+        var doc = try #require(java.objectValue)
+        doc["rounds"] = .array(Array(try #require(java["rounds"]?.arrayValue)[range]))
+        return .object(doc)
+    }
+
+    /// The AI's objects as Java saved them.
+    static func javaAITree(_ file: String) throws -> JSONValue {
+        let file = try FreeColSavegameFile(url: oracleDirectory.appendingPathComponent("games/" + file))
+        let tree = try XmlTree.parse(String(decoding: try file.savegameData(), as: UTF8.self))
+        return try #require(tree["children"]?.arrayValue?.first { $0["tag"]?.stringValue == "aiMain" })
+    }
+
+    /// The AI written as Java's server saves it, compared with Java's.
+    func expectAISaved(_ ai: AIMain, _ file: String) throws {
+        let xw = FreeColXMLWriter(scope: .toSave())
+        ai.toXML(xw)
+        let diffs = XmlTree.differences(try XmlTree.parse(xw.xml), try Self.javaAITree(file), "aiMain", limit: 30)
+        #expect(diffs.isEmpty, "\(diffs.joined(separator: "\n"))")
+    }
+
+    /// Five rounds of the new game, then the AI saved as Java's was.
+    @Test func aiSaved() throws {
+        try Messages.$scopedBundle.withValue(Self.english) {
+            let java = try Self.reloadRounds("all-reload", 0...5)
+            let spec = try Self.data.loadSpecification("freecol", difficulty: "model.difficulty.medium")
+            let random = JavaRandom(seed: try #require(java["seed"]?.intValue))
+            let game = ServerGame.startNewGame(spec, random, playerName: "Player")
+            let controller = InGameController(game: game, random: random)
+            let ai = AIMain(game: game, controller: controller, works: .all)
+            try play(java, game, controller, ai, random, rounds: 5)
+            try expectAISaved(ai, "freecol-aisave-seed11.fsg")
+        }
+    }
+
+    /// Ten rounds of the units game, then the AI saved as Java's was:
+    /// cargoes, export goods, plans, wishes and most missions.
+    @Test func aiSavedUnits() throws {
+        try Messages.$scopedBundle.withValue(Self.english) {
+            let java = try Self.reloadRounds("units-reload", 0...10)
+            let saved = try FreeColSavegameFile(url: Self.oracleDirectory
+                .appendingPathComponent("games/freecol-unitai-seed1.fsg")).readServerGame()
+            let game = try #require(saved.game as? ServerGame)
+            game.currentPlayer = game.livePlayers.first { !$0.isAI }
+            let random = JavaRandom(seed: try #require(java["seed"]?.intValue))
+            let controller = InGameController(game: game, random: random)
+            let ai = AIMain(remaking: game, controller: controller, works: .all)
+            try play(java, game, controller, ai, random, rounds: 10)
+            try expectAISaved(ai, "freecol-aisave-units.fsg")
+        }
+    }
+
+    /// A game Java saved, AI and all, read back as Java's server reads
+    /// it and played on as Java's did after reading it.  Java's first
+    /// round is from before saving, with what is not saved, so it is
+    /// not compared.  (Written again the AI is not as saved: a loaded
+    /// unit's transport priority is its mission's.)
+    func playLoaded(_ recording: String, _ file: String, _ range: ClosedRange<Int>) throws {
+        try Messages.$scopedBundle.withValue(Self.english) {
+            let java = try Self.reloadRounds(recording, range)
+            let saved = try FreeColSavegameFile(url: Self.oracleDirectory.appendingPathComponent("games/" + file))
+                .readServerGame()
+            let game = try #require(saved.game as? ServerGame)
+            game.finishLoading()
+            game.currentPlayer = game.livePlayers.first { !$0.isAI }
+            let random = try #require(saved.serverRandom)
+            let controller = InGameController(game: game, random: random)
+            let ai = AIMain.loading(saved.aiMain, game: game, controller: controller)
+            try play(java, game, controller, ai, random, rounds: range.count - 1, fromRound: 1)
+        }
+    }
+
+    /// The new game saved after round 5, played on to round 10.
+    @Test func aiLoaded() throws {
+        try playLoaded("all-reload", "freecol-aisave-seed11.fsg", 5...10)
+    }
+
+    /// The units game saved after round 10, played on to round 20.
+    @Test func aiLoadedUnits() throws {
+        try playLoaded("units-reload", "freecol-aisave-units.fsg", 10...20)
+    }
+
     /// Play the rounds, the human ending its turn each time, and compare
     /// each with Java's.
     func play(_ java: JSONValue, _ game: ServerGame, _ controller: InGameController, _ ai: AIMain,
-              _ random: JavaRandom, rounds count: Int) throws {
+              _ random: JavaRandom, rounds count: Int, fromRound first: Int = 0,
+              beforeRound: ((Int, InGameController, Player) throws -> Void)? = nil) throws {
         let rounds = try #require(java["rounds"]?.arrayValue)
         #expect(rounds.count == count + 1)
         let human = try #require(game.currentPlayer)
@@ -264,9 +381,11 @@ struct NativeAITests {
             for (i, expected) in rounds.enumerated() {
                 let label = expected["label"]?.stringValue ?? "?"
                 if i > 0 {
+                    try beforeRound?(i, controller, human)
                     _ = try controller.endTurn(human)
                     #expect(game.currentPlayer === human, "\(label) ended with someone else's turn")
                 }
+                if i < first { continue }
                 var diffs = ai.errors
                 let save = try Self.saveTree(game)
                 if let javaSave = expected["save"] {

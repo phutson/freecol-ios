@@ -18,6 +18,7 @@
 //
 
 import Foundation
+import FreeColAI
 import FreeColCore
 import FreeColIO
 import FreeColServer
@@ -30,8 +31,7 @@ import FreeColXML
 /// The interface sends the human player's commands and asks for
 /// snapshots, plain values of what that player can see, which it may
 /// keep and read anywhere.  Nothing of the live game leaves the actor.
-/// The other players are computer players; until the AI is ported they
-/// end their turns at once.
+/// The other players are computer players, played by the AI.
 ///
 /// The boundary is the one a network would need: commands in, and the
 /// changes one player may see out.
@@ -60,6 +60,7 @@ public actor GameEngine {
     private let game: ServerGame
     private let random: JavaRandom
     private let controller: InGameController
+    private let ai: AIMain
     private let human: Player
     private let messages: MessageBundle
     /// What the human player was shown since it was last asked.
@@ -70,18 +71,30 @@ public actor GameEngine {
         var events: [EngineEvent] = []
     }
 
-    private init(game: ServerGame, random: JavaRandom, messages: MessageBundle) throws {
+    /// - Parameter savedAI: The AI's objects, for a saved game: the AI
+    ///   is read from them, or made afresh if there are none.
+    private init(game: ServerGame, random: JavaRandom, messages: MessageBundle,
+                 savedAI: FreeColXMLReader?? = nil) throws {
         guard let human = game.livePlayers.first(where: { !$0.isAI }) else { throw EngineError.noHumanPlayer }
         self.game = game
         self.random = random
         self.human = human
         self.messages = messages
         let controller = InGameController(game: game, random: random)
+        let ai = Messages.$scopedBundle.withValue(messages) {
+            savedAI.map { AIMain.loading($0, game: game, controller: controller) }
+                ?? AIMain(game: game, controller: controller)
+        }
         let shown = self.shown
         controller.deliver = { player, update in
-            if player === human { shown.events += GameEngine.events(update, for: human) }
+            if player === human {
+                shown.events += GameEngine.events(update, for: human)
+            } else if player.isAI {
+                ai.handle(update, for: player)
+            }
         }
         self.controller = controller
+        self.ai = ai
     }
 
     /// Start a new game, as the server does for one human player.
@@ -117,17 +130,24 @@ public actor GameEngine {
             try FreeColSavegameFile(url: url).readServerGame()
         }
         guard let game = saved.game as? ServerGame else { throw EngineError.failed("Not a server game") }
+        game.finishLoading()
         // Java's server forgets whose turn it was, and the first player
         // to log in takes it (LoginMessage).
         if game.currentPlayer == nil { game.currentPlayer = game.livePlayers.first { !$0.isAI } }
         try self.init(game: game, random: saved.serverRandom ?? JavaRandom(seed: Int64.random(in: 0...Int64.max)),
-                      messages: messages)
+                      messages: messages, savedAI: .some(saved.aiMain))
     }
 
     /// The state of the game's random number generator, as a save
     /// records it, so two games can be seen to be playing on alike.
     public var randomState: String {
         random.serializedState
+    }
+
+    /// What the AI met that Java's would not have (commands not yet
+    /// ported, and the like), which Java logs and plays on through.
+    public var aiProblems: [String] {
+        ai.errors
     }
 
     /// The human player's identifier.
@@ -159,9 +179,9 @@ public actor GameEngine {
         }
     }
 
-    /// End the human player's turn: the others play theirs (ending them
-    /// at once, until the AI is ported), through the new turn, until it
-    /// is the human player's turn again or the game ends.
+    /// End the human player's turn: the others play theirs, through the
+    /// new turn, until it is the human player's turn again or the game
+    /// ends.
     public func endTurn() throws -> CommandResult {
         try Messages.$scopedBundle.withValue(messages) {
             guard game.currentPlayer === human else { throw EngineError.notPlayersTurn }
@@ -170,8 +190,10 @@ public actor GameEngine {
                 if let update = try controller.endTurn(human).build(human) {
                     shown.events += GameEngine.events(update, for: human)
                 }
-                // The computer players.  Each new turn passes every
-                // player once, so this is plenty.
+                // The computer players play their turns as they are
+                // given them, ending each.  Any whose AI did not is
+                // ended here.  Each new turn passes every player once,
+                // so this is plenty.
                 var steps = 0
                 while let current = game.currentPlayer, current !== human, !human.isDead,
                       steps < 4 * game.players.count + 4 {
@@ -185,8 +207,8 @@ public actor GameEngine {
         }
     }
 
-    /// Save the game, as Java's server does, so Java can load it too
-    /// (without the AI's objects, which are not ported).
+    /// Save the game, as Java's server does, AI and all, so Java can
+    /// load it too.
     public func save(to url: URL) throws {
         let xw = FreeColXMLWriter(scope: .toSave())
         xw.writeStartElement("savedGame")
@@ -197,6 +219,7 @@ public actor GameEngine {
         xw.writeAttribute("randomState", random.serializedState)
         xw.writeAttribute("debug", "")
         game.toXML(xw)
+        ai.toXML(xw)
         xw.writeEndElement()
         let xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xw.xml
         let properties = "map.width=\(game.map?.width ?? 0)\nmap.height=\(game.map?.height ?? 0)\n"

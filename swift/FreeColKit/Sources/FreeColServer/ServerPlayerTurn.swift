@@ -88,7 +88,7 @@ extension Player {
                 try csNaturalDisasters(random, cs, disaster)
             }
             if isRebel && interventionBells >= (spec.getInteger(GameOptions.interventionBells) ?? Int(Int32.max)) {
-                throw NotYetPorted("the intervention force arriving")
+                try csInterventionForce(random, cs)
             }
             // The warnings, once everything has settled.
             for colony in colonyList { colony.csNewTurnWarnings(random, cs) }
@@ -182,6 +182,34 @@ extension Player {
         }
         if upkeep > 0 { cs.addPartial(.only(self), self, ("gold", String(gold))) }
         if changed { cs.addPartial(.only(self), self, ("bankrupt", String(bankrupt))) }
+    }
+
+    // MARK: Intervention
+
+    /// The intervention force arrives (in csNewTurn): off a port chosen
+    /// at random, on the high seas nearest it, its land units aboard its
+    /// ships, any left over thrown away.
+    private func csInterventionForce(_ random: JavaRandom, _ cs: ChangeSet) throws {
+        interventionBells = Int(Int32.min)
+        guard let port = RandomUtils.randomMember("Intervention port", connectedPortList, random),
+              let portTile = port.tile, let monarch,
+              let entry = game?.map?.searchCircle(portTile, GoalDeciders.simpleHighSeas(),
+                                                  portTile.highSeasCount + 1)?.safeTile(self, random) else {
+            // Java fails here, on a missing port or entry.
+            return
+        }
+        let ivf = monarch.interventionForce
+        let land = createUnits(ivf.landUnitsList, entry, random)
+        let naval = createUnits(ivf.navalUnitsList, entry, random)
+        for unit in loadShips(land, naval, random) {
+            unit.setLocationNoUpdate(nil)
+            unit.dispose()
+        }
+        var tiles = JavaTileSet(naval.first.map { exploreForUnit($0) } ?? [])
+        tiles.insert(entry)
+        invalidateCanSeeTiles()
+        cs.add(.perhaps(), tiles.tiles)
+        cs.addMessage(self, ModelMessage(.foreignDiplomacy, "model.player.interventionForceArrives", self))
     }
 
     // MARK: Disasters

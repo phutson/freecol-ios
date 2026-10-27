@@ -20,6 +20,7 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// A goal decider keeping the best scoring path, as the missions'
 /// anonymous ones do, with the first best value and a score that is nil
@@ -56,6 +57,28 @@ extension Mission {
 
 /// Build a colony (server/ai/mission/BuildColonyMission).
 final class BuildColonyMission: Mission {
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "buildColonyMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let buildTarget {
+            xw.writeLocationAttribute("target", buildTarget)
+            if colonyValue > 0 { xw.writeAttribute("value", colonyValue) }
+        }
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        buildTarget = aiMain.location(xr, "target")
+        colonyValue = xr.attribute("value", default: -1)
+    }
 
     private var buildTarget: (any Location)?
     private var colonyValue = -1
@@ -236,6 +259,30 @@ final class BuildColonyMission: Mission {
 
 /// Improve tiles (server/ai/mission/PioneeringMission).
 final class PioneeringMission: Mission {
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "pioneeringMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let pioneerTarget {
+            xw.writeLocationAttribute("target", pioneerTarget)
+            if let tileImprovementPlan { xw.writeAttribute(TileImprovementPlan.tag, id: tileImprovementPlan.id) }
+        }
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        pioneerTarget = aiMain.location(xr, "target")
+        tileImprovementPlan = xr.hasAttribute(TileImprovementPlan.tag)
+            ? aiMain.reference(xr.attribute(TileImprovementPlan.tag, default: nil as String?),
+                               TileImprovementPlan.self) : nil
+    }
 
     private(set) var tileImprovementPlan: TileImprovementPlan?
     private var pioneerTarget: (any Location)?
@@ -535,6 +582,32 @@ final class PioneeringMission: Mission {
 /// (server/ai/mission/WishRealizationMission).
 final class WishRealizationMission: Mission {
 
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "wishRealizationMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        xw.writeAttribute("wish", id: wish?.id)
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        let wid = xr.attribute("wish", default: nil as String?)
+        wish = wid.flatMap { aiMain.aiObject($0) as? Wish }
+        if wish == nil, let wid {
+            if wid.hasPrefix(GoodsWish.tag) {
+                wish = aiMain.reference(wid, GoodsWish.self)
+            } else if wid.hasPrefix(WorkerWish.tag) {
+                wish = aiMain.reference(wid, WorkerWish.self)
+            }
+        }
+    }
+
     private(set) var wish: Wish?
 
     init(_ aiMain: AIMain, _ aiUnit: AIUnit, _ wish: Wish) {
@@ -597,6 +670,24 @@ final class WishRealizationMission: Mission {
 /// Take a treasure train to be cashed in
 /// (server/ai/mission/CashInTreasureTrainMission).
 final class CashInTreasureTrainMission: Mission {
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "cashInTreasureTrainMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let cashInTarget { xw.writeLocationAttribute("target", cashInTarget) }
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        cashInTarget = aiMain.location(xr, "target")
+    }
 
     private var cashInTarget: (any Location)?
 

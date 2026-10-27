@@ -20,6 +20,7 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// The natives' AI (server/ai/NativeAIPlayer): stances from tension,
 /// settlements defended and their braves armed, gifts and demands, and

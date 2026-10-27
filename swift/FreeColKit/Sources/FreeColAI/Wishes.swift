@@ -20,6 +20,7 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 extension Array where Element: ValuedAIObject {
     /// Sorted by descending value, keeping the order of equals
@@ -62,6 +63,45 @@ final class TileImprovementPlan: ValuedAIObject {
         super.init(aiMain, TileImprovementPlan.tag + ":" + aiMain.nextId())
         self.value = value
         initialized = true
+    }
+
+    /// A plan referred to in a saved game before it is read.
+    init(_ aiMain: AIMain, placeholder id: String) {
+        super.init(aiMain, id)
+    }
+
+    // MARK: Saving
+
+    override var xmlTag: String { TileImprovementPlan.tag }
+
+    override func setInitialized() {
+        initialized = type != nil && target != nil
+    }
+
+    override func checkIntegrity(_ fix: Bool) -> Integrity {
+        var result = super.checkIntegrity(fix)
+        if let pioneer { result = result.combine(pioneer.checkIntegrity(fix)) }
+        return type == nil || target == nil ? .fail : result
+    }
+
+    /// Only a sound plan is saved.
+    override func toXML(_ xw: FreeColXMLWriter) {
+        if validate() { super.toXML(xw) }
+    }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let type { xw.writeAttribute("type", type) }
+        xw.writeAttribute("target", target)
+        if let pioneer, pioneer.checkIntegrity(false) == .good { xw.writeAttribute("pioneer", pioneer.unit) }
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        type = xr.attribute("type", default: nil as String?).flatMap { specification?.getTileImprovementType($0) }
+        pioneer = xr.hasAttribute("pioneer")
+            ? aiMain.reference(xr.attribute("pioneer", default: nil as String?), AIUnit.self) : nil
+        target = xr.attribute("target", default: nil as String?).flatMap { game.getFreeColGameObject($0) as? Tile }
     }
 
     /// The improvement that most raises a goods type's production on a
@@ -127,6 +167,26 @@ class Wish: ValuedAIObject {
     /// Whether the wish is kept in a saved game.
     var shouldBeStored: Bool { transportable != nil }
 
+    override func checkIntegrity(_ fix: Bool) -> Integrity {
+        var result = super.checkIntegrity(fix)
+        if let transportable { result = result.combine(transportable.checkIntegrity(fix)) }
+        guard let d = destination as? FreeColGameObject, !d.isDisposed else { return .fail }
+        return result
+    }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let destination {
+            xw.writeLocationAttribute("destination", destination)
+            if let transportable { xw.writeAttribute("transportable", id: transportable.id) }
+        }
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        destination = aiMain.location(xr, "destination")
+    }
+
     var destinationAIColony: AIColony? {
         (destination as? Colony).flatMap { aiMain.aiColony($0) }
     }
@@ -146,7 +206,7 @@ final class GoodsWish: Wish {
 
     static let tag = "goodsWish"
 
-    private(set) var goodsType: GoodsType
+    private(set) var goodsType: GoodsType!
     var goodsAmount: Int
 
     init(_ aiMain: AIMain, _ destination: any Location, _ value: Int, _ amount: Int, _ goodsType: GoodsType) {
@@ -156,6 +216,39 @@ final class GoodsWish: Wish {
         self.destination = destination
         self.value = value
         initialized = amount > 0
+    }
+
+    /// A wish referred to in a saved game before it is read.
+    init(_ aiMain: AIMain, placeholder id: String) {
+        goodsAmount = -1
+        super.init(aiMain, id)
+    }
+
+    // MARK: Saving
+
+    override var xmlTag: String { GoodsWish.tag }
+
+    override func setInitialized() {
+        initialized = goodsType != nil && goodsAmount > 0
+    }
+
+    override func checkIntegrity(_ fix: Bool) -> Integrity {
+        let result = super.checkIntegrity(fix)
+        return goodsType == nil || goodsAmount <= 0 ? .fail : result
+    }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        xw.writeAttribute("goodsType", goodsType)
+        xw.writeAttribute("amountRequested", goodsAmount)
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        transportable = xr.hasAttribute("transportable")
+            ? aiMain.reference(xr.attribute("transportable", default: nil as String?), AIGoods.self) : nil
+        goodsType = xr.attribute("goodsType", default: nil as String?).flatMap { specification?.getGoodsType($0) }
+        goodsAmount = xr.attribute("amountRequested", default: GoodsContainer.cargoSize)
     }
 
     func update(_ goodsType: GoodsType, _ amount: Int, _ value: Int) {
@@ -177,7 +270,7 @@ final class WorkerWish: Wish {
 
     static let tag = "workerWish"
 
-    private(set) var unitType: UnitType
+    private(set) var unitType: UnitType!
     private(set) var expertNeeded: Bool
 
     init(_ aiMain: AIMain, _ destination: any Location, _ value: Int, _ unitType: UnitType,
@@ -188,6 +281,39 @@ final class WorkerWish: Wish {
         self.destination = destination
         self.value = value
         initialized = true
+    }
+
+    /// A wish referred to in a saved game before it is read.
+    init(_ aiMain: AIMain, placeholder id: String) {
+        expertNeeded = false
+        super.init(aiMain, id)
+    }
+
+    // MARK: Saving
+
+    override var xmlTag: String { WorkerWish.tag }
+
+    override func setInitialized() {
+        initialized = destination != nil && unitType != nil
+    }
+
+    override func checkIntegrity(_ fix: Bool) -> Integrity {
+        let result = super.checkIntegrity(fix)
+        return unitType == nil ? .fail : result
+    }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        xw.writeAttribute("unitType", unitType)
+        xw.writeAttribute("expertNeeded", expertNeeded)
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        transportable = xr.hasAttribute("transportable")
+            ? aiMain.reference(xr.attribute("transportable", default: nil as String?), AIUnit.self) : nil
+        unitType = xr.attribute("unitType", default: nil as String?).flatMap { specification?.getUnitType($0) }
+        expertNeeded = xr.attribute("expertNeeded", default: false)
     }
 
     func update(_ unitType: UnitType, _ expertNeeded: Bool, _ value: Int) {
@@ -216,6 +342,61 @@ final class AIGoods: TransportableAIObject {
         self.destination = destination
         super.init(aiMain, AIGoods.tag + ":" + aiMain.nextId())
         initialized = true
+    }
+
+    /// Goods referred to in a saved game before they are read.
+    init(_ aiMain: AIMain, placeholder id: String) {
+        super.init(aiMain, id)
+    }
+
+    // MARK: Saving
+
+    override var xmlTag: String { AIGoods.tag }
+
+    override func setInitialized() {
+        initialized = goods != nil
+    }
+
+    override func checkIntegrity(_ fix: Bool) -> Integrity {
+        var result = super.checkIntegrity(fix)
+        var fail = !result.isSafe || goods == nil || goods?.type == nil || (goods?.amount ?? 0) <= 0
+            || goods?.location == nil || ((goods?.location as? FreeColGameObject)?.isDisposed ?? false)
+        if let d = destination as? FreeColGameObject, d.isDisposed {
+            if fix {
+                destination = nil
+                result = result.fixed()
+            } else {
+                fail = true
+            }
+        }
+        return fail ? .fail : result
+    }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let destination { xw.writeLocationAttribute("destination", destination) }
+    }
+
+    override func writeChildren(_ xw: FreeColXMLWriter) {
+        super.writeChildren(xw)
+        goods?.toXML(xw)
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        destination = aiMain.location(xr, "destination")
+    }
+
+    override func readChild(_ xr: FreeColXMLReader) throws {
+        if xr.localName == "goods" {
+            if let goods {
+                try goods.readFromXML(xr)
+            } else {
+                goods = try Goods(game: game, reading: xr)
+            }
+        } else {
+            try super.readChild(xr)
+        }
     }
 
     var goodsType: GoodsType? { goods?.type }

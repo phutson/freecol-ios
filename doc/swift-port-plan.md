@@ -1327,8 +1327,8 @@ Each turn is dumped as the saved game's XML tree, and the saves hold the
 server's random state. So the Swift engine reads Java's turn N, runs the
 same processing with the same random numbers, writes the game as XML,
 and must give Java's turn N+1. That needs the model to write XML first.
-The milestone's turns with computer players need the AI, so they come
-with Phase 4.
+The milestone's turns with computer players need the AI, so they came
+with Phase 4 (step 4 has them: sixty rounds of two new games).
 
 ### 3b. Port order
 
@@ -2031,8 +2031,8 @@ with Phase 4.
        record, and nothing reads it before the first turn.
 8. **The engine actor** and snapshots for the UI.
 
-   **Status: done.** With this, Phase 3 is done, apart from the
-   milestone's turns with computer players, which need the AI (Phase 4).
+   **Status: done.** With this, Phase 3 is done; the milestone's turns
+   with computer players came with the AI (Phase 4 step 4).
    - **`FreeColEngine`**, a new module above `FreeColServer`, is what
      the user interface uses. `GameEngine` is an actor that owns one
      single-player game:
@@ -2369,6 +2369,109 @@ every computer player working.
   rarely changes the outcome, and why the privateer test needed a
   target right next to the colony.
 
+
+**Step 4 status: done.** The REF fights as Java's does, the AI is
+saved and loaded with the game, the engine's computer players are the
+AI, and long games with computer players match Java's every round, the
+Phase 3 milestone.
+- **The REF's AI** (`REFAIPlayer.swift`): before its first turn it
+  chooses where to land (the rebels' ports reachable by sea, scored
+  with a little chance and sorted lowest first, as Java's natural
+  order of the scores has it), sends its army there, two thirds at the
+  first target, and its empty ships after the rebels' ships near the
+  landings, or patrolling. Each turn it keeps enough carriers, sends
+  its free army to attack nearby, defend or wait at a port, and loads
+  those waiting onto carriers there for new attacks, before the
+  European AI's missions for the rest. It garrisons thinly, values
+  ports highly, leaves the rebels' units alone until it holds a
+  colony, and has its own stances.
+- **The server's part:** the REF's AI player is made when the REF is
+  (its seed drawn then, as Java's makeAIPlayer does), the REF is
+  launched once its AI has chosen (csLaunchREF: sailing in from the
+  high seas, or appearing where it lands with teleportREF), and the
+  intervention force arrives off a rebel port when the rebels have
+  rung enough bells. A hook on InGameController (`initializeREF`) lets
+  the server, below the AI, ask it.
+- **The AI in saved games** (`AISaving.swift` and each AI class):
+  every AI object is written in identifier order under `aiMain`, and
+  read back with references made empty until their own elements come,
+  as Java's makeAIObject does. Java's integrity checks are ported:
+  objects failing them are dropped when saving and when loading, and
+  those missing are made afresh. The save reader keeps the `aiMain`
+  element for the AI to read once it is made. Java's quirks are kept:
+  - a loaded unit's transport priority is its mission's, not as saved
+    (the mission takes the unit, and with it the priority, before its
+    element is read);
+  - a loaded AI colony does not listen for its colony asking to be
+    rearranged;
+  - wishes not yet being carried are not saved, nor one-time or
+    invalid missions, nor cargoes to be dumped;
+  - plans are saved only if still sound, and pioneers only if wholly
+    so.
+  `ServerGame.finishLoading` does what Java's server does with a game
+  it has read: the map's regions again, the unknown enemy, and the
+  players sorted by rank (the natives, the computer Europeans, the
+  human administrator last), which is the turn order from then on.
+- **The engine:** `GameEngine` makes the AI for a new game, reads it
+  from a saved game (or makes it afresh), passes the computer players
+  what they are sent so they play their turns, and saves the AI with
+  the game. A loaded game does not play on as the live one did, as the
+  AI keeps more than it saves (Java's too), but every load of it plays
+  the same.
+- **Fixed on the way:** a remembered copy of a native settlement (a
+  player's cached tile) is read as Java reads it, as a plain
+  settlement, so setting its alarm does not work out its most hated
+  player again, which lost it.
+- **The oracle:** `AIOracle.java` gains `--reload-at k file.fsg` (save
+  the game, AI and all, after round k, and load it back as Java's
+  server does to play on) and `--declare` (the human declares
+  independence at the start of the first round, through the message
+  handler). `REFGameMaker.java` makes a game where the Dutch may
+  declare, with a continental army to muster and the intervention
+  force due after 100 bells. A fourth oracle patch keeps Java's river
+  names in the rules' order: Java shuffles them with an unseeded
+  generator, so a REF naming a region would not repeat.
+- **Checked:**
+  - the AI saved as Java's after five rounds of the new game and ten
+    of the units game (cargoes, export goods, plans, wishes and most
+    missions), the written `aiMain` the same as Java's;
+  - Java's saves of those read back and played on, five and ten
+    rounds, as Java's after loading;
+  - the REF game for twenty rounds: the declaration, the REF's AI
+    player and its landing, the fighting, colonies taken, and the
+    intervention force;
+  - sixty rounds of two new games (seeds 11 and 2), every computer
+    player as Java's every round (95 seconds in a release build);
+  - the engine's computer players as Java's for ten rounds of the new
+    game, and its saved games loading and playing on alike.
+  Tests/JavaOracle/ai.zip holds all sixteen AI recordings.
+- **Limits:** Java's oracle can not play the REF game past twenty
+  rounds: with every AI answering on one thread, the nested messages
+  overflow the stack in round 21. The game's own integrity check on
+  loading (Game.checkIntegrity) is still not ported; Java's saves pass
+  it unchanged.
+- **Planted bugs:** 11 of 24 caught.
+  - Saving and loading, 7 of 9: a value not saved, a loaded unit
+    keeping its saved priority, loaded colonies listening, the players
+    not sorted after loading, a cargo's tries not saved, a remembered
+    settlement read as the server's, and the engine not saving the AI.
+    Missed, as these games can not show them: saving pioneers that are
+    only fixable (none are), and a wish read from its own element
+    joining its colony (colonies come first by identifier and list
+    their wishes, so Java's saves never take that path).
+  - The REF, 4 of 15: its bonus for ports, its stance towards those at
+    war with it, its AI's seed drawn when the REF is made, and how it
+    lets defenders go. Missed: the order of its targets, their random
+    twiddle, two thirds of the army to the first and the bonus for
+    landing unseen (on its first turn the REF has no estimate of the
+    rebels' strength, so it goes for one target, and the stealth pass
+    sorts the targets again anyway), the time to sail in (moving a REF
+    ship onto the high seas sets it to nought, so it can never show),
+    how many may chase one unit, how far it seeks, its lesser interest
+    in units, its minimum of carriers, the intervention force's search
+    for open sea, and a reset in allocating transport. Most need a REF
+    with several targets, or a rebel who moves; the human of these
+    games only ends its turns.
 ## Phase 5: iOS user interface (replaces ~72k lines of Swing)
 
 Prototyping can start after Phase 1. A read-only map viewer for a loaded

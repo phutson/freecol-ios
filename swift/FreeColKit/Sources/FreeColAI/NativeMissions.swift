@@ -20,9 +20,14 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// Wander at random (UnitWanderMission).
 final class UnitWanderMission: Mission {
+
+    // MARK: Saving
+
+    override var xmlTag: String { "unitWanderMission" }
     private static let tag = "AI wanderer"
 
     override var isOneTime: Bool { true }
@@ -40,6 +45,10 @@ final class UnitWanderMission: Mission {
 
 /// Wander at random, attacking what comes near (UnitWanderHostileMission).
 final class UnitWanderHostileMission: Mission {
+
+    // MARK: Saving
+
+    override var xmlTag: String { "unitWanderHostileMission" }
     private static let tag = "AI hostile-wanderer"
 
     private static func invalidUnitReason(_ aiUnit: AIUnit?) -> String? {
@@ -81,6 +90,10 @@ final class UnitWanderHostileMission: Mission {
 
 /// Stay in a settlement, or go to the nearest (IdleAtSettlementMission).
 final class IdleAtSettlementMission: Mission {
+
+    // MARK: Saving
+
+    override var xmlTag: String { "idleAtSettlementMission" }
     private static let tag = "AI idler"
 
     private var isSafe: Bool {
@@ -125,6 +138,25 @@ final class IdleAtSettlementMission: Mission {
 
 /// Defend a settlement (DefendSettlementMission).
 final class DefendSettlementMission: Mission {
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "defendSettlementMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        xw.writeAttribute("settlement", settlementTarget)
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        settlementTarget = xr.attribute("settlement", default: nil as String?)
+            .flatMap { game.getFreeColGameObject($0) as? Settlement }
+    }
     private static let tag = "AI defender"
 
     private var settlementTarget: Settlement? // Strong, as Java keeps a destroyed one.
@@ -272,6 +304,26 @@ final class DefendSettlementMission: Mission {
 /// Take a gift from the home settlement to a colony
 /// (IndianBringGiftMission).
 final class IndianBringGiftMission: Mission {
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "indianBringGiftMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        xw.writeAttribute("collected", collected)
+        xw.writeAttribute("colony", colony)
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        collected = xr.attribute("collected", default: false)
+        colony = xr.attribute("colony", default: nil as String?).flatMap { game.getFreeColGameObject($0) as? Colony }
+    }
     private static let tag = "AI native gifter"
 
     private(set) var colony: Colony? // Strong, as Java keeps a destroyed colony.
@@ -395,6 +447,28 @@ final class IndianBringGiftMission: Mission {
 
 /// Demand goods of a colony, and take them home (IndianDemandMission).
 final class IndianDemandMission: Mission {
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "indianDemandMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        xw.writeAttribute("colony", colony)
+        xw.writeAttribute("demanded", demanded)
+        xw.writeAttribute("succeeded", succeeded)
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        colony = xr.attribute("colony", default: nil as String?).flatMap { game.getFreeColGameObject($0) as? Colony }
+        demanded = xr.attribute("demanded", default: false)
+        succeeded = xr.attribute("succeeded", default: false)
+    }
     private static let tag = "AI native demander"
     private static let goodsDemandMin = 30
 
@@ -580,6 +654,24 @@ final class IndianDemandMission: Mission {
 
 /// Attack a settlement or unit (UnitSeekAndDestroyMission).
 final class UnitSeekAndDestroyMission: Mission {
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "unitSeekAndDestroyMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        xw.writeAttribute("target", targetObject)
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        targetObject = aiMain.location(xr, "target") as? FreeColGameObject
+    }
     private static let tag = "AI seek+destroyer"
 
     private var targetObject: FreeColGameObject? // Strong, as Java keeps a destroyed target.

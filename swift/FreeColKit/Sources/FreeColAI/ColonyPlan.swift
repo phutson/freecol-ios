@@ -20,6 +20,7 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// What Java would have thrown: the AI's turn stops, as Java's does
 /// when its turn throws.

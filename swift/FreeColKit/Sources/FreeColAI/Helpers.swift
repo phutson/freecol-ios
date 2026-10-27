@@ -20,6 +20,7 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 extension Array {
     /// A stable sort, as Java's List.sort is.

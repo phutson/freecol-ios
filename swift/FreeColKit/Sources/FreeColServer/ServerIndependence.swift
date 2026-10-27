@@ -36,14 +36,15 @@ extension InGameController {
 
     /// Make the REF's player, with what the rebels know of the seas,
     /// coasts and their land, and its force in Europe, on its ships
-    /// (createREFPlayer).  Java gives it an AI; here it is an AI player
-    /// that does nothing until the AI is ported.
+    /// (createREFPlayer).  As Java's server makes an AI player
+    /// (makeAIPlayer), the AI is told of it once it is in the game.
     func createREFPlayer(_ player: Player) -> Player? {
         guard let refNation = player.nation?.refNation, let monarch = player.monarch else { return nil }
         let refPlayer = Player(game: game, nation: refNation)
         refPlayer.isAI = true
         refPlayer.ready = true
         game.addPlayer(refPlayer)
+        if let id = refPlayer.id { game.freeColGameObjectListener?.setFreeColGameObject(id, refPlayer) }
         let europe = refPlayer.europe
         var explore: [Tile] = []
         game.map?.forEachTile(where: {
@@ -60,6 +61,33 @@ extension InGameController {
         let navalUnits = refPlayer.createUnits(exf.navalUnitsList, europe, random)
         refPlayer.loadShips(landUnits, navalUnits, random)
         return refPlayer
+    }
+
+    /// Bring in a newly made REF (csLaunchREF): its entry tile from its
+    /// rebels', and its navy at the entry locations its AI chose, or on
+    /// the high seas a turn's sail from them.
+    func csLaunchREF(_ refPlayer: Player, _ teleport: Bool, _ cs: ChangeSet) {
+        if let rebel = refPlayer.rebels.first { refPlayer.entryTile = rebel.entryTile }
+        if teleport {
+            var seen = Set<ObjectIdentifier>()
+            for u in refPlayer.units where u.isNaval {
+                let entry = u.fullEntryLocation
+                u.setLocation(entry)
+                u.workLeft = -1
+                u.setState(.active)
+                if let entry, seen.insert(ObjectIdentifier(entry)).inserted {
+                    cs.add(.only(refPlayer), refPlayer.exploreForUnit(u))
+                    cs.add(.perhaps().except(refPlayer), entry)
+                }
+            }
+            refPlayer.invalidateCanSeeTiles()
+        } else {
+            for u in refPlayer.units where u.isNaval {
+                u.workLeft = 1
+                u.destination = u.fullEntryLocation
+                u.setLocation(refPlayer.highSeas)
+            }
+        }
     }
 
     /// Declare independence (declareIndependence): the player becomes a

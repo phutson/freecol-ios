@@ -20,6 +20,7 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// The AI of a colony (server/ai/AIColony): what to export, the tiles
 /// to improve, what the colony wishes for, and arranging its workers
@@ -51,6 +52,72 @@ public final class AIColony: AIObject {
         super.init(aiMain, colony.id)
         colony.rearrangeListener = { [weak self] goodsType in self?.propertyChange(goodsType) }
         initialized = true
+    }
+
+    /// An AI colony read from a saved game.  As in Java, it does not
+    /// listen for the colony asking to be rearranged.
+    init(_ aiMain: AIMain, loading colony: Colony) {
+        self.colony = colony
+        super.init(aiMain, colony.id)
+        initialized = true
+    }
+
+    // MARK: Saving
+
+    static let tag = "aiColony"
+
+    public override var xmlTag: String { AIColony.tag }
+
+    public override func setInitialized() {
+        initialized = true
+    }
+
+    public override func checkIntegrity(_ fix: Bool) -> Integrity {
+        let result = super.checkIntegrity(fix)
+        return colony.isDisposed ? .fail : result
+    }
+
+    /// The colony's export goods, plans and wishes, by identifier.
+    public override func writeChildren(_ xw: FreeColXMLWriter) {
+        super.writeChildren(xw)
+        for ag in exportGoods where ag.checkIntegrity(true).isSafe {
+            xw.writeIdElement(AIGoods.tag + "ListElement", ag.id)
+        }
+        for tip in tileImprovementPlans where tip.checkIntegrity(true).isSafe {
+            xw.writeIdElement(TileImprovementPlan.tag + "ListElement", tip.id)
+        }
+        for w in wishes {
+            let tag = w is GoodsWish ? GoodsWish.tag : w is WorkerWish ? WorkerWish.tag : nil
+            guard let tag, w.checkIntegrity(true).isSafe, w.shouldBeStored else { continue }
+            xw.writeIdElement(tag + "ListElement", w.id)
+        }
+    }
+
+    public override func readChildren(_ xr: FreeColXMLReader) throws {
+        exportGoods = []
+        tileImprovementPlans = []
+        wishes = []
+        try super.readChildren(xr)
+        exportGoods = exportGoods.sortedByDescendingValue()
+    }
+
+    public override func readChild(_ xr: FreeColXMLReader) throws {
+        let tag = xr.localName
+        let id = xr.readId()
+        switch tag {
+        case AIGoods.tag + "ListElement":
+            if let ag = aiMain.reference(id, AIGoods.self) { exportGoods.append(ag) }
+        case GoodsWish.tag + "ListElement":
+            if let w = aiMain.reference(id, GoodsWish.self) { wishes.append(w) }
+        case TileImprovementPlan.tag + "ListElement":
+            if let tip = aiMain.reference(id, TileImprovementPlan.self) { tileImprovementPlans.append(tip) }
+        case WorkerWish.tag + "ListElement":
+            if let w = aiMain.reference(id, WorkerWish.self) { wishes.append(w) }
+        default:
+            try super.readChild(xr)
+            return
+        }
+        try xr.closeTag(tag)
     }
 
     private func aiUnit(_ unit: Unit) -> AIUnit? {

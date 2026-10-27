@@ -20,6 +20,7 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// A computer player (server/ai/AIPlayer): its own generator, the
 /// answers it gives to what the server asks, and its turn.
@@ -35,6 +36,30 @@ open class AIPlayer: AIObject {
         aiRandom = JavaRandom(seed: Int64(seed))
         super.init(aiMain, player.id)
         initialized = true
+    }
+
+    /// An AI player read from a saved game, with its generator as saved.
+    init(_ aiMain: AIMain, _ player: Player, random: JavaRandom) {
+        self.player = player
+        aiRandom = random
+        super.init(aiMain, player.id)
+        initialized = true
+    }
+
+    // MARK: Saving
+
+    static let tag = "aiPlayer"
+
+    open override var xmlTag: String { AIPlayer.tag }
+
+    open override func checkIntegrity(_ fix: Bool) -> Integrity {
+        let result = super.checkIntegrity(fix)
+        return player.isDisposed || !player.isAI ? .fail : result
+    }
+
+    open override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        xw.writeAttribute("randomState", aiRandom.serializedState)
     }
 
     /// The nation type's suffix, which names its advantage

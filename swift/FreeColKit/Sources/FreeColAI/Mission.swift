@@ -20,6 +20,7 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// What an AI unit is doing (server/ai/mission/Mission): a target, why
 /// it may no longer be valid, and a turn's work towards it.
@@ -50,6 +51,22 @@ open class Mission: AIObject {
         super.init(aiMain)
         initialized = true
         if aiUnit.mission !== self { aiUnit.changeMission(self) }
+    }
+
+    /// A mission read from a saved game: the unit takes it at once (so
+    /// its transport priority is the mission's own, not as saved), and
+    /// then it is read.
+    init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        self.aiUnit = aiUnit
+        super.init(aiMain)
+        initialized = true
+        if aiUnit.mission !== self { aiUnit.changeMission(self) }
+        try readFromXML(xr)
+    }
+
+    /// Only a valid mission is saved.
+    open override func toXML(_ xw: FreeColXMLWriter) {
+        if isValid { super.toXML(xw) }
     }
 
     public var unit: Unit { aiUnit.unit }

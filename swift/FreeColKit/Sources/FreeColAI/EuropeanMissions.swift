@@ -20,10 +20,29 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// Work in a colony (server/ai/mission/WorkInsideColonyMission): go
 /// there, then wait while the colony's AI arranges the work.
 final class WorkInsideColonyMission: Mission {
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "workInsideColonyMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        xw.writeAttribute("colony", colony)
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        colony = xr.attribute("colony", default: nil as String?).flatMap { game.getFreeColGameObject($0) as? Colony }
+    }
 
     private var colony: Colony? // Strong, as Java keeps a destroyed colony.
 

@@ -20,6 +20,7 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 extension AIUnit {
     /// Java's AIUnit.hashCode: the identifier, value, transport and

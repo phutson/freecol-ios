@@ -20,6 +20,7 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 extension Wish {
     /// Java's Wish.hashCode: the identifier and value, the destination
@@ -274,7 +275,7 @@ extension EuropeanAIPlayer {
 
         for w in wishes() {
             guard let workerWish = w as? WorkerWish, w.transportable == nil else { continue }
-            let unitType = workerWish.unitType
+            let unitType: UnitType = workerWish.unitType
             if !unitType.isAvailableTo(player) { continue }
             let unitPrice = europe.unitPrice(unitType)
             if unitPrice <= 0 { continue }
@@ -389,6 +390,52 @@ extension EuropeanAIPlayer {
         guard let i = transportSupply.firstIndex(where: { $0 === t }) else { return false }
         transportSupply.remove(at: i)
         return true
+    }
+
+    /// Give transportables to the transport missions best placed for
+    /// them: a carrier already there, else the best priority per turn
+    /// (allocateTransportables).
+    func allocateTransportables(_ transportables: [TransportableAIObject], _ missions: [TransportMission]) {
+        var ts = transportables, ms = missions
+        if ts.isEmpty || ms.isEmpty { return }
+        var i = 0
+        outer: while i < ts.count {
+            if ms.isEmpty { break }
+            let t = ts[i]
+            var best: TransportMission?
+            var bestValue: Float = 0
+            var present = false
+            for tm in ms {
+                if !tm.spaceAvailable(t) { continue }
+                guard let cargo = tm.makeCargo(t) else {
+                    // Something is badly wrong with this one.
+                    ts.remove(at: i)
+                    continue outer
+                }
+                let turns = cargo.turns
+                let value: Float
+                if turns == 0 {
+                    value = Float(tm.destinationCapacity())
+                    if !present { bestValue = 0 }
+                    present = true
+                } else {
+                    value = present ? -1 : Float(t.transportPriority) / Float(turns)
+                }
+                if bestValue < value {
+                    bestValue = value
+                    best = tm
+                }
+            }
+            if let best {
+                if best.queueTransportable(t, false) {
+                    claimTransportable(t)
+                    if best.destinationCapacity() <= 0 { ms.removeAll { $0 === best } }
+                } else {
+                    ms.removeAll { $0 === best }
+                }
+            }
+            i += 1
+        }
     }
 
     /// The best worker wish for a unit to go to: the most valuable per

@@ -20,6 +20,26 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
+
+/// How sound an object is (Java's IntegrityType): failed, fixed, or
+/// good.
+public enum Integrity: Int, Sendable {
+    case fail = -1
+    case fixed = 0
+    case good = 1
+
+    /// Not failed (safe).
+    public var isSafe: Bool { self != .fail }
+
+    /// Good becomes fixed; the others stay (fix).
+    func fixed() -> Integrity { self == .good ? .fixed : self }
+
+    /// The worse of the two (combine).
+    func combine(_ other: Integrity) -> Integrity {
+        rawValue <= other.rawValue ? self : other
+    }
+}
 
 /// Something the AI keeps, by identifier (server/ai/AIObject).
 open class AIObject {
@@ -53,6 +73,56 @@ open class AIObject {
         guard let id else { return true }
         return aiMain.aiObject(id) == nil
     }
+
+    // MARK: Saving
+
+    /// The element an object is saved as.
+    open var xmlTag: String { "" }
+
+    /// Whether the object is sound, fixing what can be fixed
+    /// (checkIntegrity).
+    open func checkIntegrity(_ fix: Bool) -> Integrity {
+        initialized ? .good : .fail
+    }
+
+    /// Mark the object initialized if it now has what it needs, after
+    /// reading (setInitialized).
+    open func setInitialized() {}
+
+    open func toXML(_ xw: FreeColXMLWriter) {
+        xw.writeStartElement(xmlTag)
+        writeAttributes(xw)
+        writeChildren(xw)
+        xw.writeEndElement()
+    }
+
+    open func writeAttributes(_ xw: FreeColXMLWriter) {
+        xw.writeAttribute(FreeColObject.idTag, id: id)
+    }
+
+    open func writeChildren(_ xw: FreeColXMLWriter) {}
+
+    /// Read the object from its element (readFromXML), leaving the
+    /// reader on its end tag.
+    func readFromXML(_ xr: FreeColXMLReader) throws {
+        let tag = xr.localName
+        try readAttributes(xr)
+        try readChildren(xr)
+        try xr.expectTag(tag)
+    }
+
+    open func readAttributes(_ xr: FreeColXMLReader) throws {}
+
+    open func readChildren(_ xr: FreeColXMLReader) throws {
+        while try xr.moreTags() { try readChild(xr) }
+    }
+
+    /// An element the object does not know: Java logs it and skips it.
+    open func readChild(_ xr: FreeColXMLReader) throws {
+        let tag = xr.localName
+        xr.warn("Unexpected tag \(tag) in \(xmlTag)")
+        try xr.swallowTag(tag)
+    }
 }
 
 /// The AI of the computer players (server/ai/AIMain): an AI object for
@@ -81,9 +151,9 @@ public final class AIMain: FreeColGameObjectListener {
     public var works: Works
     /// Whether the game is single player, when Java's AI cheats.
     public var singlePlayer = true
-    private var aiObjects: [String: AIObject] = [:]
+    var aiObjects: [String: AIObject] = [:]
     /// The number for the next AI object's identifier.
-    private var nextIdNumber = 1
+    var nextIdNumber = 1
     /// Errors the AI met that Java's would not have: commands not yet
     /// ported, and the like.  Java logs and carries on.
     public private(set) var errors: [String] = []
@@ -101,6 +171,7 @@ public final class AIMain: FreeColGameObjectListener {
         }
         findNewObjects()
         game.freeColGameObjectListener = self
+        attach()
     }
 
     /// The AI for a saved game read without it, made afresh as Java's
@@ -120,6 +191,22 @@ public final class AIMain: FreeColGameObjectListener {
             }
         }
         game.freeColGameObjectListener = self
+        attach()
+    }
+
+    /// An empty AI, to read a saved game's into.
+    init(reading game: ServerGame, controller: InGameController, works: Works) {
+        self.game = game
+        self.controller = controller
+        self.works = works
+        attach()
+    }
+
+    /// Answer the server's questions for the AI: where a new REF lands.
+    private func attach() {
+        controller.initializeREF = { [unowned self] player, teleport in
+            (aiPlayer(player) as? REFAIPlayer)?.initialize(teleport) ?? false
+        }
     }
 
     // MARK: Objects
@@ -156,7 +243,7 @@ public final class AIMain: FreeColGameObjectListener {
         return String(nextIdNumber)
     }
 
-    private func shouldHaveAIObject(_ fcgo: FreeColGameObject) -> Bool {
+    func shouldHaveAIObject(_ fcgo: FreeColGameObject) -> Bool {
         if fcgo is Colony || fcgo is Unit { return true }
         if let p = fcgo as? Player { return p.isAI }
         return false
@@ -191,10 +278,10 @@ public final class AIMain: FreeColGameObjectListener {
             _ = AIColony(self, colony)
         } else if let unit = fcgo as? Unit {
             _ = AIUnit(self, unit)
-        } else if let player = fcgo as? Player {
-            // Java waits until the player has a type; players are made
-            // here by makeAIPlayer.
-            _ = player
+        } else if let player = fcgo as? Player, player.playerType != nil {
+            // Java waits until the player has a type, as a new REF has
+            // once it is made.
+            makeAIPlayer(player)
         }
     }
 

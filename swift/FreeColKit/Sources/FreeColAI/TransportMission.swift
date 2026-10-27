@@ -20,6 +20,7 @@
 import FreeColCore
 import FreeColServer
 import FreeColUtil
+import FreeColXML
 
 /// Something a carrier is to carry (server/ai/Cargo): where the carrier
 /// and the transportable meet, where the carrier drops it, and how long
@@ -28,7 +29,7 @@ final class Cargo {
 
     private static let maxTry = 3
 
-    enum Mode {
+    enum Mode: JavaEnum {
         /// Go to the target and load the transportable.
         case load
         /// Go to the target and unload it.
@@ -41,6 +42,16 @@ final class Cargo {
         case dump
 
         var isCollection: Bool { self == .load || self == .pickup }
+
+        var javaName: String {
+            switch self {
+            case .load: "LOAD"
+            case .unload: "UNLOAD"
+            case .pickup: "PICKUP"
+            case .dropoff: "DROPOFF"
+            case .dump: "DUMP"
+            }
+        }
     }
 
     /// The plan (Cargo.CargoPlan): where the transportable waits, where
@@ -135,6 +146,56 @@ final class Cargo {
         self.carrier = carrier
         spaceLeft = carrier.spaceLeft
         self.plan = plan
+    }
+
+    // MARK: Saving
+
+    static let tag = "cargo"
+
+    /// A cargo read from a saved game (readFromXML), its transportable
+    /// made empty if it has not been read yet.
+    init(loading aiMain: AIMain, _ xr: FreeColXMLReader) throws {
+        let game = aiMain.game
+        let tid = xr.readId()
+        var t = tid.flatMap { aiMain.aiObject($0) as? TransportableAIObject }
+        if t == nil, let tid {
+            if tid.hasPrefix(Unit.tag) {
+                t = aiMain.reference(tid, AIUnit.self)
+            } else if tid.hasPrefix(AIGoods.tag) {
+                t = aiMain.reference(tid, AIGoods.self)
+            }
+        }
+        guard let t else { throw FreeColXMLError("Transportable expected: \(tid ?? "nil")") }
+        transportable = t
+        carrier = xr.attribute("carrier", default: nil as String?).flatMap { game.getFreeColGameObject($0) as? Unit }
+        tries = xr.attribute("tries", default: 0)
+        spaceLeft = xr.attribute("space", default: -1)
+        wrapped = nil
+        plan = Plan()
+        plan.twait = aiMain.location(xr, "twait")
+        plan.cwait = aiMain.location(xr, "cwait")
+        plan.cdst = aiMain.location(xr, "cdst")
+        plan.tdst = aiMain.location(xr, "tdst")
+        plan.turns = xr.attribute("turns", default: -1)
+        plan.mode = xr.attribute("mode", Mode.self, default: nil)
+        plan.fallback = xr.attribute("fallback", default: false)
+        try xr.closeTag(Cargo.tag)
+    }
+
+    func toXML(_ xw: FreeColXMLWriter) {
+        xw.writeStartElement(Cargo.tag)
+        xw.writeAttribute(FreeColObject.idTag, id: transportable?.id)
+        xw.writeAttribute("carrier", carrier)
+        xw.writeAttribute("tries", tries)
+        xw.writeAttribute("space", spaceLeft)
+        if let twait = plan.twait { xw.writeLocationAttribute("twait", twait) }
+        if let cwait = plan.cwait { xw.writeLocationAttribute("cwait", cwait) }
+        if let cdst = plan.cdst { xw.writeLocationAttribute("cdst", cdst) }
+        if let tdst = plan.tdst { xw.writeLocationAttribute("tdst", tdst) }
+        xw.writeAttribute("turns", plan.turns)
+        if let mode = plan.mode { xw.writeAttribute("mode", mode) }
+        xw.writeAttribute("fallback", plan.fallback)
+        xw.writeEndElement()
     }
 
     /// A cargo for the transportable's own destination (newCargo).
@@ -302,6 +363,47 @@ final class TransportMission: Mission {
     override init(_ aiMain: AIMain, _ aiUnit: AIUnit) {
         super.init(aiMain, aiUnit)
         transportTarget = aiUnit.trivialTarget
+    }
+
+    // MARK: Saving
+
+    override init(loading aiMain: AIMain, _ aiUnit: AIUnit, _ xr: FreeColXMLReader) throws {
+        try super.init(loading: aiMain, aiUnit, xr)
+    }
+
+    override var xmlTag: String { "transportMission" }
+
+    override func writeAttributes(_ xw: FreeColXMLWriter) {
+        super.writeAttributes(xw)
+        if let transportTarget { xw.writeLocationAttribute("target", transportTarget) }
+    }
+
+    /// The cargoes, but not those broken or to be dumped: the loaded
+    /// mission works out what to do with them.
+    override func writeChildren(_ xw: FreeColXMLWriter) {
+        for cargo in cargoes {
+            if cargo.check(aiUnit) != nil { continue }
+            if cargo.isValid && cargo.mode == .dump { continue }
+            cargo.toXML(xw)
+        }
+    }
+
+    override func readAttributes(_ xr: FreeColXMLReader) throws {
+        try super.readAttributes(xr)
+        transportTarget = aiMain.location(xr, "target")
+    }
+
+    override func readChildren(_ xr: FreeColXMLReader) throws {
+        _ = tClear()
+        try super.readChildren(xr)
+    }
+
+    override func readChild(_ xr: FreeColXMLReader) throws {
+        if xr.localName == Cargo.tag {
+            _ = tAdd(try Cargo(loading: aiMain, xr), -1)
+        } else {
+            try super.readChild(xr)
+        }
     }
 
     override func dispose() {
