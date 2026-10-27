@@ -316,6 +316,29 @@ extension InGameController {
             if unit.colony == nil { throw CommandRefused("Unit is not in a colony: \(unitId ?? "null")") }
             return try putOutsideColony(player, unit)
 
+        case let .rearrangeColony(colonyId, arrangements):
+            let spec = game.specification
+            // As Java reads them: no checks of who owns what.
+            let resolved = arrangements.map { a in
+                (unit: game.getFreeColGameObject(a.unit) as? Unit,
+                 location: game.findFreeColLocation(a.location),
+                 work: (a.work ?? "").isEmpty ? nil : spec?.getGoodsType(a.work),
+                 role: spec?.getRole(a.role),
+                 roleCount: Int(a.roleCount ?? "") ?? 0)
+            }
+            let colony = try ours(player, colonyId, Colony.self)
+            if resolved.isEmpty { throw CommandRefused("Empty rearrangement list.") }
+            var ready: [(unit: Unit, location: any Location, work: GoodsType?, role: Role, roleCount: Int)] = []
+            for a in resolved {
+                // Java's message reports every problem as at index 0.
+                guard let unit = a.unit else { throw CommandRefused("Invalid unit 0") }
+                guard let location = a.location else { throw CommandRefused("Invalid location 0") }
+                guard let role = a.role else { throw CommandRefused("Invalid role 0") }
+                if a.roleCount < 0 { throw CommandRefused("Invalid role count 0") }
+                ready.append((unit, location, a.work, role, a.roleCount))
+            }
+            return try rearrangeColony(player, colony, ready)
+
         case let .rename(nameableId, name):
             let object = try ours(player, nameableId, FreeColGameObject.self)
             guard object is Unit || object is Settlement else {
@@ -862,6 +885,49 @@ extension InGameController {
         cs.addPartial(.only(player), player, ("gold", String(player.gold)))
         cs.add(.only(player), container)
         return cs
+    }
+
+    /// Rearrange a colony's units (rearrangeColony): everyone moved out
+    /// of the way with their equipment stockpiled, then put in place,
+    /// retrying those waiting for room, then equipped, simplest role
+    /// first.
+    private func rearrangeColony(_ player: Player, _ colony: Colony,
+                                 _ arrangements: [(unit: Unit, location: any Location, work: GoodsType?,
+                                                   role: Role, roleCount: Int)]) throws -> ChangeSet {
+        guard let tile = colony.tile, let defaultRole = game.specification?.defaultRole else {
+            throw CommandRefused("Colony not on the map")
+        }
+        try tile.cacheUnseen()
+        for a in arrangements {
+            a.unit.setLocation(tile)
+            if !a.unit.hasDefaultRole { _ = colony.equipForRole(a.unit, defaultRole, 0) }
+        }
+        var todo = arrangements
+        while !todo.isEmpty {
+            let a = todo.removeFirst()
+            if a.location === tile { continue }
+            guard let wl = a.location as? WorkLocation else { continue } // Java's cast would throw
+            switch wl.noAddReason(a.unit) {
+            case .none:
+                a.unit.setLocation(wl)
+                if a.unit.workType !== a.work { a.unit.changeWorkType(a.work) }
+            case .alreadyPresent:
+                if a.unit.workType !== a.work { a.unit.changeWorkType(a.work) }
+            case .capacityExceeded:
+                todo.append(a)
+            default:
+                break // Java logs a bad move
+            }
+        }
+        let roles = arrangements.filter { $0.role !== defaultRole && $0.role !== $0.unit.role }
+            .stableSorted { a, b in
+                let cmp = a.role.compareTo(b.role)
+                return cmp != 0 ? cmp < 0 : a.roleCount < b.roleCount
+            }
+        for a in roles where !colony.equipForRole(a.unit, a.role, a.roleCount) {
+            throw CommandRefused("Failed to equip \(a.unit.id ?? "") for role \(a.role.id ?? "") at \(colony)")
+        }
+        return ChangeSet().add(.perhaps(), tile)
     }
 
     private func setBuildQueue(_ player: Player, _ colony: Colony, _ queue: [BuildableType]) -> ChangeSet {

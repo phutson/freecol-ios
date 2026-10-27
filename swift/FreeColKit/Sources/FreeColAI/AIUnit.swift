@@ -66,6 +66,26 @@ open class TransportableAIObject: ValuedAIObject {
 
     var transportSource: (any Location)? { nil }
     var transportDestination: (any Location)? { nil }
+
+    /// Get off the carrier (leaveTransport).
+    func leaveTransport() -> Bool {
+        aiMain.record(NotYetPorted("leaving a carrier"), "\(self)")
+        return false
+    }
+
+    /// Change the carrier taking this, getting off the present one
+    /// (changeTransport).
+    func changeTransport(_ aiCarrier: AIUnit?) -> Bool {
+        if let now = transportLocatable?.location as? Unit, !(aiCarrier.map { $0.unit === now } ?? false) {
+            if !leaveTransport() { return false }
+        }
+        if let old = transport {
+            if old === aiCarrier { return true }
+            (old.mission as? CarrierMission)?.removeTransportable(self)
+        }
+        transport = aiCarrier
+        return true
+    }
 }
 
 /// The AI of a unit (server/ai/AIUnit): its mission, and the moves it

@@ -461,6 +461,27 @@ public final class TileImprovementType: FreeColSpecObjectType {
         disasterChoices ?? []
     }
 
+    /// The farmed production a free colonist gains on a tile by this
+    /// improvement (getImprovementValue).
+    public func improvementValue(_ tile: Tile, _ goodsType: GoodsType) -> Int {
+        improvementValue(tile, goodsType, specification?.defaultUnitType)
+    }
+
+    /// The farmed production gained on a tile by this improvement: the
+    /// tile's own production for a simple bonus, its type's for a
+    /// change of type.
+    public func improvementValue(_ tile: Tile, _ goodsType: GoodsType, _ unitType: UnitType?) -> Int {
+        guard goodsType.isFarmed, let tileType = tile.type else { return 0 }
+        let oldProduction = tileType.potentialProduction(goodsType, unitType)
+        guard let changed = change(tileType) else {
+            let production = tile.potentialProduction(goodsType, unitType)
+            guard production > 0 else { return 0 }
+            let chg = apply(Float(production), turn: nil, goodsType.id)
+            return Int(JavaMath.toInt(chg - Float(production)))
+        }
+        return changed.potentialProduction(goodsType, unitType) - oldProduction
+    }
+
     /// The farmed production gained on a tile type by this improvement.
     public func improvementValue(_ tileType: TileType, _ goodsType: GoodsType,
                                  _ unitType: UnitType?) -> Int {

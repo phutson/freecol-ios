@@ -19,6 +19,7 @@
 
 import FreeColCore
 import FreeColServer
+import FreeColUtil
 
 extension Array {
     /// A stable sort, as Java's List.sort is.
@@ -52,4 +53,33 @@ extension NativeTradeItem {
     func goodsMatches(_ other: NativeTradeItem) -> Bool {
         Goods.javaEquals(goods, other.goods)
     }
+}
+
+/// A set in Java's HashSet order (a HashMap's keys).
+struct JavaHashSet<T: Hashable> {
+    private var map: JavaHashMap<T, Bool>
+
+    init(javaHash: @escaping (T) -> Int32) {
+        map = JavaHashMap(javaHash: javaHash)
+    }
+
+    mutating func insert(_ element: T) {
+        if map[element] == nil { _ = map.put(element, true) }
+    }
+
+    @discardableResult
+    mutating func remove(_ element: T) -> Bool {
+        map.removeValue(forKey: element) != nil
+    }
+
+    func contains(_ element: T) -> Bool {
+        map[element] != nil
+    }
+
+    mutating func removeAll() {
+        map.removeAll()
+    }
+
+    /// The elements in Java's iteration order.
+    var elements: [T] { map.keys }
 }

@@ -253,6 +253,12 @@ open class WorkLocation: UnitLocation, Ownable {
         produces(goodsType) ? max(0, potentialProduction(goodsType, unit.type)) : 0
     }
 
+    /// What a unit would make of a goods type here, if it were here
+    /// (getProductionOf).
+    public func productionOf(_ unit: Unit, _ goodsType: GoodsType) -> Int {
+        produces(goodsType) ? max(0, potentialProduction(goodsType, unit.type)) : 0
+    }
+
     /// What a unit type (or nobody) could produce of goods here.
     public func potentialProduction(_ goodsType: GoodsType, _ unitType: UnitType?) -> Int {
         if !canProduce(goodsType, unitType) { return 0 }

@@ -65,18 +65,23 @@ open class AIObject {
 /// AI oracle runs Java's (see doc/swift-port-plan.md, Phase 4).
 public final class AIMain: FreeColGameObjectListener {
 
-    /// Which AI players work their turns: all of them, or only the
-    /// natives (the others only end their turns), while the European AI
-    /// is not ported.
+    /// Which AI players work their turns: all of them; only the
+    /// natives (the others only end their turns); or the natives and
+    /// the Europeans' colonies (not their units' missions, as the AI
+    /// oracle's patched EuropeanAIPlayer does), while the European AI is
+    /// being ported.
     public enum Works: Sendable, Equatable {
         case all
         case natives
+        case colonies
     }
 
     public let game: ServerGame
     public let controller: InGameController
     public var works: Works
     private var aiObjects: [String: AIObject] = [:]
+    /// The number for the next AI object's identifier.
+    private var nextIdNumber = 1
     /// Errors the AI met that Java's would not have: commands not yet
     /// ported, and the like.  Java logs and carries on.
     public private(set) var errors: [String] = []
@@ -139,6 +144,16 @@ public final class AIMain: FreeColGameObjectListener {
         unit?.id.flatMap { aiObjects[$0] as? AIUnit }
     }
 
+    public func aiColony(_ colony: Colony?) -> AIColony? {
+        colony?.id.flatMap { aiObjects[$0] as? AIColony }
+    }
+
+    /// The identifier number for a new AI object (getNextId).
+    func nextId() -> String {
+        defer { nextIdNumber += 1 }
+        return String(nextIdNumber)
+    }
+
     private func shouldHaveAIObject(_ fcgo: FreeColGameObject) -> Bool {
         if fcgo is Colony || fcgo is Unit { return true }
         if let p = fcgo as? Player { return p.isAI }
@@ -170,14 +185,15 @@ public final class AIMain: FreeColGameObjectListener {
 
     public func setFreeColGameObject(_ id: String, _ fcgo: FreeColGameObject) {
         if aiObjects[id] != nil || !shouldHaveAIObject(fcgo) { return }
-        if let unit = fcgo as? Unit {
+        if let colony = fcgo as? Colony {
+            _ = AIColony(self, colony)
+        } else if let unit = fcgo as? Unit {
             _ = AIUnit(self, unit)
         } else if let player = fcgo as? Player {
             // Java waits until the player has a type; players are made
             // here by makeAIPlayer.
             _ = player
         }
-        // Colonies' AI comes with the European AI.
     }
 
     public func removeFreeColGameObject(_ id: String) {

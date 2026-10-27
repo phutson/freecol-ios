@@ -344,6 +344,7 @@ extension Player {
             return
         }
         if changed { try tile.cacheUnseen(copied: copied) }
+        colony.requestRearrange()
     }
 
     /// Sink a ship (csSinkShip).

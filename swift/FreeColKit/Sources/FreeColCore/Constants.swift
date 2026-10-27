@@ -25,4 +25,7 @@ public enum Constants {
 
     /// "Not set" (Java's Integer.MIN_VALUE).
     public static let undefined = Int(Int32.min)
+
+    /// The price to claim land by stealing it.
+    public static let stealLand = -1
 }

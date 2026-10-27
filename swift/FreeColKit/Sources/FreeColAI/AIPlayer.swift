@@ -133,6 +133,7 @@ open class AIPlayer: AIObject {
         switch aiMain.works {
         case .all: startWorking()
         case .natives: if player.isIndian { startWorking() }
+        case .colonies: if !player.isREF { startWorking() }
         }
         askEndTurn()
     }

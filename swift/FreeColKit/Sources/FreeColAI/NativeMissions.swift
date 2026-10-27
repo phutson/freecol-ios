@@ -215,8 +215,7 @@ final class DefendSettlementMission: Mission {
         }
 
         if let colony = target as? Colony, unit.isInColony || (unit.isPerson && colony.unitCount < 1) {
-            // Working inside comes with the European AI.
-            let m = (aiUnit.aiOwner as? EuropeanAIPlayer)?.workInsideColonyMission(aiUnit, colony)
+            let m = (aiUnit.aiOwner as? EuropeanAIPlayer)?.workInsideColonyMission(aiUnit, aiMain.aiColony(colony))
             return lbDone(m != nil)
         }
         switch unit.state {

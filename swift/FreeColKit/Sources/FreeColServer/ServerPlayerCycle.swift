@@ -909,6 +909,8 @@ extension Player {
                 .addAmount("%amount%", amount)
                 .addNamed("%goods%", goodsType))
             cs.addAttribute(.only(self), "flush", "true")
+            // Reset the goods wishes.
+            colony.requestRearrange(goodsType)
         }
     }
 

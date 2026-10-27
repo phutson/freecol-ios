@@ -2185,6 +2185,82 @@ natives' AI can be checked before the Europeans' exists.
   AI matching Java where it is reached, not that every rule is right.
   The European games of steps 2 and 3 will reach more of it.
 
+**Step 2 status: done.** The Europeans' colonies are run as Java's
+are.
+- **The colonies' AI** in `FreeColAI`:
+  - `AIColony`: its exports (which goods to export in full and which
+    only to keep the warehouse from filling, and the goods to ship);
+    plans to improve the tiles worked, keeping a forest; wishes for
+    experts, more people and goods; and rearranging the workers when
+    due. Rearranging explores neighbouring rumours, claims free tiles
+    (and takes native land if defended), chooses what to build, tries
+    the workers on a copy of the colony, has the server apply the
+    arrangement, and sets when to rearrange again (before food runs
+    out or a warehouse fills). It recovers a colony left with no one
+    working, and hears from the colony when it should rearrange
+    sooner (Java's `REARRANGE_COLONY` property change).
+  - `ColonyPlan`: what to build, by weights for each kind of
+    buildable; the two best raw materials; plans for producing goods
+    at each work location, the most wanted first; and the trial
+    assignment of workers (outdoor experts outside, workers greedily
+    to the plans with food when needed, backing out of starvation and
+    of running out of raw materials, then experts swapped into their
+    work and the rest armed).
+  - `WorkLocationPlan`, `TileImprovementPlan`, `Wish`, `GoodsWish`,
+    `WorkerWish`, `AIGoods` and `WorkInsideColonyMission`.
+  - `EuropeanAIPlayer`: the colony part of its turn: stances (a recent
+    peace treaty holding by chance), the conquest nations' hatred of
+    natives after turn 100, the badly defended colonies, updating the
+    colonies, the maps of tile improvements, wishes and transport, and
+    three passes of rearranging the colonies.
+  - `AIMain.Works.colonies` works the natives and the Europeans'
+    colonies. The units' other missions, cheating and buying come in
+    step 3; until then the mission getters give none.
+- **The model and server:** `Colony.copyColony` and
+  `getCorresponding`, a colony's rearrange listener, fired where
+  Java's is, the `rearrangeColony` command (Java's
+  `RearrangeColonyMessage` and `InGameController.rearrangeColony`),
+  `TileImprovementType.improvementValue` for a tile, and
+  `WorkLocation.productionOf`.
+- **Java behaviour kept:**
+  - `WorkLocationPlan`s have no identifier, so Java's `equals` finds
+    them all equal and `List.remove(plan)` removes the first plan in
+    the list, whichever plan was meant;
+  - retrying a plan for more raw material keeps the list the first
+    plan came from, so a food plan's list may lose a plan instead;
+  - `ColonyPlan.refine` can insert at index -1 and throw, which stops
+    the AI's turn (recorded as an error here, so a test would show it);
+  - the goods types to export are shared by all AI colonies in Java,
+    but each colony sets them before using them, so each keeps its own.
+- **Checked:** the oracle runs with a patched `EuropeanAIPlayer` as
+  well (`-Dfreecol.oracle.aiWorks=colonies`), which works only the
+  colonies, and `AIOracle.java` records, after every round, what the AI
+  keeps for each colony: the next rearrangement, the plan's buildables,
+  and the wishes, tile improvement plans and exports with their
+  identifiers and values. `NativeAITests` plays twenty rounds each of
+  the command game, the war game, and a game made for the colonies'
+  AI (`ColonyAIGameMaker.java`: a rumour beside a colony with
+  colonists to explore it, tiles to claim, colonies nearly out of food
+  or lumber, and a colony with no one working). Every round's game,
+  generators and AI colonies match Java's. The recordings are in
+  Tests/JavaOracle/ai.zip (602 KB).
+- **Not reached by these games:** retrying and giving up for raw
+  materials, subsisting and the harmless placement of a last worker,
+  swapping a waiting expert in, a failed trial, and taking native land
+  (which needs a defender with a mission, step 3).
+- **Planted bugs:** 14 of 20 caught: the goods wish value, the worker
+  wish decay, the export minimum and level, the forest minimum, the
+  rearrangement horizon and warehouse limit, no claims, unsorted
+  wishes, the fish and liberty weights, the least-skilled tie-break,
+  the soldiers' order, and no rearming. The 6 missed: the turnover
+  turns (starvation is reached, but not at the edge), removing the
+  plan meant rather than the first (the lists' first plans fail in
+  these games), the national bonus, the tie between equal tile
+  improvements, the server not retrying a full work location, and one
+  rearrangement pass instead of three (the later passes find nothing
+  due). As for the natives, these games show the colonies' AI
+  matching Java where reached.
+
 ## Phase 5: iOS user interface (replaces ~72k lines of Swing)
 
 Prototyping can start after Phase 1. A read-only map viewer for a loaded

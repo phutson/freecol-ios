@@ -98,6 +98,7 @@ public enum PlayerCommand: Equatable, Sendable {
     case payArrears(goodsType: String?)
     case payForBuilding(colony: String?)
     case putOutsideColony(unit: String?)
+    case rearrangeColony(colony: String?, arrangements: [ColonyArrangement])
     case rename(nameable: String?, name: String?)
     /// Look round a native settlement.
     case scoutIndianSettlement(unit: String?, direction: String?)
@@ -176,6 +177,12 @@ public enum PlayerCommand: Equatable, Sendable {
         case "payArrears": self = .payArrears(goodsType: a["goodsType"])
         case "payForBuilding": self = .payForBuilding(colony: a["colony"])
         case "putOutsideColony": self = .putOutsideColony(unit: a["unit"])
+        case "rearrangeColony":
+            let n = Int(a["xLength"] ?? "") ?? 0
+            self = .rearrangeColony(colony: a["colony"], arrangements: (0..<n).map {
+                ColonyArrangement(unit: a["x\($0)unit"], location: a["x\($0)loc"], work: a["x\($0)work"],
+                                  role: a["x\($0)role"], roleCount: a["x\($0)count"])
+            })
         case "rename": self = .rename(nameable: a["nameable"], name: a["name"])
         case "setBuildQueue":
             let n = Int(a["xLength"] ?? "") ?? 0
@@ -190,6 +197,24 @@ public enum PlayerCommand: Equatable, Sendable {
         case "work": self = .work(unit: a["unit"], workLocation: a["workLocation"])
         default: throw UnknownMessage(tag: tag)
         }
+    }
+}
+
+/// Where a unit is to be, and with what work and role, when a colony
+/// is rearranged (RearrangeColonyMessage.Arrangement), by identifier.
+public struct ColonyArrangement: Equatable, Sendable {
+    public var unit: String?
+    public var location: String?
+    public var work: String?
+    public var role: String?
+    public var roleCount: String?
+
+    public init(unit: String?, location: String?, work: String?, role: String?, roleCount: String?) {
+        self.unit = unit
+        self.location = location
+        self.work = work
+        self.role = role
+        self.roleCount = roleCount
     }
 }
 

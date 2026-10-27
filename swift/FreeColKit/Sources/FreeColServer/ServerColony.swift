@@ -85,6 +85,7 @@ extension Colony {
             }
             _ = u.setLocation(tile)
         }
+        requestRearrange()
         return true
     }
 
@@ -112,6 +113,7 @@ extension Colony {
             cs.addMessage(owner, ModelMessage(.buildingCompleted, "model.colony.buildingReady", self)
                 .addName("%colony%", name)
                 .addNamed("%building%", type))
+            requestRearrange()
         }
         return success
     }
@@ -650,6 +652,7 @@ extension Colony {
         try buildBuilding(build)
         checkBuildQueueIntegrity()
         cs.add(.only(owner), self)
+        requestRearrange()
         for u in present { _ = u.setLocation(build) }
     }
 

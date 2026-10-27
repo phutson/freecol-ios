@@ -701,11 +701,24 @@ public final class Colony: Settlement, GameObjectReadable {
         Float(unitCount) > apply(0, turn: game?.turn, Modifier.minimumColonySize)
     }
 
+    /// Who is told when an AI colony should be rearranged (Java's
+    /// REARRANGE_COLONY property change listener): with a goods type
+    /// after a goods party.
+    public var rearrangeListener: ((GoodsType?) -> Void)?
+
+    /// Tell the listener, if the owner is a computer player, that the
+    /// colony should be rearranged (firePropertyChange of
+    /// REARRANGE_COLONY).
+    public func requestRearrange(_ goodsParty: GoodsType? = nil) {
+        if owner?.isAI ?? false { rearrangeListener?(goodsParty) }
+    }
+
     /// Update the rebels and production bonus after the population
-    /// changes.  Java also asks AI colonies to rearrange.
+    /// changes, and ask an AI colony to rearrange.
     public func updatePopulation() {
         updateSoL()
         updateProductionBonus()
+        requestRearrange()
     }
 
     /// Start or stop a unit teaching or learning.
@@ -1017,6 +1030,62 @@ public final class Colony: Settlement, GameObjectReadable {
             modifyImmigration(migration)
             owner?.modifyImmigration(migration)
         }
+    }
+
+    // MARK: Copies
+
+    /// The tiles of a copy made by copyColony, which only the copy holds
+    /// (the map holds an original's).
+    private var copiedTiles: [Tile] = []
+
+    /// A copy of the colony that is not in the game, standing on a copy
+    /// of its tile and working copies of its tiles, to try arrangements
+    /// on (copyColony).  Release it when done with it.
+    public func copyColony() throws -> Colony {
+        guard let game, let tile else { throw FreeColXMLError("Copy of \(self) failed: not on the map") }
+        let tileCopy = try tile.copy(in: game)
+        guard let colony = tileCopy.colony else { throw FreeColXMLError("Copy of \(self) failed") }
+        colony.copiedTiles = [tileCopy]
+        for ct in colony.colonyTiles {
+            let wt: Tile
+            if ct.isColonyCenterTile {
+                wt = tileCopy
+            } else {
+                guard let original = ct.workTile else { continue }
+                wt = try original.copy(in: game)
+                if wt.owningSettlement === self { wt.owningSettlement = colony }
+                colony.copiedTiles.append(wt)
+            }
+            ct.setWorkTile(wt)
+        }
+        return colony
+    }
+
+    /// Let go of a copy made by copyColony.
+    public func releaseCopy() {
+        copiedTiles = []
+    }
+
+    /// The work location of a copy of this colony with the same
+    /// identifier (getCorresponding).
+    public func corresponding(_ wl: WorkLocation) -> WorkLocation? {
+        allWorkLocations.first { $0.id == wl.id }
+    }
+
+    /// The unit of a copy of this colony with the same identifier.
+    public func corresponding(_ unit: Unit) -> Unit? {
+        allUnitsList.first { $0.id == unit.id }
+    }
+
+    /// The tile, worked tile or work location of a copy of this colony
+    /// with the same identifier.
+    public func corresponding(_ loc: any Location) -> (any Location)? {
+        if let wl = loc as? WorkLocation { return corresponding(wl) }
+        if let t = loc as? Tile {
+            if tile?.id == t.id { return tile }
+            return colonyTiles.lazy.compactMap(\.workTile).first { $0.id == t.id }
+        }
+        return nil
     }
 
     // MARK: Features

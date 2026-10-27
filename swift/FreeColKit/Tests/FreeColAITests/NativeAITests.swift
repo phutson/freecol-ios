@@ -19,7 +19,7 @@
 
 import CryptoKit
 import Foundation
-import FreeColAI
+@testable import FreeColAI
 import FreeColCore
 import FreeColIO
 import FreeColServer
@@ -30,8 +30,9 @@ import Testing
 /// The natives' AI, compared with Java's playing the same new game
 /// (AIOracle.java, with the oracle's patched AIPlayer): rounds in which
 /// the human ends its turn and every computer player plays its own, the
-/// Europeans' AI only ending their turns.  After each round the game, the
-/// server's generator and each AI player's generator must be Java's.
+/// Europeans' AI only ending their turns, or working only their colonies.
+/// After each round the game, the server's generator, each AI player's
+/// generator and what the AI keeps for each colony must be Java's.
 @Suite(.serialized)
 struct NativeAITests {
 
@@ -115,6 +116,85 @@ struct NativeAITests {
         }
     }
 
+    /// What the AI keeps for a colony, as AIOracle.java writes it.
+    static func describe(_ aic: AIColony) -> [String] {
+        var lines = ["rearrange \(aic.rearrangeTurn)",
+                     (["plan"] + aic.plannedBuildableTypes.map { $0.id ?? "" }).joined(separator: " ")]
+        for w in aic.currentWishes {
+            let what: String
+            if let gw = w as? GoodsWish {
+                what = "\(gw.goodsType.id ?? "") \(gw.goodsAmount)"
+            } else if let ww = w as? WorkerWish {
+                what = "\(ww.unitType.id ?? "") \(ww.expertNeeded)"
+            } else {
+                what = "?"
+            }
+            let dest = (w.destination as? FreeColGameObject)?.id ?? "null"
+            lines.append("wish \(w.id ?? "") \(what) \(w.value) -> \(dest)")
+        }
+        for tip in aic.currentTileImprovementPlans {
+            lines.append("tip \(tip.id ?? "") \(tip.type?.id ?? "") \(tip.target?.id ?? "") \(tip.value)")
+        }
+        for aig in aic.currentExportGoods {
+            let dest = (aig.transportDestination as? FreeColGameObject)?.id ?? "null"
+            lines.append("export \(aig.id ?? "") \(aig.goodsType?.id ?? "") \(aig.goods?.amount ?? 0)"
+                         + " \(aig.transportPriority) -> \(dest)")
+        }
+        return lines
+    }
+
+    /// Twenty rounds of the command game with the Europeans' colonies
+    /// working too (step 2 of Phase 4): their plans, wishes, tile
+    /// improvements and exports, and the arrangement of their workers.
+    @Test func colonies() throws {
+        try Messages.$scopedBundle.withValue(Self.english) {
+            let java = try Self.recorded("colonies")
+            let saved = try FreeColSavegameFile(url: Self.oracleDirectory
+                .appendingPathComponent("games/freecol-commands-seed1.fsg")).readServerGame()
+            let game = try #require(saved.game as? ServerGame)
+            game.currentPlayer = game.livePlayers.first { !$0.isAI }
+            let random = JavaRandom(seed: try #require(java["seed"]?.intValue))
+            let controller = InGameController(game: game, random: random)
+            let ai = AIMain(remaking: game, controller: controller, works: .colonies)
+            try play(java, game, controller, ai, random, rounds: 20)
+        }
+    }
+
+    /// Twenty rounds of the war game with the Europeans' colonies
+    /// working too: native demands of the Dutch and Spanish colonies,
+    /// and Dutch soldiers on the land around.
+    @Test func coloniesAtWar() throws {
+        try Messages.$scopedBundle.withValue(Self.english) {
+            let java = try Self.recorded("colonies-war")
+            let saved = try FreeColSavegameFile(url: Self.oracleDirectory
+                .appendingPathComponent("games/freecol-nativeai-seed1.fsg")).readServerGame()
+            let game = try #require(saved.game as? ServerGame)
+            game.currentPlayer = game.livePlayers.first { !$0.isAI }
+            let random = JavaRandom(seed: try #require(java["seed"]?.intValue))
+            let controller = InGameController(game: game, random: random)
+            let ai = AIMain(remaking: game, controller: controller, works: .colonies)
+            try play(java, game, controller, ai, random, rounds: 20)
+        }
+    }
+
+    /// Twenty rounds of a game made for the colonies' AI
+    /// (ColonyAIGameMaker.java) with the colonies working: rumours to
+    /// explore, tiles to claim, colonies short of food or raw materials,
+    /// and one with no one working.
+    @Test func coloniesMade() throws {
+        try Messages.$scopedBundle.withValue(Self.english) {
+            let java = try Self.recorded("colonies-made")
+            let saved = try FreeColSavegameFile(url: Self.oracleDirectory
+                .appendingPathComponent("games/freecol-colonyai-seed1.fsg")).readServerGame()
+            let game = try #require(saved.game as? ServerGame)
+            game.currentPlayer = game.livePlayers.first { !$0.isAI }
+            let random = JavaRandom(seed: try #require(java["seed"]?.intValue))
+            let controller = InGameController(game: game, random: random)
+            let ai = AIMain(remaking: game, controller: controller, works: .colonies)
+            try play(java, game, controller, ai, random, rounds: 20)
+        }
+    }
+
     /// Play the rounds, the human ending its turn each time, and compare
     /// each with Java's.
     func play(_ java: JSONValue, _ game: ServerGame, _ controller: InGameController, _ ai: AIMain,
@@ -146,6 +226,16 @@ struct NativeAITests {
                     let player = game.livePlayers.first { $0.id == id }
                     if ai.aiPlayer(player)?.aiRandom.serializedState != state.stringValue {
                         diffs.append("AI random of \(id) differs")
+                    }
+                }
+                if let colonies = expected["aiColonies"]?.objectValue {
+                    for (id, lines) in colonies.sorted(by: { $0.key < $1.key }) {
+                        let javaLines = (lines.arrayValue ?? []).compactMap(\.stringValue)
+                        let colony = game.getFreeColGameObject(id) as? Colony
+                        let ours = colony.flatMap { ai.aiColony($0) }.map(Self.describe) ?? ["no AI colony"]
+                        if ours != javaLines {
+                            diffs.append("AI colony \(id):\n  java: \(javaLines)\n  ours: \(ours)")
+                        }
                     }
                 }
                 if !diffs.isEmpty {
