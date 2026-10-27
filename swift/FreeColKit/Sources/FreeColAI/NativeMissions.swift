@@ -582,7 +582,7 @@ final class IndianDemandMission: Mission {
 final class UnitSeekAndDestroyMission: Mission {
     private static let tag = "AI seek+destroyer"
 
-    private weak var targetObject: FreeColGameObject?
+    private var targetObject: FreeColGameObject? // Strong, as Java keeps a destroyed target.
     private var transportTarget: (any Location)?
 
     init(_ aiMain: AIMain, _ aiUnit: AIUnit, _ target: (any Location)?) {

@@ -242,6 +242,14 @@ struct NativeAITests {
         try playSaved("all-made", "freecol-colonyai-seed1.fsg", .all)
     }
 
+    /// Every AI working in the units game (from UnitAIGameMaker): gold
+    /// to spend, colonists on the docks, scouts, artillery, dragoons and
+    /// soldiers, free colonists, and a privateer beside a laden
+    /// merchantman.
+    @Test func allWorkingUnits() throws {
+        try playSaved("all-units", "freecol-unitai-seed1.fsg", .all)
+    }
+
     /// Play the rounds, the human ending its turn each time, and compare
     /// each with Java's.
     func play(_ java: JSONValue, _ game: ServerGame, _ controller: InGameController, _ ai: AIMain,

@@ -2322,28 +2322,52 @@ every computer player working.
 - **Checked:** with every AI working, `AIOracle.java` also records
   each European AI unit's mission, target and carrier after every
   round. `NativeAITests` plays a new game (ten rounds) and the command,
-  war and colony games (twenty rounds each), all matching Java's every
-  round: the game, the generators, the AI colonies and every AI unit's
-  mission. Tests/JavaOracle/ai.zip holds all ten AI recordings
-  (1.07 MB).
+  war, colony and units games (twenty rounds each), all matching Java's
+  every round: the game, the generators, the AI colonies and every AI
+  unit's mission. Tests/JavaOracle/ai.zip holds all eleven AI
+  recordings (1.2 MB).
+- **The units game:** `UnitAIGameMaker.java` makes it from the war
+  game, for what the other games never reach:
+  - the European AIs have gold to buy units with (they had none);
+  - six French units wait on the docks, one short of buying a ship;
+  - each AI has a seasoned scout;
+  - the Spanish have three artillery on open land, so one is left
+    after two go to their larger colonies, with dragoons exactly seven
+    turns away, as measured by Java;
+  - free English colonists stand on open land;
+  - English privateers have laden Dutch ships beside them, one of
+    them a galleon worth a little more than the colony next to it.
+  Its first runs found two port bugs:
+  - privateers read a ship's raw visible goods count, which is -1
+    until set, instead of Java's value, which falls back to the goods
+    carried, so they never went after cargo;
+  - the seek-and-destroy mission held its target weakly, losing a
+    destroyed target that Java keeps.
 - **Not ported:** the mercenary cheat after turn 300, and evaluating
   colony, goods, unit and incitement trade items (recorded as not yet
   ported if met).
-- **Planted bugs:** only 2 of 22 caught, run against all four
-  every-AI games: the transport's destination bound and its cargo
-  replenishing threshold. Missed: favouring early deliveries, the cargo
-  retries, builders needed with no ports, the colony site's extra turns,
-  the builder's transport priority, the rumour and pioneering scores,
-  the colony defence weighting, the defender adjustment, the escort's
-  reach, the defensive zone size, buying ships for a full dock, the
-  dragoons needed, the privateer's greed, the building range, the
-  builder score, the seek-and-destroy range, the safest landing tile,
-  the military units' order, and the peace odds. Most are tuning
-  constants whose thresholds these short games never reach, and two
-  (the landing tile and the peace odds) change only ties. So these
-  recordings check that the missions are wired together as in Java,
-  but not most of their weights; longer or purpose-made games are
-  needed for those.
+- **Planted bugs:** 8 of 22 caught. The four older every-AI games
+  catch 2: the transport's destination bound and its cargo refill
+  threshold. The units game adds 6: the escort's reach, the defensive
+  zone size, buying a ship for a full dock, the dragoons needed, the
+  privateer's greed, and the military units' order. Missed:
+  - four can hardly ever show:
+    - lowering the builder score by 100 cannot change the order it
+      sorts units in (non-experts stay above experts);
+    - the pioneer and rumour scores only scale every candidate;
+    - the peace odds change only when the random number lands exactly
+      on the threshold, 1 time in 100;
+  - the others need situations none of these games reach: favouring
+    early deliveries, the cargo retries, builders needed with no
+    ports, the colony site's extra turns, the builder's transport
+    priority, the defence weighting, the defender adjustment (used only
+    when a defended colony is lost), the building range, the
+    seek-and-destroy range, and the safest landing tile.
+  Scores matter less than they seem: the map search stops expanding
+  past the cost of the best goal it has found, so a unit weighs only
+  targets about as near as the first. That is why scaling a score
+  rarely changes the outcome, and why the privateer test needed a
+  target right next to the colony.
 
 ## Phase 5: iOS user interface (replaces ~72k lines of Swing)
 

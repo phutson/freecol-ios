@@ -358,7 +358,7 @@ final class PrivateerMission: Mission {
     /// How tempting a ship is: its cargo, less the danger.
     static func scoreUnit(_ aiUnit: AIUnit, _ defender: Unit) -> Int {
         let attacker = aiUnit.unit
-        var value = 100 + defender.visibleGoodsCount * 200
+        var value = 100 + defender.visibleGoods * 200
         if defender.isOffensiveUnit, let co = attacker.game?.combatModel.calculateCombatOdds(attacker, defender) {
             value += Int(JavaMath.toInt((co.win - 0.5) * 200))
         }
