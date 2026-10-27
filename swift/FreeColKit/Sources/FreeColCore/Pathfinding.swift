@@ -35,7 +35,13 @@ public final class PathNode: CustomStringConvertible {
     public var turns: Int
     public var isOnCarrier: Bool
     public var next: PathNode?
-    public weak var previous: PathNode?
+    /// Weak, so the nodes are not a cycle.  A node held without the
+    /// head of its path can lose it, so the previous node's tile, which
+    /// the map holds, is kept for the direction.
+    public weak var previous: PathNode? {
+        didSet { previousTile = previous?.tile }
+    }
+    private weak var previousTile: Tile?
 
     public init(_ location: (any Location)?, _ movesLeft: Int, _ turns: Int, _ onCarrier: Bool,
                 _ previous: PathNode?, _ next: PathNode?) {
@@ -44,6 +50,7 @@ public final class PathNode: CustomStringConvertible {
         self.turns = turns
         self.isOnCarrier = onCarrier
         self.previous = previous
+        previousTile = previous?.tile
         self.next = next
     }
 
@@ -73,7 +80,7 @@ public final class PathNode: CustomStringConvertible {
 
     /// The direction from the previous node's tile to this one's.
     public var direction: Direction? {
-        guard let prev = previous?.tile, let tile else { return nil }
+        guard let prev = previousTile, let tile else { return nil }
         return prev.map?.direction(prev, tile)
     }
 
@@ -694,23 +701,23 @@ public enum GoalDeciders {
 /// java.util.PriorityQueue, for the A* search: a binary heap whose
 /// order among equal elements (and so the paths found) is Java's.
 /// Removal compares by identity, as PathNode does not define equals.
-struct JavaPriorityQueue<T: AnyObject> {
+public struct JavaPriorityQueue<T: AnyObject> {
     private var queue: [T] = []
     private let comparator: (T, T) -> Int
 
-    init(_ comparator: @escaping (T, T) -> Int) {
+    public init(_ comparator: @escaping (T, T) -> Int) {
         self.comparator = comparator
     }
 
-    var isEmpty: Bool { queue.isEmpty }
-    var count: Int { queue.count }
+    public var isEmpty: Bool { queue.isEmpty }
+    public var count: Int { queue.count }
 
-    mutating func offer(_ e: T) {
+    public mutating func offer(_ e: T) {
         queue.append(e)
         siftUp(queue.count - 1, e)
     }
 
-    mutating func poll() -> T? {
+    public mutating func poll() -> T? {
         guard !queue.isEmpty else { return nil }
         let result = queue[0]
         let x = queue.removeLast()
@@ -719,7 +726,7 @@ struct JavaPriorityQueue<T: AnyObject> {
     }
 
     @discardableResult
-    mutating func remove(_ o: T) -> Bool {
+    public mutating func remove(_ o: T) -> Bool {
         guard let i = queue.firstIndex(where: { $0 === o }) else { return false }
         removeAt(i)
         return true

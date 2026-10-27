@@ -2214,8 +2214,9 @@ are.
     colonies, the maps of tile improvements, wishes and transport, and
     three passes of rearranging the colonies.
   - `AIMain.Works.colonies` works the natives and the Europeans'
-    colonies. The units' other missions, cheating and buying come in
-    step 3; until then the mission getters give none.
+    colonies only: the units' other missions, cheating and buying (step
+    3) are left out, and the mission getters give none, as in the
+    oracle's patch.
 - **The model and server:** `Colony.copyColony` and
   `getCorresponding`, a colony's rearrange listener, fired where
   Java's is, the `rearrangeColony` command (Java's
@@ -2260,6 +2261,89 @@ are.
   rearrangement pass instead of three (the later passes find nothing
   due). As for the natives, these games show the colonies' AI
   matching Java where reached.
+
+**Step 3 status: done.** The Europeans' AI plays as Java's does, with
+every computer player working.
+- **Transport:** `Cargo` (where carrier and transportable meet, where
+  it is dropped, and the turns it takes), and `TransportMission`
+  (checking its cargoes, loading and unloading where it is, the order
+  of its targets by Java's permutations, taking on the best cargo and
+  what is easily carried, attacking or dodging blockages). AI units and
+  goods join and leave carriers, and plan deliveries.
+- **The missions:** building colonies (claiming, buying or stealing the
+  land), pioneering, realizing wishes, cashing in treasure, scouting,
+  missionaries, privateering and escorting, with working inside
+  colonies from step 2.
+- **The military coordinator** (`MilitaryCoordinator`, `DefensiveMap`,
+  `DefensiveZone`): defenders for the colonies, by the zones of land
+  around them, counterattacks, artillery attacks with escorts, and the
+  rest defending or wandering.
+- **`EuropeanAIPlayer`:** the first turn's missions for the units
+  aboard ships; Java's cheats (lifting boycotts, equipping scouts and
+  pioneers, units for wishes, ships); buying ships, artillery,
+  dragoons and wished-for workers in Europe; giving units missions to
+  quotas of builders, scouts and pioneers, then simple missions, then
+  the ships, then fallbacks; three passes of rearranging colonies,
+  giving missions and carrying them out; and diplomacy (judging trades
+  by strength, dropping the worst items, Franklin's peace).
+- **Fixed in the model:** `PathNode.direction` read the previous node,
+  which is weak, so a node kept without its path's head lost its
+  direction; it now keeps the previous tile, which the map holds. The
+  path search's cache was one global shared by every thread, so tests
+  running at once could corrupt each other's (the intermittent crash
+  of steps 1 and 2); it is now task local. Native settlements on the
+  server work out their most hated player whenever an alarm is set, as
+  Java's `ServerIndianSettlement` does, and alarms changed in place are
+  stored without it.
+- **Java behaviour kept:**
+  - Java's naval strength ratio looks for the player among the other
+    players, so its own strength is always zero (and the naval cheat
+    only happens with no navy at all);
+  - the military coordinator's counterattacks check the turns of a
+    path's first node, which are always zero;
+  - realizing a wish gives the unit a new mission and then drops it;
+  - a transport mission that turns privateer drops the new mission;
+  - `PioneeringMission`'s failure drops the mission even when told to
+    continue;
+  - missions keep a target colony that has been destroyed;
+  - Java's urgent transportables are always none, so supply-driven
+    transport allocation does nothing.
+- **Made repeatable in the oracle:** Java's military coordinator keeps
+  units in identity hash sets, whose order follows identity hash codes
+  and so differs from run to run; the oracle's patched
+  `MilitaryCoordinator` keeps them in the order they came, which the
+  Swift port follows, and the hash sets they come from are in Java's
+  `HashSet` order (from `AIUnit.hashCode`, here `javaHash`).
+  `buyShip` shuffles with Java's unseeded generator; the patch keeps
+  the specification's order. Diplomacy scores trade items in a
+  `HashMap`, whose order for stances also follows an enum's identity
+  hash; the items' order is used, which matters only for offers of
+  several items.
+- **Checked:** with every AI working, `AIOracle.java` also records
+  each European AI unit's mission, target and carrier after every
+  round. `NativeAITests` plays a new game (ten rounds) and the command,
+  war and colony games (twenty rounds each), all matching Java's every
+  round: the game, the generators, the AI colonies and every AI unit's
+  mission. Tests/JavaOracle/ai.zip holds all ten AI recordings
+  (1.07 MB).
+- **Not ported:** the mercenary cheat after turn 300, and evaluating
+  colony, goods, unit and incitement trade items (recorded as not yet
+  ported if met).
+- **Planted bugs:** only 2 of 22 caught, run against all four
+  every-AI games: the transport's destination bound and its cargo
+  replenishing threshold. Missed: favouring early deliveries, the cargo
+  retries, builders needed with no ports, the colony site's extra turns,
+  the builder's transport priority, the rumour and pioneering scores,
+  the colony defence weighting, the defender adjustment, the escort's
+  reach, the defensive zone size, buying ships for a full dock, the
+  dragoons needed, the privateer's greed, the building range, the
+  builder score, the seek-and-destroy range, the safest landing tile,
+  the military units' order, and the peace odds. Most are tuning
+  constants whose thresholds these short games never reach, and two
+  (the landing tile and the peace odds) change only ties. So these
+  recordings check that the missions are wired together as in Java,
+  but not most of their weights; longer or purpose-made games are
+  needed for those.
 
 ## Phase 5: iOS user interface (replaces ~72k lines of Swing)
 

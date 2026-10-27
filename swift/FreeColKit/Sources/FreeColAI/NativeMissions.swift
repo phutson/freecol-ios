@@ -127,7 +127,7 @@ final class IdleAtSettlementMission: Mission {
 final class DefendSettlementMission: Mission {
     private static let tag = "AI defender"
 
-    private weak var settlementTarget: Settlement?
+    private var settlementTarget: Settlement? // Strong, as Java keeps a destroyed one.
 
     init(_ aiMain: AIMain, _ aiUnit: AIUnit, _ settlement: Settlement?) {
         super.init(aiMain, aiUnit)
@@ -274,7 +274,7 @@ final class DefendSettlementMission: Mission {
 final class IndianBringGiftMission: Mission {
     private static let tag = "AI native gifter"
 
-    private(set) weak var colony: Colony?
+    private(set) var colony: Colony? // Strong, as Java keeps a destroyed colony.
     private var collected = false
 
     init(_ aiMain: AIMain, _ aiUnit: AIUnit, _ target: Colony) {
@@ -398,7 +398,7 @@ final class IndianDemandMission: Mission {
     private static let tag = "AI native demander"
     private static let goodsDemandMin = 30
 
-    private(set) weak var colony: Colony?
+    private(set) var colony: Colony? // Strong, as Java keeps a destroyed colony.
     private var demanded = false
     private var succeeded = false
 

@@ -79,6 +79,8 @@ public final class AIMain: FreeColGameObjectListener {
     public let game: ServerGame
     public let controller: InGameController
     public var works: Works
+    /// Whether the game is single player, when Java's AI cheats.
+    public var singlePlayer = true
     private var aiObjects: [String: AIObject] = [:]
     /// The number for the next AI object's identifier.
     private var nextIdNumber = 1

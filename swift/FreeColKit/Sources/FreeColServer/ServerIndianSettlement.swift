@@ -127,7 +127,7 @@ extension IndianSettlement {
         var a = alarm(player)!
         let oldLevel = a.level
         a.modify(amount)
-        setAlarm(player, a)
+        storeAlarm(player, a)
         let change = updateMostHated()
         return change || oldLevel != a.level
     }

@@ -25,7 +25,7 @@ import FreeColUtil
 /// there, then wait while the colony's AI arranges the work.
 final class WorkInsideColonyMission: Mission {
 
-    private weak var colony: Colony?
+    private var colony: Colony? // Strong, as Java keeps a destroyed colony.
 
     init(_ aiMain: AIMain, _ aiUnit: AIUnit, _ aiColony: AIColony) {
         super.init(aiMain, aiUnit)
@@ -70,11 +70,20 @@ extension AIUnit {
 
     var hasDefendSettlementMission: Bool { mission is DefendSettlementMission }
 
+    /// Whether the unit has realized a wish at a colony
+    /// (isCompleteWishRealizationMission).
+    func isCompleteWishRealizationMission(_ colony: Colony) -> Bool {
+        guard let wm = mission as? WishRealizationMission else { return false }
+        return Map.isSameLocation(wm.target, colony)
+    }
+
     /// Whether the unit may be put to work in a colony: it has no
     /// mission, or one that can be given up (isAvailableForWork).
-    /// BuildColonyMission comes with the European missions.
     func isAvailableForWork(_ colony: Colony) -> Bool {
         guard let m = mission else { return true }
+        if m is BuildColonyMission {
+            return Map.isSameLocation(m.target, colony.tile) || colony.unitCount <= 1
+        }
         return m is DefendSettlementMission || m is IdleAtSettlementMission || m is WorkInsideColonyMission
     }
 
@@ -102,7 +111,10 @@ extension AIUnit {
     /// Find something useful to do from a colony: keep a useful
     /// mission, or scout, defend or preach (trySomeUsefulMission).
     func trySomeUsefulMission(_ colony: Colony) -> Bool {
-        if mission is DefendSettlementMission || mission is UnitSeekAndDestroyMission { return true }
+        if mission is BuildColonyMission || mission is DefendSettlementMission || mission is MissionaryMission
+            || mission is PioneeringMission || mission is ScoutingMission || mission is UnitSeekAndDestroyMission {
+            return true
+        }
         let oldTarget = mission?.target
         guard let euai = aiOwner as? EuropeanAIPlayer else { return false }
         if unit.hasAbility(Ability.speakWithChief), euai.scoutingMission(self) != nil {
@@ -120,6 +132,6 @@ extension AIUnit {
 
     /// Stop a carrier carrying some goods.
     func removeTransportable(_ ag: AIGoods) {
-        (mission as? CarrierMission)?.removeTransportable(ag)
+        (mission as? TransportMission)?.removeTransportable(ag)
     }
 }

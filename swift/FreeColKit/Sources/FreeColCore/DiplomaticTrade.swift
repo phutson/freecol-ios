@@ -122,6 +122,18 @@ public final class DiplomaticTrade: FreeColGameObject {
         version += 1
     }
 
+    /// Drop an item.
+    public func remove(_ item: TradeItem) {
+        if let i = items.firstIndex(where: { $0 === item }) { items.remove(at: i) }
+    }
+
+    /// Drop every item.
+    public func clear() {
+        items = []
+    }
+
+    public var isEmpty: Bool { items.isEmpty }
+
     public var stance: Player.Stance? {
         items.lazy.compactMap { ($0 as? StanceTradeItem)?.stance }.first
     }

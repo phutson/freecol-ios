@@ -134,6 +134,61 @@ open class Mission: AIObject {
         cont ? aiUnit.mission : lbDrop()
     }
 
+    /// Dodge: the unit's moves are spent.
+    func lbDodge() -> Mission {
+        unit.movesLeft = 0
+        return self
+    }
+
+    /// Why a transportable can not be carried (invalidTransportableReason).
+    static func invalidTransportableReason(_ t: TransportableAIObject?) -> String? {
+        guard let t else { return "null-transportable" }
+        guard let l = t.transportLocatable else { return "null-locatable" }
+        let carrier = l.location as? Unit
+        let transport = t.transport
+        if let carrier, let transport, carrier !== transport.unit { return "transportable-on-other-carrier" }
+        if transport == nil {
+            guard let loc = t.transportSource else { return "transportable-source-missing" }
+            if (loc as? FreeColGameObject)?.isDisposed ?? false { return "transportable-source-disposed" }
+            if let s = loc as? Settlement, let owned = l as? Ownable, !(owned.owner?.owns(s) ?? false) {
+                return "transportable-source-captured"
+            }
+        } else if let loc = t.transportDestination, (loc as? FreeColGameObject)?.isDisposed ?? false {
+            return "transportable-destination-disposed"
+        }
+        return nil
+    }
+
+    /// The tile a goal decider finds within a radius of the unit, or,
+    /// off the map, the port closest to Europe if deferring is allowed
+    /// (findCircleTarget).
+    static func findCircleTarget(_ aiUnit: AIUnit, _ gd: GoalDecider, _ radius: Int,
+                                 _ deferOK: Bool) -> (any Location)? {
+        let unit = aiUnit.unit
+        guard let start = unit.tile else {
+            return deferOK ? unit.owner?.closestPortForEurope : nil
+        }
+        return unit.game?.map?.searchCircle(start, gd, radius)
+    }
+
+    /// The best settlement to restart from: the most people, favouring
+    /// connected ports (getBestSettlement).
+    static func bestSettlement(_ player: Player) -> Settlement? {
+        var best: Settlement?
+        var bestValue = Int.min
+        for s in player.settlements {
+            var value = s.unitCount + (s.tile?.unitCount ?? 0)
+            if let colony = s as? Colony {
+                value += (colony.isConnectedPort ? 10 : 0) + colony.availableWorkLocations.count
+            }
+            if best == nil || value > bestValue {
+                best = s
+                bestValue = value
+            }
+        }
+        return best
+    }
+
     // MARK: Moving
 
     /// Something blocking the path to a target, to attack
@@ -216,7 +271,7 @@ open class Mission: AIObject {
         if useTransport {
             if let carrier = aiCarrier {
                 var waiting = false
-                if let tm = carrier.mission as? CarrierMission, let pick = tm.transportTarget(aiUnit) {
+                if let tm = carrier.mission as? TransportMission, let pick = tm.transportTarget(aiUnit) {
                     if Map.isSameLocation(pick, unit.location) {
                         waiting = true
                     } else if let p = unit.findPath(here, pick, nil, costDecider) {
@@ -320,6 +375,3 @@ open class Mission: AIObject {
     open func doMission() -> Mission? { self }
 }
 
-extension CarrierMission {
-    func transportTarget(_ t: TransportableAIObject) -> (any Location)? { nil }
-}

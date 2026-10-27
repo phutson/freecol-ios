@@ -195,6 +195,53 @@ struct NativeAITests {
         }
     }
 
+    /// Ten rounds of a new game with every computer player working
+    /// (step 3 of Phase 4): the Europeans' first missions, transport,
+    /// colonies and the rest.
+    @Test func allWorking() throws {
+        try Messages.$scopedBundle.withValue(Self.english) {
+            let java = try Self.recorded("all")
+            let spec = try Self.data.loadSpecification("freecol", difficulty: "model.difficulty.medium")
+            let random = JavaRandom(seed: try #require(java["seed"]?.intValue))
+            let game = ServerGame.startNewGame(spec, random, playerName: "Player")
+            let controller = InGameController(game: game, random: random)
+            let ai = AIMain(game: game, controller: controller, works: .all)
+            try play(java, game, controller, ai, random, rounds: 10)
+        }
+    }
+
+    /// Twenty rounds of a saved game, its AI made afresh, compared with
+    /// a recording.
+    func playSaved(_ recording: String, _ file: String, _ works: AIMain.Works) throws {
+        try Messages.$scopedBundle.withValue(Self.english) {
+            let java = try Self.recorded(recording)
+            let saved = try FreeColSavegameFile(url: Self.oracleDirectory
+                .appendingPathComponent("games/" + file)).readServerGame()
+            let game = try #require(saved.game as? ServerGame)
+            game.currentPlayer = game.livePlayers.first { !$0.isAI }
+            let random = JavaRandom(seed: try #require(java["seed"]?.intValue))
+            let controller = InGameController(game: game, random: random)
+            let ai = AIMain(remaking: game, controller: controller, works: works)
+            try play(java, game, controller, ai, random, rounds: 20)
+        }
+    }
+
+    /// The command game with every computer player working.
+    @Test func allWorkingColonies() throws {
+        try playSaved("all-colonies", "freecol-commands-seed1.fsg", .all)
+    }
+
+    /// The war game with every computer player working.
+    @Test func allWorkingAtWar() throws {
+        try playSaved("all-war", "freecol-nativeai-seed1.fsg", .all)
+    }
+
+    /// The game made for the colonies' AI with every computer player
+    /// working.
+    @Test func allWorkingMade() throws {
+        try playSaved("all-made", "freecol-colonyai-seed1.fsg", .all)
+    }
+
     /// Play the rounds, the human ending its turn each time, and compare
     /// each with Java's.
     func play(_ java: JSONValue, _ game: ServerGame, _ controller: InGameController, _ ai: AIMain,
@@ -236,6 +283,26 @@ struct NativeAITests {
                         if ours != javaLines {
                             diffs.append("AI colony \(id):\n  java: \(javaLines)\n  ours: \(ours)")
                         }
+                    }
+                }
+                if let units = expected["aiUnits"]?.objectValue {
+                    var ours: [String: String] = [:]
+                    for p in game.liveEuropeanPlayers(excluding: nil) where p.isAI {
+                        for u in p.units {
+                            guard let aiu = ai.aiUnit(u), let id = u.id else { continue }
+                            var what = "none"
+                            if let m = aiu.mission {
+                                what = String(describing: type(of: m)) + " -> "
+                                    + ((m.target as? FreeColGameObject)?.id ?? "null")
+                            }
+                            if let tr = aiu.transport { what += " on " + (tr.unit.id ?? "") }
+                            ours[id] = what
+                        }
+                    }
+                    for id in Set(units.keys).union(ours.keys).sorted()
+                    where units[id]?.stringValue != ours[id] {
+                        diffs.append("AI unit \(id): Java \(units[id]?.stringValue ?? "missing"), "
+                                     + "Swift \(ours[id] ?? "missing")")
                     }
                 }
                 if !diffs.isEmpty {

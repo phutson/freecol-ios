@@ -338,7 +338,7 @@ extension Player {
             for s in defenderPlayer.indianSettlementList where s.hasContacted(self) {
                 if var a = s.alarm(self) {
                     a.setValue(Tension.surrendered)
-                    s.setAlarm(self, a)
+                    s.storeAlarm(self, a) // Java sets it in place.
                 }
                 // The attacker sees only the settlements it has seen.
                 if let st = s.tile, hasExplored(st) {

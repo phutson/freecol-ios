@@ -237,6 +237,57 @@ final class AIGoods: TransportableAIObject {
         return true
     }
 
+    /// The path for a carrier to take the goods to a destination
+    /// (getDeliveryPath).
+    override func deliveryPath(_ carrier: Unit, _ dst: (any Location)?) -> PathNode? {
+        guard let goods, let dst = dst ?? upLoc(transportDestination) else { return nil }
+        let path: PathNode?
+        if goods.location === carrier {
+            path = carrier.findPath(dst)
+        } else if goods.location is Unit {
+            path = nil
+        } else if let loc = goods.location {
+            path = carrier.findPath(loc, dst)
+        } else {
+            path = nil
+        }
+        path?.convertToGoodsDeliveryPath()
+        return path
+    }
+
+    override func carriableBy(_ carrier: Unit) -> Bool {
+        guard let goods else { return false }
+        return carrier.couldCarry(goods)
+    }
+
+    override var canMove: Bool { false }
+
+    override func leaveTransport(_ direction: Direction?) -> Bool {
+        direction == nil ? leaveTransport() : false
+    }
+
+    /// Load the goods, as many as fit (joinTransport).
+    override func joinTransport(_ carrier: Unit, _ direction: Direction?) -> Bool {
+        if direction != nil { return false }
+        guard let aiCarrier = aiMain.aiUnit(carrier), let goods, let type = goods.type else { return false }
+        let amount = min(goods.amount, carrier.loadableAmount(type))
+        if aiCarrier.aiOwner?.ask(.loadGoods(location: (goods.location as? FreeColGameObject)?.id, type: type.id,
+                                            amount: String(amount), carrier: carrier.id)) == true {
+            self.goods = Goods(game: aiMain.game, location: carrier, type: type, amount: amount)
+            if let colony = carrier.colony { aiMain.aiColony(colony)?.removeExportGoods(self) }
+        }
+        return true
+    }
+
+    override func invalidReason() -> String? {
+        if let reason = Mission.invalidTransportableReason(self) { return reason }
+        if let carrier = goods?.location as? Unit, let s = destination as? Settlement,
+           !(carrier.owner?.owns(s) ?? false) {
+            return "transportableDestination-captured"
+        }
+        return nil
+    }
+
     /// Unload the goods from their carrier (leaveTransport), all or
     /// nothing.
     override func leaveTransport() -> Bool {

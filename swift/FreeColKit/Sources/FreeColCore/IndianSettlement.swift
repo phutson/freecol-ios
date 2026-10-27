@@ -348,8 +348,23 @@ public final class IndianSettlement: Settlement, GameObjectReadable {
         player?.id.flatMap { alarms[$0] }
     }
 
+    /// Store a changed alarm, as Java changes its Tension in place,
+    /// without working out the most hated player.
+    public func storeAlarm(_ player: Player, _ alarm: Tension) {
+        if let id = player.id { alarms[id] = alarm }
+    }
+
+    /// Set the alarm towards a player.  In the server's game, as Java's
+    /// ServerIndianSettlement does, not towards the owner, and the most
+    /// hated player is worked out again.
     public func setAlarm(_ player: Player, _ newAlarm: Tension) {
-        if let id = player.id { alarms[id] = newAlarm }
+        if game?.isServer ?? false {
+            guard player !== owner else { return }
+            if let id = player.id { alarms[id] = newAlarm }
+            updateMostHated()
+        } else if let id = player.id {
+            alarms[id] = newAlarm
+        }
     }
 
     /// Start the alarm at the owner's tension towards a player.
@@ -361,6 +376,7 @@ public final class IndianSettlement: Settlement, GameObjectReadable {
     /// Forget the alarm towards a player.
     public func removeAlarm(_ player: Player) {
         if let id = player.id { alarms[id] = nil }
+        if game?.isServer ?? false { updateMostHated() }
     }
 
     /// Work out the most hated player again: the live European the

@@ -417,6 +417,18 @@ public final class AIColony: AIObject {
         return true
     }
 
+    /// Complete the wishes something delivered satisfies: goods, or a
+    /// unit at the end of its wish realization mission.
+    func completeWish(transportable t: TransportableAIObject) -> Bool {
+        if let aig = t as? AIGoods, let goods = aig.goods { return completeWish(goods as AbstractGoods) }
+        if let aiu = t as? AIUnit, aiu.isCompleteWishRealizationMission(colony) {
+            completeWish(aiu.unit)
+            aiu.removeMission()
+            return true
+        }
+        return false
+    }
+
     /// Complete the wishes some goods arriving satisfy.
     @discardableResult
     func completeWish(_ goods: AbstractGoods) -> Bool {

@@ -172,6 +172,18 @@ public final class Tile: UnitLocation, GameObjectReadable, Ownable {
         return min(min(x, map.width - x), min(y, map.height - y))
     }
 
+    /// The first settlement of an owner (or anyone) within a radius,
+    /// nearest first, and connected by land or water if asked
+    /// (getNearestSettlement).
+    public func nearestSettlement(_ owner: Player?, _ radius: Int, _ same: Bool) -> Settlement? {
+        guard let map = game?.map else { return nil }
+        for t in map.circleTiles(self, filled: true, radius: radius <= 0 ? Constants.infinity : radius) {
+            if t === self || (same && !isConnected(to: t)) { continue }
+            if let settlement = t.settlement, owner == nil || owner!.owns(settlement) { return settlement }
+        }
+        return nil
+    }
+
     /// Whether another tile is in the same land or water mass.
     public func isConnected(to other: Tile) -> Bool {
         contiguity == other.contiguity
@@ -180,6 +192,14 @@ public final class Tile: UnitLocation, GameObjectReadable, Ownable {
     /// The neighbouring tiles in a land or water mass.
     public func contiguityAdjacent(_ contiguity: Int) -> Set<Tile> {
         Set(surroundingTiles(1, 1).filter { $0.contiguity == contiguity })
+    }
+
+    /// The neighbouring tiles in a land or water mass, in the order of
+    /// Java's HashSet of them.
+    public func contiguityAdjacentInJavaOrder(_ contiguity: Int) -> [Tile] {
+        var set = JavaHashMap<Tile, Bool>(javaHash: { $0.javaGameObjectHash })
+        for t in surroundingTiles(1, 1) where t.contiguity == contiguity { _ = set.put(t, true) }
+        return set.keys
     }
 
     /// Whether this tile is on a great river, but not on the coast.

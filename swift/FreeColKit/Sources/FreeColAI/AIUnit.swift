@@ -26,21 +26,20 @@ open class ValuedAIObject: AIObject {
     public var value = 0
 }
 
-/// A mission that carries things (TransportMission), which units and
-/// goods can leave.
-protocol CarrierMission: Mission {
-    func removeTransportable(_ t: TransportableAIObject)
-}
-
 /// Something a carrier can take somewhere (server/ai/TransportableAIObject):
-/// its priority, and the carrier taking it.
+/// its priority, the carrier taking it, and how it gets on and off.
 open class TransportableAIObject: ValuedAIObject {
 
     static let importantDelivery = 110
     static let fullDelivery = 100
+    static let toolsForColonyPriority = 10
+    static let toolsForImprovement = 10
+    static let toolsForPioneer = 90
+    static let toolsForBuilding = 100
 
     public var transport: AIUnit?
 
+    /// The priority for transport (getTransportPriority).
     var transportPriority: Int {
         get { value }
         set { value = newValue }
@@ -51,12 +50,15 @@ open class TransportableAIObject: ValuedAIObject {
 
     var location: (any Location)? { transportLocatable?.location }
 
-    /// Leave the carrier taking this (dropTransport).
+    var spaceTaken: Int { transportLocatable?.spaceTaken ?? 0 }
+
+    /// Leave the carrier taking this, unless already aboard it
+    /// (dropTransport).
     @discardableResult
     func dropTransport() -> Bool {
         if let transport {
             if !transport.isDisposed, location !== transport.unit,
-               let tm = transport.mission as? CarrierMission {
+               let tm = transport.mission as? TransportMission {
                 tm.removeTransportable(self)
             }
             self.transport = nil
@@ -67,11 +69,27 @@ open class TransportableAIObject: ValuedAIObject {
     var transportSource: (any Location)? { nil }
     var transportDestination: (any Location)? { nil }
 
-    /// Get off the carrier (leaveTransport).
-    func leaveTransport() -> Bool {
-        aiMain.record(NotYetPorted("leaving a carrier"), "\(self)")
-        return false
-    }
+    /// The path for a carrier to deliver this to a destination.
+    func deliveryPath(_ carrier: Unit, _ dst: (any Location)?) -> PathNode? { nil }
+
+    /// A path to somewhere better, if not all the way.
+    func intermediatePath(_ carrier: Unit, _ dst: (any Location)?) -> PathNode? { nil }
+
+    func carriableBy(_ carrier: Unit) -> Bool { false }
+
+    var canMove: Bool { false }
+
+    /// Get off the carrier where best (leaveTransport).
+    func leaveTransport() -> Bool { false }
+
+    /// Get off the carrier, in a direction or here.
+    func leaveTransport(_ direction: Direction?) -> Bool { false }
+
+    /// Get on a carrier, from a direction or here.
+    func joinTransport(_ carrier: Unit, _ direction: Direction?) -> Bool { false }
+
+    /// Why transporting this is no longer sensible.
+    func invalidReason() -> String? { nil }
 
     /// Change the carrier taking this, getting off the present one
     /// (changeTransport).
@@ -81,7 +99,7 @@ open class TransportableAIObject: ValuedAIObject {
         }
         if let old = transport {
             if old === aiCarrier { return true }
-            (old.mission as? CarrierMission)?.removeTransportable(self)
+            (old.mission as? TransportMission)?.removeTransportable(self)
         }
         transport = aiCarrier
         return true
@@ -144,8 +162,162 @@ public final class AIUnit: TransportableAIObject {
         (unit.isDisposed || !hasMission) ? nil : mission?.transportDestination
     }
 
-    var transportPriorityIfMission: Int {
-        hasMission ? transportPriority : 0
+    override var transportPriority: Int {
+        get { hasMission ? value : 0 }
+        set { value = newValue }
+    }
+
+    /// The end of the unit's trivial path (getTrivialTarget).
+    var trivialTarget: (any Location)? {
+        upLoc(unit.trivialPath?.lastNode.location)
+    }
+
+    var hasCargo: Bool { unit.hasCargo }
+
+    /// How good the unit would be at building a colony
+    /// (getBuilderScore).
+    var builderScore: Int {
+        if BuildColonyMission.invalidMissionReason(self) != nil { return -1000 }
+        var ret = !unit.hasDefaultRole ? 0 : unit.skillLevel > 0 ? 100 : 500 + 100 * unit.skillLevel
+        if unit.hasTile { ret += 50 }
+        return ret
+    }
+
+    var pioneerScore: Int { unit.pioneerScore }
+
+    var scoutScore: Int { unit.scoutScore }
+
+    /// Ask the colony the unit is in, if any, to rearrange
+    /// (requestLocalRearrange).
+    private func requestLocalRearrange() {
+        if let colony = unit.location?.colony { aiMain.aiColony(colony)?.requestRearrange() }
+    }
+
+    /// Note the carrier the unit is on as its transport (takeTransport).
+    private func takeTransport() {
+        let aiCarrier = unit.carrier.flatMap { aiMain.aiUnit($0) }
+        if transport !== aiCarrier {
+            if transport != nil { dropTransport() } // Java warns
+            transport = aiCarrier
+        }
+    }
+
+    /// Sail to the New World (moveToAmerica).
+    @discardableResult
+    func moveToAmerica() -> Bool {
+        aiOwner?.ask(.moveTo(unit: unit.id, destination: game.map?.id)) == true
+    }
+
+    /// Sail to Europe (moveToEurope).
+    @discardableResult
+    func moveToEurope() -> Bool {
+        aiOwner?.ask(.moveTo(unit: unit.id, destination: owner?.europe?.id)) == true
+    }
+
+    // MARK: Transportable
+
+    override var spaceTaken: Int { unit.spaceTaken }
+
+    /// The path for a carrier to take the unit to a destination, or
+    /// beside it (getDeliveryPath).
+    override func deliveryPath(_ carrier: Unit, _ dst: (any Location)?) -> PathNode? {
+        guard let d = dst ?? transportDestination, let dst = upLoc(d), let here = unit.location else { return nil }
+        var path: PathNode?
+        if here === carrier {
+            guard let carrierLoc = carrier.location else { return nil }
+            path = unit.findPath(carrierLoc, dst, carrier)
+            if path == nil, let t = dst.tile {
+                path = unit.findPathToNeighbour(carrierLoc, t, carrier, nil)
+            }
+        } else if here is Unit {
+            return nil
+        } else {
+            path = unit.findPath(here, dst, carrier)
+            if path == nil, let t = dst.tile {
+                path = unit.findPathToNeighbour(here, t, carrier, nil)
+            }
+        }
+        path?.ensureDisembark()
+        return path
+    }
+
+    override func carriableBy(_ carrier: Unit) -> Bool { carrier.couldCarry(unit) }
+
+    override var canMove: Bool { unit.movesLeft > 0 }
+
+    /// Get off the carrier: here in Europe or at the target, towards the
+    /// target, or onto the safest or best connected land beside
+    /// (leaveTransport).
+    override func leaveTransport() -> Bool {
+        if !unit.isOnCarrier { return true } // Harmless
+        if unit.isInEurope { return leaveTransport(nil) }
+        guard let tile = unit.tile else { return false }
+        let target = (mission?.isValid ?? false) ? mission?.target : nil
+        if let target {
+            if Map.isSameLocation(target, tile) { return leaveTransport(nil) }
+            if let tt = target.tile, let direction = tile.direction(to: tt) { return leaveTransport(direction) }
+            if let path = unit.findPath(target), let next = path.next?.tile,
+               let direction = tile.direction(to: next) {
+                return leaveTransport(direction)
+            }
+        }
+        if tile.isLand { return leaveTransport(nil) }
+        var tiles: [Tile] = []
+        for t in tile.surroundingTiles(1) where !t.isBlocked(unit) {
+            if t.settlement != nil { return leaveTransport(tile.direction(to: t)) }
+            tiles.append(t)
+        }
+        guard var safe = tiles.first, let player = owner else { return false }
+        var best: Tile?
+        var bestTurns = Unit.manyTurns
+        var settlement: Settlement?
+        for t in tiles {
+            if settlement == nil || (settlement?.tile.map { t.isConnected(to: $0) } ?? false) {
+                settlement = t.nearestSettlement(player, 10, true)
+            }
+            if let settlement {
+                let turns = unit.turnsToReach(t, settlement)
+                if bestTurns > turns {
+                    bestTurns = turns
+                    best = t
+                }
+            }
+            if safe.defenceValue < t.defenceValue { safe = t }
+        }
+        return leaveTransport(tile.direction(to: best ?? safe))
+    }
+
+    /// Get off, here or moving in a direction.
+    override func leaveTransport(_ direction: Direction?) -> Bool {
+        guard unit.isOnCarrier, let carrier = unit.carrier else { return false }
+        let result: Bool
+        if let direction {
+            result = move(direction)
+        } else {
+            result = aiOwner?.ask(.disembark(unit: unit.id)) == true && unit.location === carrier.location
+        }
+        if result {
+            requestLocalRearrange()
+            dropTransport()
+        }
+        return result
+    }
+
+    /// Get on a carrier, here or from a direction.
+    override func joinTransport(_ carrier: Unit, _ direction: Direction?) -> Bool {
+        guard let aiCarrier = aiMain.aiUnit(carrier) else { return false }
+        let result = aiCarrier.aiOwner?.ask(.embark(unit: unit.id, carrier: carrier.id,
+                                                    direction: direction?.javaName)) == true
+            && unit.location === carrier
+        if result {
+            requestLocalRearrange()
+            takeTransport()
+        }
+        return result
+    }
+
+    override func invalidReason() -> String? {
+        Mission.invalidTransportableReason(self) ?? mission?.invalidReason()
     }
 
     /// Ask to move, if the move makes progress (move).

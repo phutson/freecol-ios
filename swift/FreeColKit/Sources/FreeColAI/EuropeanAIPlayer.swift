@@ -42,19 +42,22 @@ struct LocationKey: Hashable {
 class EuropeanAIPlayer: MissionAIPlayer {
 
     /// The best plan for each tile.
-    private var tipMap = JavaHashMap<Tile, TileImprovementPlan>(javaHash: { $0.javaGameObjectHash })
+    var tipMap = JavaHashMap<Tile, TileImprovementPlan>(javaHash: { $0.javaGameObjectHash })
     /// The wishes waiting for transport, by destination.
-    private var transportDemand = JavaHashMap<LocationKey, [Wish]>(javaHash: { $0.javaHash })
+    var transportDemand = JavaHashMap<LocationKey, [Wish]>(javaHash: { $0.javaHash })
     /// What needs transport.
-    private var transportSupply: [TransportableAIObject] = []
+    var transportSupply: [TransportableAIObject] = []
     /// The goods wishes by goods type, and worker wishes by unit type.
-    private var goodsWishes = JavaHashMap<GoodsType, [GoodsWish]>(javaHash: { $0.javaHashCode })
-    private var workerWishes = JavaHashMap<UnitType, [WorkerWish]>(javaHash: { $0.javaHashCode })
+    var goodsWishes = JavaHashMap<GoodsType, [GoodsWish]>(javaHash: { $0.javaHashCode })
+    var workerWishes = JavaHashMap<UnitType, [WorkerWish]>(javaHash: { $0.javaHashCode })
     /// The wagons needed, by contiguity.
-    private var wagonsNeeded = JavaHashMap<Int, Int>(javaHash: { Int32(truncatingIfNeeded: $0) })
+    var wagonsNeeded = JavaHashMap<Int, Int>(javaHash: { Int32(truncatingIfNeeded: $0) })
     /// The colonies badly defended at the start of the turn.
     private(set) var badlyDefended: [AIColony] = []
-    private var nNavalCarrier = 0
+    var nBuilders = 0
+    var nPioneers = 0
+    var nScouts = 0
+    var nNavalCarrier = 0
 
     /// Whether this nation likes attacking natives (the conquest
     /// nations).
@@ -62,14 +65,19 @@ class EuropeanAIPlayer: MissionAIPlayer {
         player.nation?.type?.id == "model.nationType.conquest"
     }
 
-    private var coloniesOnly: Bool { aiMain.works == .colonies }
+    /// Whether the nation uses its army aggressively (the conquest and
+    /// immigration nations).
+    var isAggressive: Bool {
+        let id = player.nation?.type?.id
+        return id == "model.nationType.conquest" || id == "model.nationType.immigration"
+    }
 
-    /// The player's turn (startWorking), so far only with its colonies.
+    var coloniesOnly: Bool { aiMain.works == .colonies }
+
+    /// The player's turn (startWorking): stances, colonies, Java's
+    /// cheats, buying in Europe, the military, and missions for the
+    /// rest, three times over.
     override func startWorking() {
-        guard coloniesOnly else {
-            aiMain.record(NotYetPorted("the European AI's missions"), "\(player.nationId ?? "")")
-            return
-        }
         let turn = game.turn
         clearAIUnits()
         nationSummaries.removeAll()
@@ -77,7 +85,7 @@ class EuropeanAIPlayer: MissionAIPlayer {
         // Java gathers the units now, before anything can make more.
         let colonyCount = aiColonies().count
         _ = aiUnits()
-        // Missions for the first turn come with the European missions.
+        if turn.isFirstTurn && !coloniesOnly { initializeMissions() }
 
         if likesAttackingNatives && turn.number > 100 {
             for p in game.livePlayers(excluding: player) where p.isIndian {
@@ -93,13 +101,36 @@ class EuropeanAIPlayer: MissionAIPlayer {
             buildWishMaps()
         }
 
-        // The colonies only, as the oracle's patch does.
-        buildTransportMaps()
-        do {
-            for _ in 0..<3 { try rearrangeColonies() }
-        } catch {
-            aiMain.record(error, "\(player.nationId ?? "") rearranging colonies")
-            return
+        if coloniesOnly {
+            // The colonies only, as the oracle's patch does.
+            buildTransportMaps()
+            do {
+                for _ in 0..<3 { try rearrangeColonies() }
+            } catch {
+                aiMain.record(error, "\(player.nationId ?? "") rearranging colonies")
+                return
+            }
+        } else {
+            cheat()
+            buyUnitsInEurope()
+            var units = aiUnits()
+            let militaryUnits = javaHashSetOrder(aiUnits().filter(MilitaryCoordinator.isUnitHandled)) {
+                $0.javaHash
+            }
+            MilitaryCoordinator(self, militaryUnits).determineMissions()
+            buildTransportMaps()
+            var normalAIUnits = aiUnits().filter { !MilitaryCoordinator.isUnitHandled($0) }
+            do {
+                for _ in 0..<3 {
+                    try rearrangeColonies()
+                    giveNormalMissions(&normalAIUnits)
+                    if units.isEmpty { break }
+                    units = doMissions(units)
+                }
+            } catch {
+                aiMain.record(error, "\(player.nationId ?? "") rearranging colonies")
+                return
+            }
         }
         clearAIUnits()
         tipMap.removeAll()
@@ -108,6 +139,63 @@ class EuropeanAIPlayer: MissionAIPlayer {
         wagonsNeeded.removeAll()
         goodsWishes.removeAll()
         workerWishes.removeAll()
+    }
+
+    // MARK: Doing missions
+
+    /// Carry out the missions (doMissions), updating transport, and a
+    /// new colony at once so later units see its plans.
+    ///
+    /// - Returns: The units with moves left, to do again.
+    override func doMissions(_ aiUnits: [AIUnit]) -> [AIUnit] {
+        var result: [AIUnit] = []
+        for aiu in aiUnits {
+            let unit = aiu.unit
+            if unit.isDisposed { continue }
+            guard let oldMission = aiu.mission else {
+                // Delivered, and its wish completed: back to
+                // giveNormalMissions.
+                result.append(aiu)
+                continue
+            }
+            let oldTarget = oldMission.target
+            let oldLocation = unit.location
+            let oldColony = oldLocation?.colony
+            aiu.doMission()
+            if unit.isDisposed || unit.location == nil {
+                aiu.dropTransport()
+                continue
+            }
+            updateTransport(aiu, oldTarget)
+            // A unit can disembark onto a fatal rumour.
+            if unit.isDisposed || unit.location == nil { continue }
+            if unit.movesLeft > 0 && (!unit.isOnCarrier || (unit.carrier?.movesLeft ?? 0) > 0) {
+                result.append(aiu)
+            }
+            if oldColony == nil, let newColony = unit.location?.colony, Map.isSameLocation(oldLocation, newColony),
+               let aiColony = aiMain.aiColony(newColony) {
+                aiColony.update()
+                updateTipMap(aiColony)
+            }
+        }
+        return result
+    }
+
+    /// Fewer defenders where there are many, and fewer behind a stockade
+    /// (adjustMission).
+    override func adjustMission(_ aiUnit: AIUnit, _ path: PathNode, _ type: Mission.Type, _ value: Int) -> Int {
+        guard value > 0, type == DefendSettlementMission.self else { return value }
+        guard let colony = DefendSettlementMission.extractTarget(aiUnit, path) as? Colony else {
+            aiMain.record(JavaException("IllegalStateException: European players defend colonies"),
+                          player.nationId ?? "")
+            return value
+        }
+        let defenders = settlementDefenders(colony)
+        var v = value - 25 * defenders
+        if colony.hasStockade, let level = colony.stockade?.level {
+            v -= defenders > level + 1 ? 100 * level : 20 * level
+        }
+        return v
     }
 
     // MARK: Colonies
@@ -230,16 +318,17 @@ class EuropeanAIPlayer: MissionAIPlayer {
     /// The scouts wanted: three early on, then fewer.
     var scoutsNeeded: Int { 3 - game.turn.number / 100 }
 
-    /// Whether something has its carrier's transport mission
-    /// (checkTransport).  Transport missions come with the European
-    /// missions.
-    private func checkTransport(_ t: TransportableAIObject) -> Bool {
-        guard t.transport != nil else { return false }
-        aiMain.record(NotYetPorted("transport missions"), "\(player.nationId ?? "")")
+    /// Whether something is queued on its carrier's transport mission,
+    /// dropping the carrier if not (checkTransport).
+    @discardableResult
+    func checkTransport(_ t: TransportableAIObject) -> Bool {
+        guard let aiCarrier = t.transport else { return false }
+        if let tm = aiCarrier.mission as? TransportMission, tm.isTransporting(t) { return true }
+        _ = t.changeTransport(nil)
         return false
     }
 
-    private func requestsTransport(_ t: TransportableAIObject) -> Bool {
+    func requestsTransport(_ t: TransportableAIObject) -> Bool {
         t.transport == nil && t.transportDestination != nil && t.transportSource != nil && !(t.location is Unit)
     }
 
@@ -286,12 +375,19 @@ class EuropeanAIPlayer: MissionAIPlayer {
         }
     }
 
-    /// Change a unit's transport after its target changed
-    /// (updateTransport).  Transport missions come with the European
-    /// missions.
+    /// Change a unit's transport after its target changed: drop a
+    /// carrier not yet boarded, and dump or requeue on one boarded
+    /// (updateTransport).
     func updateTransport(_ aiu: AIUnit, _ oldTarget: (any Location)?) {
-        if aiu.transport != nil {
-            aiMain.record(NotYetPorted("transport missions"), "\(player.nationId ?? "")")
+        guard let aiCarrier = aiu.transport, let tm = aiCarrier.mission as? TransportMission else { return }
+        let newTarget = aiu.mission?.target
+        if Map.isSameLocation(oldTarget, newTarget) { return }
+        if aiu.unit.location !== aiCarrier.unit {
+            aiu.dropTransport()
+        } else if newTarget == nil {
+            tm.dumpTransportable(aiu)
+        } else {
+            tm.requeueTransportable(aiu)
         }
     }
 
@@ -304,21 +400,48 @@ class EuropeanAIPlayer: MissionAIPlayer {
         return WorkInsideColonyMission(aiMain, aiUnit, aic)
     }
 
-    /// The missions below come with the European missions.  With only
-    /// the colonies working there are none, as in the oracle's patch.
+    // With only the colonies working the getters below give no
+    // missions, as in the oracle's patch.
+
+    /// A pioneering mission, if there is work and the unit can be
+    /// equipped (getPioneeringMission).
     func pioneeringMission(_ aiUnit: AIUnit, _ target: (any Location)?) -> Mission? {
-        if !coloniesOnly { aiMain.record(NotYetPorted("PioneeringMission"), "\(player.nationId ?? "")") }
-        return nil
+        if coloniesOnly { return nil }
+        if PioneeringMission.prepare(aiUnit) != nil { return nil }
+        guard let target = target ?? PioneeringMission.findMissionTarget(aiUnit, EuropeanAIPlayer.pioneeringRange,
+                                                                         true) else {
+            if aiUnit.unit.isInEurope || aiUnit.unit.settlement != nil, let role = specification?.defaultRole {
+                _ = aiUnit.equipForRole(role)
+            }
+            return nil
+        }
+        return PioneeringMission(aiMain, aiUnit, target)
     }
 
+    /// A scouting mission, if there is somewhere to scout
+    /// (getScoutingMission).
     func scoutingMission(_ aiUnit: AIUnit) -> Mission? {
-        if !coloniesOnly { aiMain.record(NotYetPorted("ScoutingMission"), "\(player.nationId ?? "")") }
-        return nil
+        if coloniesOnly { return nil }
+        if ScoutingMission.prepare(aiUnit) != nil { return nil }
+        guard let loc = ScoutingMission.findMissionTarget(aiUnit, EuropeanAIPlayer.scoutingRange, true) else {
+            if aiUnit.unit.isInEurope || aiUnit.unit.settlement != nil, let role = specification?.defaultRole {
+                _ = aiUnit.equipForRole(role)
+            }
+            return nil
+        }
+        return ScoutingMission(aiMain, aiUnit, loc)
     }
 
+    /// A missionary mission, if there is a settlement for it
+    /// (getMissionaryMission).
     func missionaryMission(_ aiUnit: AIUnit) -> Mission? {
-        if !coloniesOnly { aiMain.record(NotYetPorted("MissionaryMission"), "\(player.nationId ?? "")") }
-        return nil
+        if coloniesOnly { return nil }
+        if MissionaryMission.prepare(aiUnit) != nil { return nil }
+        guard let loc = MissionaryMission.findMissionTarget(aiUnit, EuropeanAIPlayer.missionaryRange, true) else {
+            if let role = specification?.defaultRole { _ = aiUnit.equipForRole(role) }
+            return nil
+        }
+        return MissionaryMission(aiMain, aiUnit, loc)
     }
 
     override func defendSettlementMission(_ aiUnit: AIUnit, _ target: Settlement) -> Mission? {
@@ -399,8 +522,8 @@ class EuropeanAIPlayer: MissionAIPlayer {
     }
 
     /// Stop trading goods that are to be boycotted: sell what is in
-    /// Europe and on the way (suppressEuropeanTrade).  Transport missions
-    /// and goods wishes come with the European AI.
+    /// Europe and on the way, drop it from the carriers' plans, and drop
+    /// the wishes for it from Europe (suppressEuropeanTrade).
     private func suppressEuropeanTrade(_ type: GoodsType) {
         guard let europe = player.europe else { return }
         let units = europe.unitList + (player.highSeas?.unitList ?? [])
@@ -409,6 +532,16 @@ class EuropeanAIPlayer: MissionAIPlayer {
             if u.isCarrier && amount > 0, aiUnit(u) != nil {
                 ask(.unloadGoods(type: type.id, amount: String(amount), carrier: u.id))
             }
+        }
+        for aiu in aiUnits() {
+            (aiu.mission as? TransportMission)?.suppressEuropeanTrade(type)
+        }
+        for gw in goodsWishes[type] ?? [] where gw.goodsType === type && gw.destination === europe {
+            if let aig = gw.transportable as? AIGoods {
+                consumeGoodsWish(aig, gw)
+                aig.transportDestination = nil
+            }
+            gw.dispose()
         }
     }
 
@@ -438,9 +571,122 @@ class EuropeanAIPlayer: MissionAIPlayer {
         aiAdvantage == "conquest" ? .accept : .reject
     }
 
+    /// What a trade item is worth to the player (evaluateFor).  A stance
+    /// is judged by strength, from the nation summary of the other side.
+    private func evaluate(_ item: TradeItem) -> Int {
+        if let stance = item.tradeStance {
+            guard let other = item.other(player) else { return TradeItem.invalidTradeItem }
+            let ratio: Double
+            if let ns = nationSummaries[other.id ?? ""] {
+                ratio = Player.strengthRatio(Double(player.calculateStrength(naval: false)),
+                                             Double(ns.militaryStrength))
+            } else {
+                ratio = -1
+            }
+            var value = Int(JavaMath.round(100 * ratio))
+            switch stance {
+            case .war:
+                if ratio < 0.33 { value = TradeItem.invalidTradeItem } else if ratio < 0.5 { value = -value }
+            case .peace, .ceaseFire, .alliance:
+                if ratio > 0.66 {
+                    value = TradeItem.invalidTradeItem
+                } else if ratio > 0.5 {
+                    value = -value
+                } else if ratio < 0.33 {
+                    value = 1000
+                }
+            default:
+                value = TradeItem.invalidTradeItem
+            }
+            return value
+        }
+        if item is GoldTradeItem { return item.evaluateFor(player) }
+        aiMain.record(NotYetPorted("evaluating a \(type(of: item))"), player.nationId ?? "")
+        return TradeItem.invalidTradeItem
+    }
+
+    /// Reject a trade, unless a Franklin or contact stance can be
+    /// offered instead (rejectAgreement).
+    private func rejectAgreement(_ stance: TradeItem?, _ agreement: DiplomaticTrade) -> DiplomaticTrade.TradeStatus {
+        guard let stance else { return .rejectTrade }
+        agreement.clear()
+        agreement.add(stance)
+        return .proposeTrade
+    }
+
+    /// Judge a trade: accept it if all is good, reject it if too much is
+    /// bad or patience runs out, otherwise drop the worst items and
+    /// propose the rest (acceptDiplomaticTrade).  Java keeps the scores
+    /// in a HashMap, whose order for stances follows the enum's identity
+    /// hash and so differs from run to run; the items' order is used here.
     override func acceptDiplomaticTrade(_ agreement: DiplomaticTrade) -> DiplomaticTrade.TradeStatus {
-        aiMain.record(NotYetPorted("the European AI's diplomacy"), "\(player.nationId ?? "")")
-        return .rejectTrade
+        guard let other = agreement.otherPlayer(player) else { return .rejectTrade }
+        if agreement.version == 0 { return .proposeTrade } // A synthetic event.
+        let franklin = other.hasAbility(Ability.alwaysOfferedPeace)
+        var scores: [(item: TradeItem, score: Int)] = []
+        var peace: TradeItem?
+        var result: DiplomaticTrade.TradeStatus?
+        var unacceptable = 0, value = 0, colonies = 0
+        for item in agreement.items {
+            if item is StanceTradeItem { _ = nationSummary(other) }
+            var score = evaluate(item)
+            if item is ColonyTradeItem {
+                colonies += item.source === player ? 1 : -1
+            } else if let stance = item.tradeStance {
+                switch stance {
+                case .alliance, .ceaseFire:
+                    if franklin {
+                        peace = item
+                        score = 0
+                    }
+                case .uncontacted, .peace:
+                    if agreement.context == .contact {
+                        peace = item
+                        score = 0
+                    }
+                default:
+                    break
+                }
+            }
+            if score == TradeItem.invalidTradeItem { unacceptable += 1 } else { value += score }
+            scores.append((item, score))
+        }
+
+        if colonies > 0 && colonies > player.settlements.count - Colony.tradeMargin {
+            result = rejectAgreement(peace, agreement)
+        } else if unacceptable == 0 && value >= 0 {
+            result = .acceptTrade
+        } else {
+            let ratio = Double(unacceptable) / Double(unacceptable + agreement.items.count)
+            if ratio > 0.5 - 0.5 * Double(agreement.version) { result = rejectAgreement(peace, agreement) }
+        }
+        if result == nil {
+            // Drop the unacceptable, sum the rest.
+            value = 0
+            for (item, score) in scores {
+                if score == TradeItem.invalidTradeItem { agreement.remove(item) } else { value += score }
+            }
+            if agreement.isEmpty { result = rejectAgreement(peace, agreement) }
+        }
+        if RandomUtils.randomInt("Enough diplomacy?", aiRandom, Int32(1 + agreement.version)) > 5 {
+            result = rejectAgreement(peace, agreement)
+        }
+        if result == nil {
+            // Drop the worst until the sum is not negative, or offer
+            // less gold.
+            for (item, score) in scores.stableSorted(by: { $0.score < $1.score }) {
+                if value >= 0 { break }
+                value -= score
+                if value >= 50, let gti = item as? GoldTradeItem {
+                    gti.gold -= value / 2
+                    value /= 2
+                } else {
+                    agreement.remove(item)
+                }
+            }
+            result = value >= 0 && !agreement.isEmpty ? .proposeTrade : rejectAgreement(peace, agreement)
+        }
+        return result!
     }
 }
 

@@ -68,6 +68,11 @@ open class BuildableType: FreeColSpecObjectType {
         _ = requiredAbilityMap?.removeValue(forKey: key)
     }
 
+    /// Whether a player may have this (isAvailableTo with one object).
+    public func isAvailableTo(_ player: Player?) -> Bool {
+        isAvailableTo([player])
+    }
+
     /// Whether some objects together meet the ability requirements: for
     /// each, any of them having it must match the requirement.
     public func isAvailableTo(_ objects: [FreeColObject?]) -> Bool {

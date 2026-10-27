@@ -287,10 +287,20 @@ extension Map {
     func searchMap(_ unit: Unit?, _ start: Tile, _ goalDecider: GoalDecider, _ costDecider: CostDecider?,
                    _ maxTurns: Int, _ carrier: Unit?, _ searchHeuristic: SearchHeuristic?) -> PathNode? {
         // Values that do not change during the search are cached (and
-        // nested searches, from goal deciders, share the cache).
-        let outerCache = SearchCache.current
-        if outerCache == nil { SearchCache.current = SearchCache() }
-        defer { if outerCache == nil { SearchCache.current = nil } }
+        // nested searches, from goal deciders, share the cache).  The
+        // cache is task local, so searches on other threads have their
+        // own.
+        if SearchCache.current == nil {
+            return SearchCache.$current.withValue(SearchCache()) {
+                searchMapCached(unit, start, goalDecider, costDecider, maxTurns, carrier, searchHeuristic)
+            }
+        }
+        return searchMapCached(unit, start, goalDecider, costDecider, maxTurns, carrier, searchHeuristic)
+    }
+
+    private func searchMapCached(_ unit: Unit?, _ start: Tile, _ goalDecider: GoalDecider,
+                                 _ costDecider: CostDecider?, _ maxTurns: Int, _ carrier: Unit?,
+                                 _ searchHeuristic: SearchHeuristic?) -> PathNode? {
         // Keyed by location, as Java keys them by location id.
         var openMap: [ObjectIdentifier: PathNode] = [:]
         var closedMap: [ObjectIdentifier: PathNode] = [:]
@@ -502,9 +512,9 @@ extension Map {
 
 /// Values cached for the length of a path search, which changes nothing
 /// they depend on.
-final class SearchCache {
-    /// The search in progress, if any.  The engine runs in one actor.
-    nonisolated(unsafe) static var current: SearchCache?
+final class SearchCache: @unchecked Sendable {
+    /// The search in progress on this task or thread, if any.
+    @TaskLocal static var current: SearchCache?
 
     var initialMoves: [ObjectIdentifier: Int] = [:]
 }

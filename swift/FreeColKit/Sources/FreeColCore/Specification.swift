@@ -423,6 +423,18 @@ public final class Specification {
     }
 
     /// The offensive roles, strongest first (a stable sort, as Java's).
+    /// The unit types a player can train in Europe
+    /// (getUnitTypesTrainedInEurope).
+    public func unitTypesTrainedInEurope(_ player: Player?) -> [UnitType] {
+        unitTypesTrainedInEurope.filter { $0.isAvailableTo(player) }
+    }
+
+    /// The unit types a player can buy in Europe
+    /// (getUnitTypesPurchasedInEurope).
+    public func unitTypesPurchasedInEurope(_ player: Player?) -> [UnitType] {
+        unitTypesPurchasedInEurope.filter { $0.isAvailableTo(player) }
+    }
+
     public var militaryRolesList: [Role] {
         if militaryRoles == nil {
             militaryRoles = rolesList.filter(\.isOffensive)

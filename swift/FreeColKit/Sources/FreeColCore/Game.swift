@@ -38,6 +38,10 @@ import FreeColXML
 /// meant to run inside one actor.
 open class Game: FreeColGameObject {
 
+    /// Whether this is the server's game, whose objects do what Java's
+    /// server classes add (ServerIndianSettlement.setAlarm).
+    open var isServer: Bool { false }
+
     public static let tag = "game"
 
     /// Clean dead registry entries after this many removals.

@@ -29,6 +29,8 @@ import FreeColXML
 /// due), and the rest of ServerGame.
 public final class ServerGame: Game {
 
+    public override var isServer: Bool { true }
+
     /// The names handed out so far (Java's static NameCache).
     public let nameCache = NameCache()
 

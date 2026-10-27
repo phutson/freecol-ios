@@ -229,6 +229,11 @@ open class MissionAIPlayer: AIPlayer {
         cachedAIUnits = []
     }
 
+    /// Note a new unit (addAIUnit).
+    func addAIUnit(_ aiUnit: AIUnit) {
+        cachedAIUnits.append(aiUnit)
+    }
+
     /// The AI units, gathered once until cleared.
     override func aiUnits() -> [AIUnit] {
         if cachedAIUnits.isEmpty { cachedAIUnits = super.aiUnits() }
@@ -246,6 +251,14 @@ open class MissionAIPlayer: AIPlayer {
     func defendSettlementMission(_ aiUnit: AIUnit, _ target: Settlement) -> Mission? {
         DefendSettlementMission.invalidMissionReason(aiUnit) != nil ? nil
             : DefendSettlementMission(aiMain, aiUnit, target)
+    }
+
+    /// Defend the settlement the unit is in, if badly defended
+    /// (getDefendCurrentSettlementMission).
+    func defendCurrentSettlementMission(_ aiUnit: AIUnit) -> Mission? {
+        if DefendSettlementMission.invalidMissionReason(aiUnit) != nil { return nil }
+        guard let settlement = aiUnit.unit.location?.settlement, settlement.settlementIsBadlyDefended else { return nil }
+        return defendSettlementMission(aiUnit, settlement)
     }
 
     func idleAtSettlementMission(_ aiUnit: AIUnit) -> Mission? {

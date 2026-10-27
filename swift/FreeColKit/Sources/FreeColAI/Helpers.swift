@@ -39,6 +39,13 @@ extension Settlement {
         return 0
     }
 
+    /// Java's Settlement.isBadlyDefended, which each kind answers.
+    var settlementIsBadlyDefended: Bool {
+        if let c = self as? Colony { return c.isBadlyDefended }
+        if let s = self as? IndianSettlement { return s.isBadlyDefended }
+        return false
+    }
+
     /// Java's Settlement.calculateSettlementValue, which each kind
     /// answers.
     func settlementValue(_ value: Int, _ unit: Unit) -> Int {
