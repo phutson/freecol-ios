@@ -65,6 +65,8 @@ public actor GameEngine {
     private let messages: MessageBundle
     /// What the human player was shown since it was last asked.
     private let shown = Shown()
+    /// The human player's client, playing on the map.
+    private let play: PlayController
 
     /// Collects what the human player is sent, as events.
     private final class Shown {
@@ -95,6 +97,18 @@ public actor GameEngine {
         }
         self.controller = controller
         self.ai = ai
+        play = PlayController(game: game, human: human) { command in
+            do {
+                if let cs = try controller.perform(command, by: human), let update = try cs.build(human) {
+                    shown.events += GameEngine.events(update, for: human)
+                }
+                return nil
+            } catch let e as CommandRefused {
+                return e.message
+            } catch {
+                return "\(error)"
+            }
+        }
     }
 
     /// Start a new game, as the server does for one human player.
@@ -175,6 +189,7 @@ public actor GameEngine {
             } catch {
                 refusal = "\(error)"
             }
+            play.invalidate()
             return result(refusal)
         }
     }
@@ -201,9 +216,130 @@ public actor GameEngine {
                     steps += 1
                 }
             } catch let e as NotYetPorted {
+                play.invalidate()
                 throw EngineError.failed(e.description)
             }
+            play.invalidate()
             return result(nil)
+        }
+    }
+
+    // MARK: Playing on the map
+
+    /// Something the player does on the map, as Java's client does it.
+    public enum PlayAction: Sendable, Equatable {
+        /// The player's turn begins: choose the first unit to move.
+        case startTurn
+        /// Make a unit (or none) the one being moved.
+        case select(unitId: String?)
+        /// Move on to the next unit, leaving this one for later.
+        case wait
+        /// Move one tile (N, NE...).
+        case move(unitId: String, direction: String)
+        /// Go along a goto path to its end.
+        case goTo(unitId: String, destination: PathPlace)
+        /// Sentry or fortify (Java's unit state names).
+        case changeState(unitId: String, state: String)
+        /// Done with this unit this turn.
+        case skip(unitId: String)
+        /// Improve the tile (a tile improvement type).
+        case improve(unitId: String, improvementTypeId: String)
+        /// Found a colony, or join the one here.
+        case buildColony(unitId: String)
+        case disband(unitId: String)
+        case clearOrders(unitId: String)
+        case executeGotoOrders
+        /// End the turn: the other players play theirs, and the new
+        /// turn begins.
+        case endTurn
+    }
+
+    /// Do something on the map, with the answers to the questions asked
+    /// so far (by question id).
+    public func play(_ action: PlayAction, answers: [String: String] = [:]) throws -> CommandResult {
+        try Messages.$scopedBundle.withValue(messages) {
+            shown.events = []
+            var ended = false
+            play.run(answers) {
+                switch action {
+                case .startTurn: play.startTurn()
+                case .select(let id): play.select(id)
+                case .wait: play.nextUnit(wait: true)
+                case let .move(id, name):
+                    if let d = Direction.allDirections.first(where: { $0.javaName == name }) { play.moveUnit(id, d) }
+                case let .goTo(id, destination): play.goTo(id, destination)
+                case let .changeState(id, name):
+                    if let state = Unit.UnitState.allCases.first(where: { $0.javaName == name }) {
+                        play.changeState(id, state)
+                    }
+                case .skip(let id): play.skip(id)
+                case let .improve(id, type): play.improve(id, type)
+                case .buildColony(let id): play.buildColony(id)
+                case .disband(let id): play.disband(id)
+                case .clearOrders(let id): play.clearOrders(id)
+                case .executeGotoOrders: play.executeGotoOrders()
+                case .endTurn: ended = play.endTurn(showDialog: true)
+                }
+            }
+            if ended {
+                // The server is told, the others play, and the player's
+                // new turn begins.
+                let events = shown.events
+                _ = try endTurn()
+                shown.events = events + shown.events
+                if game.currentPlayer === human { play.startTurn() }
+            }
+            var r = result(nil)
+            r.question = play.question
+            r.notices = play.notices
+            r.activeUnitId = play.activeUnitId
+            r.colonyToShow = play.colonyToShow
+            return r
+        }
+    }
+
+    /// The unit the player is moving, if any.
+    public var activeUnitId: String? {
+        play.activeUnitId
+    }
+
+    /// What a move in each direction would do (Java's move type names,
+    /// north first and clockwise), for a unit of the player's.
+    public func moveTypes(_ unitId: String) -> [String]? {
+        Messages.$scopedBundle.withValue(messages) {
+            play.view.unit(unitId).map { play.view.moveTypes($0).map(\.javaName) }
+        }
+    }
+
+    /// The path the goto cursor shows from a unit to a tile, if it can
+    /// go there.
+    public func gotoPath(_ unitId: String, to position: MapPosition) -> UnitPath? {
+        Messages.$scopedBundle.withValue(messages) {
+            guard let u = play.view.unit(unitId), let t = play.view.tile(position) else { return nil }
+            return play.view.gotoPath(u, to: t)
+        }
+    }
+
+    /// The path a unit would take to Europe.
+    public func europePath(_ unitId: String) -> UnitPath? {
+        Messages.$scopedBundle.withValue(messages) {
+            play.view.unit(unitId).flatMap { play.view.europePath($0) }
+        }
+    }
+
+    /// The path to a unit's destination, if it has one.
+    public func destinationPath(_ unitId: String) -> UnitPath? {
+        Messages.$scopedBundle.withValue(messages) {
+            play.view.unit(unitId).flatMap { play.view.destinationPath($0) }
+        }
+    }
+
+    /// The unit actions open to a unit of the player's, on the player's
+    /// turn.
+    public func unitActions(_ unitId: String) -> UnitActions? {
+        Messages.$scopedBundle.withValue(messages) {
+            guard game.currentPlayer === human else { return nil }
+            return play.view.unit(unitId).map { play.view.actions($0) }
         }
     }
 
@@ -237,6 +373,31 @@ public actor GameEngine {
                              snapshot: SnapshotBuilder(game: game, player: human).build())
     }
 
+    /// What the server asks the player, for the requests the interface
+    /// answers so far.
+    private static func request(_ m: ServerMessage) -> ServerRequest? {
+        switch m {
+        case let m as NewLandNameMessage:
+            return .newLandName(unitId: m.unit.id ?? "", suggestion: m.name, text: Messages.message("newLand.text"))
+        case let m as NewRegionNameMessage:
+            let text = StringTemplate.template("nameRegion.text").addStringTemplate("%type%", m.region.label)
+            return .newRegionName(regionId: m.region.id ?? "", tileId: m.tile.id ?? "", unitId: m.unit.id ?? "",
+                                  suggestion: m.name, text: Messages.message(text) ?? "")
+        case let m as FirstContactMessage where !m.other.isEuropean:
+            var title = "firstContactDialog.meeting." + (m.other.nation?.suffix ?? "")
+            if !Messages.containsKey(title) { title = "firstContactDialog.meeting.natives" }
+            let text = StringTemplate.template(m.tile != nil ? "firstContactDialog.welcomeOffer.text"
+                                                             : "firstContactDialog.welcomeSimple.text")
+                .addStringTemplate("%nation%", m.other.nationLabel)
+                .addName("%camps%", String(m.other.settlementCount))
+                .add("%settlementType%", (m.other.nationType as? IndianNationType)?.settlementTypeKey(plural: true))
+            return .firstContact(playerId: m.player.id ?? "", otherId: m.other.id ?? "", tileId: m.tile?.id,
+                                 title: Messages.message(title), text: Messages.message(text) ?? "")
+        default:
+            return nil
+        }
+    }
+
     /// The events in what a player was sent: moves and attacks to show,
     /// and messages.
     private static func events(_ update: PlayerUpdate, for player: Player) -> [EngineEvent] {
@@ -251,6 +412,8 @@ public actor GameEngine {
                                    attackerWon: success))
             case let .feature(parent, add, children) where add && parent === player:
                 for case let m as ModelMessage in children { ret.append(.message(SnapshotBuilder.message(m))) }
+            case let .message(m):
+                if let request = request(m) { ret.append(.request(request)) }
             default:
                 break
             }

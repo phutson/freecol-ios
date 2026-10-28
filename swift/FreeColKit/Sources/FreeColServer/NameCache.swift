@@ -122,6 +122,15 @@ public final class NameCache {
         return base + String(i)
     }
 
+    /// Give back a settlement name that was not used, unless it is a
+    /// numbered fallback (putSettlementName).
+    public func putSettlementName(_ player: Player, _ name: String) {
+        let base = Messages.message(player.isEuropean ? "nameCache.base.colony" : "nameCache.base.settlement") + "-"
+        guard !name.hasPrefix(base) else { return }
+        requireSettlementNames(player, nil)
+        settlementNames[ObjectIdentifier(player)]!.append(name)
+    }
+
     /// A name for a region a player discovered: its own, if it has one,
     /// or the next unused of the nation's names for its type, the
     /// extra river names, or a numbered name (getRegionName).

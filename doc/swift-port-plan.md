@@ -2623,6 +2623,72 @@ with the client's default options.
   unit and the hitpoint bar, as no saved game has a fortified or hurt
   unit outside a colony. The modern label style is not drawn yet.
 
+**Step 3 status: done.** The player plays on the map: starts a new
+game from the setup screen (or the sample game), moves units, sends
+them by goto, uses the unit actions, and ends the turn.
+- **The player's copy of the game** (`PlayerView`, in the engine): as
+  Java's client does, the client's decisions are made on the game as
+  the server sends it to the player (written for the player, read back
+  as a game of its own), read afresh after each command. On it: the
+  order units are offered in (Player.getNextActiveUnit, kept by
+  identifier across copies), what a move each way would do, the paths
+  (to the destination, to Europe, and the goto cursor's, which is none
+  to an unexplored tile or one the unit can not legally move to
+  directly), the unit actions open (the map controls' buttons), the
+  warnings before founding a colony (Tile.getBuildColonyWarnings), and
+  the odds the pre-combat dialog shows.
+- **The client controller** (`PlayController`, a port of the map part
+  of Java's client InGameController): moving a unit (by its move type:
+  moving, the high seas and sailing to Europe, rumours and mounds,
+  attacking, embarking and disembarking, learning from natives, and the
+  messages for moves that can not be made), going to a destination and
+  following the path turn by turn, the goto orders when no unit is left
+  to move, sentry, fortify, skip and wait, improving a tile (claiming
+  it first, bought or taken), founding or joining a colony (the
+  warnings, the name, the claim), disbanding, clearing orders, and
+  ending the turn (asking while units still wait, skipping those that
+  could move, the goto orders first). Each question Java's GUI asks is
+  returned to the interface; asking again with the answer goes on.
+  `GameEngine.play` runs it; the engine also passes on what the server
+  asks the player (naming the new land and regions, first contact with
+  natives).
+- **The map** draws the active unit in front with Java's blinking
+  cursor on it, and the path being chosen or followed (green this
+  turn, yellow with the turns after).
+- **The app** has a setup screen (name, rules, difficulty), the turn
+  and end turn, the unit panel (a pad for the eight directions and the
+  unit actions), taps to select units and move next door, goto by two
+  taps, and alerts for questions, requests and messages.
+- **Checked:** `PlayOracle.java` records, on the player's copy of
+  eight views of six saved games, the order Java's client offers units
+  in, each unit's move types, unit actions, destination and Europe
+  paths, and the goto paths to every tile within five, the colony
+  warnings, claim reasons and land prices, and the attacks' offence,
+  defence and odds; `PlayerViewTests` matches them all. This found a
+  bug in the model: on a client's copy, a tile with a type is explored
+  (Tile.isExploredBy), which paths to Europe need. Planted bugs (the
+  units offered in reverse, gotos to unexplored tiles, a colony
+  warning's threshold, fortify allowed as sentry is) are caught.
+  `PlayTests` plays a new game's first turns through the controller:
+  the ships sailing west to land by goto, the colonists landing (all
+  of them, by the disembark question), naming the new land, founding a
+  colony after its warnings and name, and ending turns. The app was
+  seen working in the iPad simulator.
+- **Not checked against Java:** the controller's flows themselves
+  (which questions in which order, and what follows the answers) are a
+  port tested by playing, as Java's client can not run without its
+  server; the path and cursor drawings are checked by eye.
+- **Not done yet:** dealing with settlements on entering them
+  (scouting, missionaries, trade, foreign colonies, attacking or
+  demanding tribute) comes with those screens (step 6), as do the
+  server's other questions (founding fathers, the monarch, native
+  demands, diplomacy, loot, the Fountain of Youth); trade routes,
+  autoloading and the colony panel (step 4). Java's choice of the
+  unit in front against an active offensive unit (its defender) is not
+  made. The player's copy is read whole after each command (about
+  0.13 s on a 40 by 100 map on a Mac); applying the server's updates
+  to it, as Java's client does, is left for the speed work (step 8).
+
 ## Phase 6: Polish and release
 
 - Sound and music (`common/sound` → AVFoundation), all translations, high

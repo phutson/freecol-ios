@@ -34,6 +34,11 @@ public struct GoodsAmount: Sendable, Equatable, Hashable {
 public struct MapPosition: Sendable, Equatable, Hashable {
     public let x: Int
     public let y: Int
+
+    public init(x: Int, y: Int) {
+        self.x = x
+        self.y = y
+    }
 }
 
 /// Everything one player can see of the game.
@@ -334,6 +339,8 @@ public enum EngineEvent: Sendable, Equatable {
     case unitMoved(unitId: String, from: MapPosition, to: MapPosition)
     case attack(attackerId: String, defenderId: String, attackerWon: Bool)
     case message(MessageSnapshot)
+    /// The server asks the player something.
+    case request(ServerRequest)
 }
 
 /// What came of a command.
@@ -344,6 +351,16 @@ public struct CommandResult: Sendable, Equatable {
     public let events: [EngineEvent]
     /// The game afterwards.
     public let snapshot: GameSnapshot
+
+    /// What the client asks before going on, if anything: ask it and
+    /// make the request again with the answer.
+    public var question: PlayQuestion?
+    /// What the player is told (Java's information panels).
+    public var notices: [String] = []
+    /// The unit the player is now moving, if any.
+    public var activeUnitId: String?
+    /// The colony to show the player, after arriving or founding it.
+    public var colonyToShow: String?
 
     public var wasRefused: Bool { refusal != nil }
 }

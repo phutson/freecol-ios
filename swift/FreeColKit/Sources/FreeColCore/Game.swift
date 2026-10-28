@@ -42,6 +42,11 @@ open class Game: FreeColGameObject {
     /// server classes add (ServerIndianSettlement.setAlarm).
     open var isServer: Bool { false }
 
+    /// Whether this is a client's copy, as the server sends it to a
+    /// player, whose tiles keep no players' views (Java's client
+    /// tiles, whose caches are null).
+    public var isClientCopy = false
+
     public static let tag = "game"
 
     /// Clean dead registry entries after this many removals.

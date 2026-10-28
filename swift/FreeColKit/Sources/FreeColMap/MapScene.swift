@@ -71,6 +71,8 @@ public struct MapOptions: Sendable, Equatable {
     public var displayColonyLabels = 1
     /// The animation tick: milliseconds / 125, or 0 to freeze.
     public var ticks: Int64 = 0
+    /// The unit the player is moving, drawn in front on its tile.
+    public var activeUnitId: String?
 
     public init() {}
 
@@ -162,6 +164,12 @@ public enum MapDrawing: Sendable, Equatable {
     /// A rectangle, filled (fillRect), or outlined one pixel wide, a
     /// pixel larger each way (drawRect).
     case rectangle(x: Int, y: Int, width: Int, height: Int, color: Int32, filled: Bool)
+    /// A step of a path shown on the map: a round-ended line, 5 wide,
+    /// from the tile's centre to another point.
+    case pathStep(x2: Int, y2: Int, color: Int32)
+    /// A node of a path, at the tile's centre: a disc 20 across, edged
+    /// in translucent black, with the turns to get there if any.
+    case pathNode(color: Int32, turns: Int?)
 }
 
 /// A chip: a small box of a colour edged in black, with a letter or two
@@ -218,6 +226,10 @@ public enum MapPass: String, Sendable, Equatable {
     case above
     /// Settlement names (displaySettlementLabels).
     case labels
+    /// The cursor on the active unit or selected tile.
+    case cursor
+    /// The path a unit would take, or is taking.
+    case gotoPath
 }
 
 /// Something to draw, on which tile, in which pass.
@@ -358,11 +370,18 @@ public enum MapScene {
         return key
     }
 
-    /// The unit drawn in front on a tile, with no unit selected: none
-    /// on a settlement, otherwise the one with the most moves left,
-    /// active ones first (MapViewerState.findUnitInFront).
-    public static func unitInFront(_ tile: TileSnapshot, _ units: [String: UnitSnapshot]) -> UnitSnapshot? {
-        if tile.unitIds.isEmpty || tile.settlementId != nil { return nil }
+    /// The unit drawn in front on a tile: the one being moved if it is
+    /// here, none on a settlement, otherwise the one with the most moves
+    /// left, active ones first (MapViewerState.findUnitInFront; Java's
+    /// choice of the defender against an active offensive unit is not
+    /// made yet).
+    public static func unitInFront(_ tile: TileSnapshot, _ units: [String: UnitSnapshot],
+                                   activeUnitId: String? = nil) -> UnitSnapshot? {
+        if tile.unitIds.isEmpty { return nil }
+        if let id = activeUnitId, let active = units[id], active.position == MapPosition(x: tile.x, y: tile.y) {
+            return active
+        }
+        if tile.settlementId != nil { return nil }
         var result: UnitSnapshot?
         var bestScore = -1
         for id in tile.unitIds {
@@ -582,7 +601,7 @@ public enum MapScene {
         let nations = Dictionary(snapshot.players.map { ($0.id, $0.nationResourceKey) },
                                  uniquingKeysWith: { a, _ in a })
         for t in tiles where t.isVisible {
-            guard let u = unitInFront(t, units) else { continue }
+            guard let u = unitInFront(t, units, activeUnitId: options.activeUnitId) else { continue }
             let key = unitKey(u, ownerNation: u.ownerId.flatMap { nations[$0] }, images)
             add(t, .image(MapImage(key), .unit, size: .natural, dimmed: false, grey: u.state == "SENTRY"))
             // Its occupation, on its owner's colour.
@@ -623,5 +642,58 @@ public enum MapScene {
             }
         }
         return draws
+    }
+}
+
+// MARK: Over the map
+
+extension MapScene {
+
+    /// The cursor's image in the unit moving view mode (ImageLibrary.UNIT_SELECT).
+    public static let unitSelectKey = "image.tile.unitSelect"
+    /// The cursor's image on a selected tile (TILE_SELECT).
+    public static let tileSelectKey = "image.tile.tileSelect"
+
+    /// The green and yellow of a path's steps this turn and in later
+    /// turns, translucent for the lines (MapViewer.displayPath).
+    static let pathThisTurn: Int32 = Int32(bitPattern: 0xFF00FF00)
+    static let pathLaterTurns: Int32 = Int32(bitPattern: 0xFFFFFF00)
+
+    /// What Java draws over the map (MapViewer.displayMap): the cursor
+    /// on a tile, if it shows (it blinks), then a path: its steps from
+    /// centre to centre, coloured by whether they are reached this turn,
+    /// then a disc on each, numbered with the turns from the second
+    /// turn on.  A path is not drawn if it has only its start, and is
+    /// broken where a step is off the map.
+    public static func overlay(cursor: MapPosition?, movingUnits: Bool = true, path: UnitPath?) -> [MapDraw] {
+        var ret: [MapDraw] = []
+        if let cursor {
+            ret.append(MapDraw(x: cursor.x, y: cursor.y, pass: .cursor,
+                               drawing: .image(MapImage(movingUnits ? unitSelectKey : tileSelectKey), .centered,
+                                               size: .natural, dimmed: false, grey: false)))
+        }
+        guard let path, path.steps.count > 1 else { return ret }
+        var previous: MapPosition?
+        for step in path.steps {
+            guard let p = step.tile else {
+                previous = nil
+                continue
+            }
+            let color = (step.turns > 0 ? pathLaterTurns : pathThisTurn) & Int32(bitPattern: 0x80FF_FFFF)
+            if let previous {
+                let a = origin(previous.x, previous.y), b = origin(p.x, p.y)
+                ret.append(MapDraw(x: previous.x, y: previous.y, pass: .gotoPath,
+                                   drawing: .pathStep(x2: b.x - a.x + tileWidth / 2, y2: b.y - a.y + tileHeight / 2,
+                                                      color: color)))
+            }
+            previous = p
+        }
+        for step in path.steps {
+            guard let p = step.tile else { continue }
+            ret.append(MapDraw(x: p.x, y: p.y, pass: .gotoPath,
+                               drawing: .pathNode(color: step.turns > 0 ? pathLaterTurns : pathThisTurn,
+                                                  turns: step.turns > 0 ? step.turns : nil)))
+        }
+        return ret
     }
 }

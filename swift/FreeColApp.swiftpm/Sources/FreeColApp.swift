@@ -27,31 +27,64 @@ struct FreeColApp: App {
         WindowGroup {
             ContentView()
                 .environment(store)
-                .task { await store.loadSample() }
         }
     }
 }
 
-/// The map, and what is happening, until there is more to show.
+/// The setup screen until a game is started, then the map and the
+/// controls for playing on it.
 struct ContentView: View {
     @Environment(GameStore.self) private var store
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
+        ZStack {
             Color.black.ignoresSafeArea()
-            if let snapshot = store.snapshot, let images = store.images {
-                MapView(snapshot: snapshot, images: images)
-                    .ignoresSafeArea()
-                Text("\(snapshot.player?.nationName ?? "") — \(snapshot.turnName)")
-                    .font(.headline)
-                    .padding(8)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
-                    .padding()
+            if store.hasGame, let snapshot = store.snapshot, let images = store.images {
+                PlayView(snapshot: snapshot, images: images)
             } else if let failure = store.failure {
                 Text(failure).foregroundStyle(.white).padding()
+            } else if store.busy {
+                ProgressView().tint(.white)
             } else {
-                ProgressView().tint(.white).frame(maxWidth: .infinity, maxHeight: .infinity)
+                SetupView()
             }
         }
+    }
+}
+
+/// A new game's settings (Java's new game panel, for one player against
+/// the computer): the player's name, the rules and the difficulty.
+struct SetupView: View {
+    @Environment(GameStore.self) private var store
+    @State private var name = "Player"
+    @State private var rules = "freecol"
+    @State private var difficulty = "model.difficulty.medium"
+
+    static let difficulties = [("model.difficulty.veryEasy", "Very easy"), ("model.difficulty.easy", "Easy"),
+                               ("model.difficulty.medium", "Medium"), ("model.difficulty.hard", "Hard"),
+                               ("model.difficulty.veryHard", "Very hard")]
+
+    var body: some View {
+        Form {
+            Section("New game") {
+                TextField("Your name", text: $name)
+                Picker("Rules", selection: $rules) {
+                    Text("FreeCol").tag("freecol")
+                    Text("Classic").tag("classic")
+                }
+                Picker("Difficulty", selection: $difficulty) {
+                    ForEach(Self.difficulties, id: \.0) { Text($0.1).tag($0.0) }
+                }
+                Button("Start") {
+                    Task { await store.newGame(playerName: name, rules: rules, difficulty: difficulty) }
+                }
+                .disabled(name.isEmpty)
+            }
+            Section {
+                Button("Play the sample game") { Task { await store.loadSample() } }
+            }
+        }
+        .frame(maxWidth: 500)
+        .scrollContentBackground(.hidden)
     }
 }

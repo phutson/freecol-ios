@@ -139,7 +139,7 @@ import Testing
                 let key = d.pass == .items ? "roads" : d.pass == .territory ? "territory" : nil
                 if let key { ret["\(d.x),\(d.y)", default: [:]][key, default: []].append(e) }
                 continue
-            case .fog, .chips, .text, .line, .rectangle:
+            case .fog, .chips, .text, .line, .rectangle, .pathStep, .pathNode:
                 continue
             }
             ret["\(d.x),\(d.y)", default: [:]][d.pass.rawValue, default: []].append(entry)
@@ -308,7 +308,7 @@ import Testing
                     switch d.drawing {
                     case let .image(img, _, _, _, _): return [img.key]
                     case let .composite(c, _): return keys(c.picture)
-                    case .path, .fog, .chips, .text, .line, .rectangle: return []
+                    case .path, .fog, .chips, .text, .line, .rectangle, .pathStep, .pathNode: return []
                     }
                 }.filter { !Self.images.hasImage($0) })
                 #expect(missing.isEmpty, "\(player.nationId ?? ""): \(missing.sorted())")

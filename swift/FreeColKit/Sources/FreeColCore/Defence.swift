@@ -157,11 +157,14 @@ extension Tile {
     }
 
     /// Whether a player has explored this tile: natives know their
-    /// land, Europeans need a view of the tile.
+    /// land, Europeans need a view of the tile.  A client's tiles keep
+    /// no views (as Java's have none), and are explored if they have a
+    /// type.
     public func isExploredBy(_ player: Player?) -> Bool {
         guard let player else { return false }
         if !player.isEuropean { return true }
         if !isExplored { return false }
+        if game?.isClientCopy == true { return true }
         return cachedTiles[ObjectIdentifier(player)] != nil
     }
 

@@ -27,6 +27,13 @@ import SwiftUI
 struct MapView: View {
     let snapshot: GameSnapshot
     let images: MapImageStore
+    /// The unit being moved, drawn in front with the cursor on it.
+    var activeUnitId: String?
+    /// The path to show: the goto path, or the active unit's way to its
+    /// destination.
+    var path: UnitPath?
+    /// A tile tapped.
+    var onTap: (MapPosition) -> Void = { _ in }
 
     /// The map pixel (at scale 1) at the screen's centre, and the zoom.
     @State private var centre: CGPoint?
@@ -42,11 +49,33 @@ struct MapView: View {
                 Canvas { context, size in
                     var options = MapOptions()
                     options.ticks = Int64(timeline.date.timeIntervalSince1970 * 1000) / 125
+                    options.activeUnitId = activeUnitId
                     draw(&context, size, centre, options)
                 }
             }
             .gesture(drag(centre).simultaneously(with: magnify))
+            .simultaneousGesture(SpatialTapGesture().onEnded { value in
+                if let tile = tile(at: value.location, geometry.size, centre) { onTap(tile) }
+            })
         }
+    }
+
+    /// The tile under a point on screen: the one whose diamond holds
+    /// it, of the tiles round the row and column it falls in.
+    private func tile(at point: CGPoint, _ size: CGSize, _ centre: CGPoint) -> MapPosition? {
+        let x = centre.x + (point.x - size.width / 2) / zoom, y = centre.y + (point.y - size.height / 2) / zoom
+        let tw = CGFloat(MapScene.tileWidth), th = CGFloat(MapScene.tileHeight)
+        let row = Int((y / (th / 2)).rounded(.down))
+        for r in [row, row - 1, row + 1] {
+            let column = Int(((x - CGFloat(r & 1) * tw / 2) / tw).rounded(.down))
+            for c in [column, column - 1, column + 1] {
+                guard snapshot.map.tile(c, r) != nil else { continue }
+                let o = MapScene.origin(c, r)
+                let dx = abs(x - CGFloat(o.x) - tw / 2) / (tw / 2), dy = abs(y - CGFloat(o.y) - th / 2) / (th / 2)
+                if dx + dy <= 1 { return MapPosition(x: c, y: r) }
+            }
+        }
+        return nil
     }
 
     // MARK: Moving about
@@ -96,7 +125,10 @@ struct MapView: View {
         let tw = CGFloat(MapScene.tileWidth), th = CGFloat(MapScene.tileHeight)
         let columns = Int((left / tw).rounded(.down)) - 1 ..< Int((right / tw).rounded(.up)) + 1
         let rows = Int((top / (th / 2)).rounded(.down)) - 2 ..< Int((bottom / (th / 2)).rounded(.up)) + 3
+        // The cursor blinks every half second (TerrainCursor).
+        let cursor = activeUnitId.flatMap { snapshot.unit($0)?.position }
         let draws = MapScene.plan(snapshot, images.lookup, options, columns: columns, rows: rows)
+            + MapScene.overlay(cursor: (options.ticks / 4) % 2 == 0 ? cursor : nil, path: path)
 
         context.scaleBy(x: zoom, y: zoom)
         context.translateBy(x: -left, y: -top)
@@ -142,6 +174,22 @@ struct MapView: View {
                 let r = CGRect(x: CGFloat(o.x + min(x1, x2)), y: CGFloat(o.y + min(y1, y2)),
                                width: CGFloat(abs(x2 - x1) + 1), height: CGFloat(abs(y2 - y1) + 1))
                 context.fill(Path(r), with: .color(Self.color(color)))
+            case let .pathStep(x2, y2, color):
+                var p = Path()
+                let cx = CGFloat(o.x + MapScene.tileWidth / 2), cy = CGFloat(o.y + MapScene.tileHeight / 2)
+                p.move(to: CGPoint(x: cx, y: cy))
+                p.addLine(to: CGPoint(x: CGFloat(o.x + x2), y: CGFloat(o.y + y2)))
+                context.stroke(p, with: .color(Self.color(color)),
+                               style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+            case let .pathNode(color, turns):
+                let cx = CGFloat(o.x + MapScene.tileWidth / 2), cy = CGFloat(o.y + MapScene.tileHeight / 2)
+                let disc = Path(ellipseIn: CGRect(x: cx - 10, y: cy - 10, width: 20, height: 20))
+                context.fill(disc, with: .color(Self.color(color)))
+                context.stroke(disc, with: .color(.black.opacity(0.5)), lineWidth: 2)
+                if let turns {
+                    context.draw(Text(String(turns)).font(Self.font("normal-plain-smaller")).foregroundColor(.black),
+                                 at: CGPoint(x: cx, y: cy))
+                }
             case let .rectangle(x, y, w, h, color, filled):
                 let r = CGRect(x: CGFloat(o.x + x), y: CGFloat(o.y + y), width: CGFloat(w), height: CGFloat(h))
                 if filled {
