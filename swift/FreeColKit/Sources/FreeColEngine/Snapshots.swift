@@ -61,6 +61,9 @@ public struct GameSnapshot: Sendable, Equatable {
     public let market: [MarketPrice]
     /// The player's messages for this turn.
     public let messages: [MessageSnapshot]
+    /// Whether the game hides what is not in sight (the fogOfWar game
+    /// option).
+    public var fogOfWar = false
 
     public func unit(_ id: String) -> UnitSnapshot? { units.first { $0.id == id } }
     public func colony(_ id: String) -> ColonySnapshot? { colonies.first { $0.id == id } }
@@ -94,6 +97,8 @@ public struct PlayerSnapshot: Sendable, Equatable {
     /// The last part of the nation's id ("dutch"), which picks
     /// national images (getNationResourceKey).
     public let nationResourceKey: String
+    /// The nation's colour, as ARGB, if it has one.
+    public var nationColor: Int32?
 }
 
 /// The map, row by row.
@@ -128,6 +133,8 @@ public struct TileSnapshot: Sendable, Equatable {
     public let settlementId: String?
     /// The units the player can see here, the defender first.
     public let unitIds: [String]
+    /// The region the tile is in, as the player saw it.
+    public var regionId: String?
     /// Whether the tile type is land, and forested.
     public var isLand = false
     public var isForested = false
@@ -136,6 +143,8 @@ public struct TileSnapshot: Sendable, Equatable {
     /// The finished items on it (improvements, a resource, a rumour),
     /// in the order the tile keeps them, for drawing by z-index.
     public var items: [TileItemSnapshot] = []
+    /// The units here the player can see, and those they carry.
+    public var totalUnitCount = 0
 }
 
 /// A finished item on a tile, as the map draws it.
@@ -152,6 +161,8 @@ public struct TileItemSnapshot: Sendable, Equatable {
     public let zIndex: Int
     /// An improvement's style (a digit per side), for roads and rivers.
     public let style: String?
+    /// An improvement's magnitude (a major river is 2).
+    public var magnitude = 0
 }
 
 /// A settlement as the map draws it: what picks its image.
@@ -168,6 +179,30 @@ public struct TileSettlementSnapshot: Sendable, Equatable {
     public let hasMissionary: Bool
     /// The owner's nation resource key ("dutch", "inca").
     public let ownerNationResourceKey: String?
+    /// Its name as the player knows it, and the owner's colour.
+    public var name: String?
+    public var ownerColor: Int32?
+    /// For a colony: whether it would take more units, and its
+    /// production bonus (-2 to 2).
+    public var wantsMoreUnits = false
+    public var productionBonus = 0
+    /// For a native settlement: whether it is a capital, its
+    /// missionary's colour and expertise, and, if the player has met
+    /// it, how it feels.
+    public var isCapital = false
+    public var missionaryColor: Int32?
+    public var missionaryIsExpert = false
+    public var alarm: SettlementAlarmSnapshot?
+}
+
+/// How a native settlement the player has met feels, as its alarm chip
+/// shows it.
+public struct SettlementAlarmSnapshot: Sendable, Equatable {
+    /// The colour of the player it hates most (Nation.UNKNOWN_NATION_RGB
+    /// if none).
+    public let mostHatedColor: Int32
+    /// Whether it is still worth scouting.
+    public let isWorthScouting: Bool
 }
 
 /// Where a unit is.
@@ -217,6 +252,10 @@ public struct UnitSnapshot: Sendable, Equatable {
     /// is born in native settlements, which pick its image.
     public var hasNativeEthnicity = false
     public var isNativeBorn = false
+    /// What it is doing, as the player sees it, in a letter or two
+    /// (Unit.getOccupationLabel, short).
+    public var occupation = ""
+    public var maximumHitPoints = 0
 }
 
 /// A colony of the player's.

@@ -2586,6 +2586,43 @@ player sees it, with pan and pinch to zoom.
   plain images (Java draws them animated, rivers made from masks), and
   roads, transitions, beaches, borders, chips and labels are not drawn.
 
+**Step 2 status: done.** The map is drawn as Java's client draws it,
+with the client's default options.
+- **The planner** adds what Java makes from other images, each named
+  by the key Java caches it under: the transitions between terrains
+  (masks, nice corners from normal quality, mask variations from
+  high), beaches, river mouths and rivers, animated by the tick where
+  Java animates them; forest corners (high quality); roads, as the
+  paths RoadPainter draws; region and country borders (opaque under
+  the items, translucent over them); a colony's number of colonists
+  in its production bonus colour (italic if it would take more); a
+  native settlement's chips (capital or not, the mission, and, once
+  met, its alarm); each unit's occupation chip, a line for each unit
+  with it and its hitpoints; and settlement names under them.
+- **The snapshots** carry the rest: the settlement's name as the
+  player knows it, its owner's colour, the colony's bonus, the
+  missionary, the alarm (whom it hates most only once scouted or
+  visited, as Java's client is told), the units on a tile, and each
+  unit's occupation letter and maximum hitpoints.
+- **The app** draws composites from their pictures (masked, layered,
+  enlarged), paths, chips and edged text; it animates water at Java's
+  125 milliseconds a frame.
+- **Checked:** `MapLayerOracle.java` runs Java's own TileViewer and
+  MapViewer drawing code on the player's copy of the game (as the
+  server sends it) and records each image asked of the image cache,
+  the shapes drawn, and, through a patched ImageLibrary, each chip's
+  and string's text, colours and font, place and size. Nine views of
+  four saved games (three with other graphics options, one with
+  borders) match pass by pass. Chips and text are placed by Java's
+  sizes, as their widths depend on Java's fonts. Planted bugs (a
+  swapped transition order, a wrong mask variation, one stack line
+  short, a label not nudged, the alarm text swapped, the colony number
+  not italic) are caught.
+- **Not checked:** what composites look like inside (alphas and
+  compositing are only seen by eye), and the grey chip of a fortified
+  unit and the hitpoint bar, as no saved game has a fortified or hurt
+  unit outside a colony. The modern label style is not drawn yet.
+
 ## Phase 6: Polish and release
 
 - Sound and music (`common/sound` → AVFoundation), all translations, high

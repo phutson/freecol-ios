@@ -183,9 +183,12 @@ struct GameRegistryTests {
     @Test func listsLiveObjectsInIdentifierOrder() {
         let game = TestGame()
         let units = (0..<12).map { _ in TestUnit(game: game) }
-        #expect(game.freeColGameObjects.map(\.id!)
-                == ["0"] + (1...12).map { "unit:\($0)" })
-        _ = units
+        // Kept alive to the end, as the registry holds them weakly
+        // (optimised builds would let them go at once).
+        withExtendedLifetime(units) {
+            #expect(game.freeColGameObjects.map(\.id!)
+                    == ["0"] + (1...12).map { "unit:\($0)" })
+        }
     }
 
     @Test func manyRemovalsCleanTheRegistry() {

@@ -36,4 +36,24 @@ public struct ResourceMapImages: MapImages {
     public func variation(_ key: String, seed: Int32) -> Int {
         manager.imageResource(key)?.variationNumber(seed: seed) ?? 0
     }
+
+    public func variation(_ key: String, ticks: Int64) -> Int {
+        manager.imageResource(key)?.variationNumber(ticks: ticks) ?? 0
+    }
+
+    public func numberOfVariations(_ key: String) -> Int {
+        manager.imageResource(key)?.numberOfVariations ?? 1
+    }
+
+    public func cachingKey(_ key: String) -> String? {
+        manager.imageResource(key)?.cachingKey
+    }
+
+    public func color(_ key: String) -> Int32 {
+        manager.color(key)
+    }
+
+    public func string(_ key: String) -> String {
+        manager.string(key)
+    }
 }

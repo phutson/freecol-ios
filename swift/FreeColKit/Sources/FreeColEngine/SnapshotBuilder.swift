@@ -34,12 +34,12 @@ struct SnapshotBuilder {
         var seen = Set<ObjectIdentifier>()
         func add(_ unit: Unit) {
             guard seen.insert(ObjectIdentifier(unit)).inserted else { return }
-            units.append(Self.unit(unit))
+            units.append(self.unit(unit))
         }
         // The player's own units, then the others it can see.
         for unit in player.units { add(unit) }
         let map = mapSnapshot { unit in add(unit) }
-        return GameSnapshot(
+        var snapshot = GameSnapshot(
             turn: game.turn.number,
             turnName: Messages.message(game.turn.label(calendar)) ?? String(game.turn.number),
             playerId: player.id ?? "",
@@ -52,10 +52,12 @@ struct SnapshotBuilder {
             europe: europe(),
             market: market(),
             messages: player.modelMessages.map(Self.message))
+        snapshot.fogOfWar = spec?.getBoolean(GameOptions.fogOfWar) ?? false
+        return snapshot
     }
 
     private func playerSnapshot(_ p: Player) -> PlayerSnapshot {
-        PlayerSnapshot(
+        var snapshot = PlayerSnapshot(
             id: p.id ?? "",
             nationId: p.nationId ?? "",
             nationName: Messages.message(p.nationLabel) ?? p.nationId ?? "",
@@ -69,6 +71,8 @@ struct SnapshotBuilder {
             score: p.score,
             stance: p === player ? nil : player.stance(p).javaName,
             nationResourceKey: JavaString.lastPart(p.nationId ?? "", "."))
+        snapshot.nationColor = p.nation?.rgb
+        return snapshot
     }
 
     /// The map as the player knows it; the units on the tiles it sees
@@ -104,10 +108,15 @@ struct SnapshotBuilder {
                     hasLostCityRumour: view.hasLostCityRumour,
                     ownerId: view.owner?.id, owningSettlementId: view.owningSettlement?.id,
                     settlementId: view.settlement?.id, unitIds: unitIds)
+                snapshot.regionId = view.region?.id
                 snapshot.isLand = view.isLand
                 snapshot.isForested = view.isForested
-                snapshot.settlement = view.settlement.map(Self.tileSettlement)
+                snapshot.settlement = view.settlement.map(tileSettlement)
                 snapshot.items = view.completeItems.map(Self.tileItem)
+                if visible {
+                    snapshot.totalUnitCount = tile.unitList.filter { player.owns($0) || player.canSeeUnit($0) }
+                        .reduce(0) { $0 + 1 + $1.unitCount }
+                }
                 tiles.append(snapshot)
             }
         }
@@ -117,17 +126,20 @@ struct SnapshotBuilder {
     static func tileItem(_ item: TileItem) -> TileItemSnapshot {
         switch item {
         case let ti as TileImprovement:
-            TileItemSnapshot(kind: .improvement, typeId: ti.type?.id, zIndex: ti.zIndex, style: ti.style?.string)
+            var item = TileItemSnapshot(kind: .improvement, typeId: ti.type?.id, zIndex: ti.zIndex,
+                                        style: ti.style?.string)
+            item.magnitude = ti.magnitude
+            return item
         case let r as Resource:
-            TileItemSnapshot(kind: .resource, typeId: r.type?.id, zIndex: r.zIndex, style: nil)
+            return TileItemSnapshot(kind: .resource, typeId: r.type?.id, zIndex: r.zIndex, style: nil)
         default:
-            TileItemSnapshot(kind: .lostCityRumour, typeId: nil, zIndex: item.zIndex, style: nil)
+            return TileItemSnapshot(kind: .lostCityRumour, typeId: nil, zIndex: item.zIndex, style: nil)
         }
     }
 
-    static func tileSettlement(_ s: Settlement) -> TileSettlementSnapshot {
+    func tileSettlement(_ s: Settlement) -> TileSettlementSnapshot {
         let colony = s as? Colony
-        return TileSettlementSnapshot(
+        var snapshot = TileSettlementSnapshot(
             typeId: s.type?.id ?? "",
             isColony: colony != nil,
             apparentUnitCount: colony?.apparentUnitCount ?? 0,
@@ -135,13 +147,37 @@ struct SnapshotBuilder {
             isUndead: colony?.isUndead ?? false,
             hasMissionary: (s as? IndianSettlement)?.missionary != nil,
             ownerNationResourceKey: s.owner.map { JavaString.lastPart($0.nationId ?? "", ".") })
+        snapshot.name = locationLabel(s, for: player).flatMap(Messages.message)
+        snapshot.ownerColor = s.owner?.nation?.rgb
+        if let colony {
+            snapshot.wantsMoreUnits = colony.preferredSizeChange > 0
+            snapshot.productionBonus = colony.productionBonus
+        }
+        if let native = s as? IndianSettlement {
+            snapshot.isCapital = native.isCapital
+            if let missionary = native.missionary {
+                snapshot.missionaryColor = missionary.owner?.nation?.rgb
+                snapshot.missionaryIsExpert = missionary.hasAbility(Ability.expertMissionary)
+            }
+            if native.hasContacted(player) {
+                // Java's client knows whom it hates most only once
+                // scouted or visited (IndianSettlement.writeAttributes).
+                let level = native.contactLevel(player)
+                let known = native.owner === player || level == .scouted || level == .visited
+                let hated = known ? native.mostHated : nil
+                snapshot.alarm = SettlementAlarmSnapshot(
+                    mostHatedColor: hated.flatMap { $0.nation?.rgb } ?? Nation.unknownNationRGB,
+                    isWorthScouting: native.worthScouting(player))
+            }
+        }
+        return snapshot
     }
 
     static func position(_ tile: Tile?) -> MapPosition? {
         tile.map { MapPosition(x: $0.x, y: $0.y) }
     }
 
-    static func unit(_ unit: Unit) -> UnitSnapshot {
+    func unit(_ unit: Unit) -> UnitSnapshot {
         let place: UnitPlace
         switch unit.location {
         case let t as Tile: place = .tile(MapPosition(x: t.x, y: t.y))
@@ -150,7 +186,7 @@ struct SnapshotBuilder {
             place = .building(colonyId: b.settlement?.id ?? "", buildingTypeId: b.type?.id ?? "")
         case let ct as ColonyTile:
             place = .colonyTile(colonyId: ct.settlement?.id ?? "",
-                                position: position(ct.workTile) ?? MapPosition(x: -1, y: -1))
+                                position: Self.position(ct.workTile) ?? MapPosition(x: -1, y: -1))
         case let s as IndianSettlement: place = .settlement(s.id ?? "")
         case is Europe: place = .europe
         case is HighSeas: place = .highSeas
@@ -164,7 +200,7 @@ struct SnapshotBuilder {
             roleId: unit.role?.id,
             ownerId: unit.owner?.id,
             place: place,
-            position: position(unit.tile),
+            position: Self.position(unit.tile),
             movesLeft: unit.movesLeft,
             initialMoves: unit.initialMovesLeft,
             state: unit.state.javaName,
@@ -179,6 +215,8 @@ struct SnapshotBuilder {
             destinationId: (unit.destination as? FreeColGameObject)?.id)
         snapshot.hasNativeEthnicity = unit.hasNativeEthnicity
         snapshot.isNativeBorn = unit.type?.hasAbility(Ability.bornInIndianSettlement) ?? false
+        snapshot.occupation = Messages.message(unit.occupationLabel(player, false)) ?? ""
+        snapshot.maximumHitPoints = unit.maximumHitPoints
         return snapshot
     }
 

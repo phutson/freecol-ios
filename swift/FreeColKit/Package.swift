@@ -103,7 +103,7 @@ let package = Package(
         // keys, where on each tile, and in what order (from Java's
         // client TileViewer, MapViewer and ImageLibrary).  No UI code.
         .target(name: "FreeColMap",
-                dependencies: ["FreeColEngine", "FreeColResources"]),
+                dependencies: ["FreeColUtil", "FreeColCore", "FreeColEngine", "FreeColResources"]),
 
         // Helpers shared by the tests: reading and writing the
         // canonical JSON dumps made by the Java tools, and the Java

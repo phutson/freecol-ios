@@ -92,15 +92,72 @@ final class MapImageStore: @unchecked Sendable {
         lookup = ResourceMapImages(manager)
     }
 
+    private var composites: [String: UIImage] = [:]
+
     /// The picture for an image, or nil if there is none.
     func image(_ image: MapImage) -> UIImage? {
         lock.lock()
         defer { lock.unlock() }
+        return loaded(image)
+    }
+
+    private func loaded(_ image: MapImage) -> UIImage? {
         if let cached = cache[image] { return cached }
         guard let resource = lookup.manager.imageResource(image.key)?.variation(image.variation),
               let url = resource.locator?.fileURL,
               let loaded = UIImage(contentsOfFile: url.path) else { return nil }
         cache[image] = loaded
         return loaded
+    }
+
+    /// The picture Java makes for a composite, made once per key and
+    /// variation, as Java caches them.
+    func image(_ composite: MapComposite) -> UIImage? {
+        lock.lock()
+        defer { lock.unlock() }
+        let key = composite.key + "#" + String(composite.variation)
+        if let cached = composites[key] { return cached }
+        let made = render(composite.picture)
+        composites[key] = made
+        return made
+    }
+
+    private static let tileSize = CGSize(width: MapScene.tileWidth, height: MapScene.tileHeight)
+
+    /// Draw a picture on a clear tile (ImageUtils and the image creators).
+    private func render(_ picture: MapPicture) -> UIImage? {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        let size = MapImageStore.tileSize
+        switch picture {
+        case let .image(image):
+            // Java's image creators take every image at a tile's size.
+            guard let i = loaded(image) else { return nil }
+            if i.size == size && i.scale == 1 { return i }
+            return UIGraphicsImageRenderer(size: size, format: format).image { context in
+                context.cgContext.interpolationQuality = .high
+                i.draw(in: CGRect(origin: .zero, size: size))
+            }
+        case let .masked(content, mask):
+            guard let c = render(content), let m = render(mask) else { return nil }
+            return UIGraphicsImageRenderer(size: size, format: format).image { _ in
+                c.draw(at: .zero)
+                m.draw(at: .zero, blendMode: .destinationIn, alpha: 1)
+            }
+        case let .layers(layers):
+            let rendered = layers.map { (render($0.picture), CGFloat($0.opacity)) }
+            return UIGraphicsImageRenderer(size: size, format: format).image { _ in
+                for (image, alpha) in rendered { image?.draw(at: .zero, blendMode: .normal, alpha: alpha) }
+            }
+        case let .enlarged(mask):
+            guard let m = render(mask) else { return nil }
+            return UIGraphicsImageRenderer(size: size, format: format).image { context in
+                context.cgContext.interpolationQuality = .high
+                let w = size.width * 1.25, h = size.height * 1.25
+                m.draw(in: CGRect(x: -(w - size.width) / 2, y: -(h - size.height) / 2, width: w, height: h))
+                m.draw(at: .zero)
+            }
+        }
     }
 }

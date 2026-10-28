@@ -37,8 +37,13 @@ struct MapView: View {
     var body: some View {
         GeometryReader { geometry in
             let centre = self.centre ?? initialCentre
-            Canvas { context, size in
-                draw(&context, size, centre)
+            // Java's animation frames are 125 milliseconds.
+            TimelineView(.periodic(from: .now, by: 0.125)) { timeline in
+                Canvas { context, size in
+                    var options = MapOptions()
+                    options.ticks = Int64(timeline.date.timeIntervalSince1970 * 1000) / 125
+                    draw(&context, size, centre, options)
+                }
             }
             .gesture(drag(centre).simultaneously(with: magnify))
         }
@@ -83,7 +88,7 @@ struct MapView: View {
 
     // MARK: Drawing
 
-    private func draw(_ context: inout GraphicsContext, _ size: CGSize, _ centre: CGPoint) {
+    private func draw(_ context: inout GraphicsContext, _ size: CGSize, _ centre: CGPoint, _ options: MapOptions) {
         // The map pixels on screen, and the tiles that reach into them
         // (with a row and a column more, for tall images).
         let left = centre.x - size.width / 2 / zoom, top = centre.y - size.height / 2 / zoom
@@ -91,7 +96,7 @@ struct MapView: View {
         let tw = CGFloat(MapScene.tileWidth), th = CGFloat(MapScene.tileHeight)
         let columns = Int((left / tw).rounded(.down)) - 1 ..< Int((right / tw).rounded(.up)) + 1
         let rows = Int((top / (th / 2)).rounded(.down)) - 2 ..< Int((bottom / (th / 2)).rounded(.up)) + 3
-        let draws = MapScene.plan(snapshot, images.lookup, columns: columns, rows: rows)
+        let draws = MapScene.plan(snapshot, images.lookup, options, columns: columns, rows: rows)
 
         context.scaleBy(x: zoom, y: zoom)
         context.translateBy(x: -left, y: -top)
@@ -100,17 +105,121 @@ struct MapView: View {
             switch d.drawing {
             case .fog:
                 context.fill(diamond(CGFloat(o.x), CGFloat(o.y)), with: .color(.black.opacity(0.2)))
-            case let .image(image, placement, dimmed, grey):
+            case let .composite(composite, dimmed):
+                guard let picture = images.image(composite) else { continue }
+                var c = context
+                if dimmed { c.addFilter(.colorMultiply(Color(white: 0.8))) }
+                c.draw(Image(uiImage: picture), in: CGRect(x: CGFloat(o.x), y: CGFloat(o.y),
+                                                          width: CGFloat(MapScene.tileWidth),
+                                                          height: CGFloat(MapScene.tileHeight)))
+            case let .image(image, placement, size, dimmed, grey):
                 guard let picture = images.image(image) else { continue }
-                let w = Int(picture.size.width * picture.scale), h = Int(picture.size.height * picture.scale)
+                let w = size.dimensions?.width ?? Int(picture.size.width * picture.scale)
+                let h = size.dimensions?.height ?? Int(picture.size.height * picture.scale)
                 let at = placement.origin(width: w, height: h)
                 var c = context
                 if dimmed { c.addFilter(.colorMultiply(Color(white: 0.8))) }
                 if grey { c.addFilter(.grayscale(1)) }
                 c.draw(Image(uiImage: picture),
                        in: CGRect(x: CGFloat(o.x + at.x), y: CGFloat(o.y + at.y), width: CGFloat(w), height: CGFloat(h)))
+            case let .path(segments, color, width):
+                var c = context
+                c.translateBy(x: CGFloat(o.x), y: CGFloat(o.y))
+                // Java's BasicStroke: square ends, mitred corners.
+                c.stroke(path(segments), with: .color(Self.color(color)),
+                         style: StrokeStyle(lineWidth: CGFloat(width), lineCap: .square, lineJoin: .miter))
+            case let .chips(chips, x, y, dimmed):
+                var c = context
+                c.translateBy(x: CGFloat(o.x + x), y: CGFloat(o.y + y))
+                if dimmed { c.addFilter(.colorMultiply(Color(white: 0.8))) }
+                drawChips(&c, chips)
+            case let .text(text, placement, dimmed):
+                var c = context
+                if dimmed { c.addFilter(.colorMultiply(Color(white: 0.8))) }
+                drawText(&c, text, placement, CGFloat(o.x), CGFloat(o.y))
+            case let .line(x1, y1, x2, y2, color):
+                // The pixels from one end to the other.
+                let r = CGRect(x: CGFloat(o.x + min(x1, x2)), y: CGFloat(o.y + min(y1, y2)),
+                               width: CGFloat(abs(x2 - x1) + 1), height: CGFloat(abs(y2 - y1) + 1))
+                context.fill(Path(r), with: .color(Self.color(color)))
+            case let .rectangle(x, y, w, h, color, filled):
+                let r = CGRect(x: CGFloat(o.x + x), y: CGFloat(o.y + y), width: CGFloat(w), height: CGFloat(h))
+                if filled {
+                    context.fill(Path(r), with: .color(Self.color(color)))
+                } else {
+                    context.stroke(Path(r.offsetBy(dx: 0.5, dy: 0.5)), with: .color(Self.color(color)), lineWidth: 1)
+                }
             }
         }
+    }
+
+    /// A row of chips, as Java makes them (ImageLibrary.createChip): a
+    /// black edge, the background, and the text 3 pixels in.  Each
+    /// after the first is stepped along by the first's width and 2.
+    private func drawChips(_ c: inout GraphicsContext, _ chips: [MapChip]) {
+        var step: CGFloat?
+        var x: CGFloat = 0
+        for chip in chips {
+            let text = c.resolve(Text(chip.text).font(Self.font(MapChip.font))
+                .foregroundColor(Self.color(chip.foreground)))
+            let size = text.measure(in: CGSize(width: 1000, height: 1000))
+            let w = ceil(size.width) + 6, h = ceil(size.height) + 6
+            let r = CGRect(x: x, y: 0, width: w, height: h)
+            c.fill(Path(r), with: .color(.black))
+            c.fill(Path(r.insetBy(dx: 1, dy: 1)), with: .color(Self.color(chip.background)))
+            c.draw(text, at: CGPoint(x: x + 3, y: 3), anchor: .topLeading)
+            if step == nil { step = w + 2 }
+            x += step ?? 0
+        }
+    }
+
+    /// Text with its letters edged a pixel round (ImageLibrary's string
+    /// images: 2 pixels in, 4 wider than the text).
+    private func drawText(_ c: inout GraphicsContext, _ text: MapText, _ placement: MapPlacement,
+                          _ ox: CGFloat, _ oy: CGFloat) {
+        let font = Self.font(text.font)
+        let edge = c.resolve(Text(text.text).font(font).foregroundColor(Self.color(text.borderColor)))
+        let face = c.resolve(Text(text.text).font(font).foregroundColor(Self.color(text.color)))
+        let size = face.measure(in: CGSize(width: 1000, height: 1000))
+        let at = placement.origin(width: Int(ceil(size.width)) + 4, height: Int(ceil(size.height)))
+        let p = CGPoint(x: ox + CGFloat(at.x) + 2, y: oy + CGFloat(at.y))
+        for (dx, dy) in [(-1, 0), (1, 0), (0, -1), (0, 1)] {
+            c.draw(edge, at: CGPoint(x: p.x + CGFloat(dx), y: p.y + CGFloat(dy)), anchor: .topLeading)
+        }
+        c.draw(face, at: p, anchor: .topLeading)
+    }
+
+    private func path(_ segments: [MapPathSegment]) -> Path {
+        var p = Path()
+        for s in segments {
+            switch s {
+            case let .move(x, y): p.move(to: CGPoint(x: CGFloat(x), y: CGFloat(y)))
+            case let .line(x, y): p.addLine(to: CGPoint(x: CGFloat(x), y: CGFloat(y)))
+            case let .quad(cx, cy, x, y):
+                p.addQuadCurve(to: CGPoint(x: CGFloat(x), y: CGFloat(y)), control: CGPoint(x: CGFloat(cx), y: CGFloat(cy)))
+            }
+        }
+        return p
+    }
+
+    /// A Java ARGB colour.
+    static func color(_ argb: Int32) -> Color {
+        let v = UInt32(bitPattern: argb)
+        return Color(.sRGB, red: Double((v >> 16) & 0xFF) / 255, green: Double((v >> 8) & 0xFF) / 255,
+                     blue: Double(v & 0xFF) / 255, opacity: Double(v >> 24) / 255)
+    }
+
+    /// Java's font names ("simple-bold-tiny"): the simple face (Java's
+    /// Dialog) or the normal one (Serif), the style, and the size (tiny
+    /// 12, smaller 14, at scale 1).
+    static func font(_ name: String) -> Font {
+        let parts = name.split(separator: "-").map(String.init)
+        let size: CGFloat = parts.last == "tiny" ? 12 : parts.last == "smaller" ? 14 : 16
+        let style = parts.count > 1 ? parts[1] : "plain"
+        var font = Font.system(size: size, weight: style.contains("bold") ? .bold : .regular,
+                               design: parts.first == "normal" ? .serif : .default)
+        if style.contains("italic") { font = font.italic() }
+        return font
     }
 
     /// A tile's diamond.
