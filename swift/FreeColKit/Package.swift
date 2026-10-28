@@ -22,7 +22,8 @@ import PackageDescription
 // The FreeCol game engine in Swift, with no UI code.  See
 // doc/swift-port-plan.md for what goes where and in what order.
 //
-// Dependencies only point downwards:
+// Dependencies only point downwards (and FreeColMap, at the top, uses
+// FreeColEngine and FreeColResources):
 //
 //                    FreeColEngine
 //                         |
@@ -48,7 +49,7 @@ let package = Package(
             name: "FreeColKit",
             targets: ["FreeColUtil", "FreeColXML", "FreeColCore",
                       "FreeColI18n", "FreeColIO", "FreeColResources",
-                      "FreeColServer", "FreeColAI", "FreeColEngine"]),
+                      "FreeColServer", "FreeColAI", "FreeColEngine", "FreeColMap"]),
     ],
     targets: [
         // Java compatibility (random numbers, rounding) and collection
@@ -98,6 +99,12 @@ let package = Package(
                 dependencies: ["FreeColUtil", "FreeColXML", "FreeColCore", "FreeColIO", "FreeColServer",
                                "FreeColAI"]),
 
+        // What the map draws, as plain values the screen draws: image
+        // keys, where on each tile, and in what order (from Java's
+        // client TileViewer, MapViewer and ImageLibrary).  No UI code.
+        .target(name: "FreeColMap",
+                dependencies: ["FreeColEngine", "FreeColResources"]),
+
         // Helpers shared by the tests: reading and writing the
         // canonical JSON dumps made by the Java tools, and the Java
         // oracle in Tests/JavaOracle (which is data, not a target).
@@ -125,6 +132,9 @@ let package = Package(
         .testTarget(name: "FreeColAITests",
                     dependencies: ["FreeColUtil", "FreeColCore", "FreeColIO", "FreeColServer",
                                    "FreeColAI", "FreeColTestSupport"]),
+        .testTarget(name: "FreeColMapTests",
+                    dependencies: ["FreeColUtil", "FreeColCore", "FreeColIO", "FreeColServer",
+                                   "FreeColEngine", "FreeColResources", "FreeColMap", "FreeColTestSupport"]),
         .testTarget(name: "FreeColEngineTests",
                     dependencies: ["FreeColUtil", "FreeColCore", "FreeColIO", "FreeColServer",
                                    "FreeColEngine", "FreeColTestSupport"]),

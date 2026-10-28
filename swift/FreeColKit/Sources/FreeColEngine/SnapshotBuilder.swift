@@ -67,7 +67,8 @@ struct SnapshotBuilder {
             gold: p === player ? p.gold : nil,
             tax: p.tax,
             score: p.score,
-            stance: p === player ? nil : player.stance(p).javaName)
+            stance: p === player ? nil : player.stance(p).javaName,
+            nationResourceKey: JavaString.lastPart(p.nationId ?? "", "."))
     }
 
     /// The map as the player knows it; the units on the tiles it sees
@@ -95,17 +96,45 @@ struct SnapshotBuilder {
                         visibleUnit(unit)
                     }
                 }
-                tiles.append(TileSnapshot(
+                var snapshot = TileSnapshot(
                     x: x, y: y, isExplored: true, isVisible: visible,
                     typeId: view.type?.id, style: view.style,
                     riverStyle: view.river?.style?.string, roadStyle: view.road?.style?.string,
                     resourceTypeId: view.resource?.type?.id,
                     hasLostCityRumour: view.hasLostCityRumour,
                     ownerId: view.owner?.id, owningSettlementId: view.owningSettlement?.id,
-                    settlementId: view.settlement?.id, unitIds: unitIds))
+                    settlementId: view.settlement?.id, unitIds: unitIds)
+                snapshot.isLand = view.isLand
+                snapshot.isForested = view.isForested
+                snapshot.settlement = view.settlement.map(Self.tileSettlement)
+                snapshot.items = view.completeItems.map(Self.tileItem)
+                tiles.append(snapshot)
             }
         }
         return MapSnapshot(width: map.width, height: map.height, tiles: tiles)
+    }
+
+    static func tileItem(_ item: TileItem) -> TileItemSnapshot {
+        switch item {
+        case let ti as TileImprovement:
+            TileItemSnapshot(kind: .improvement, typeId: ti.type?.id, zIndex: ti.zIndex, style: ti.style?.string)
+        case let r as Resource:
+            TileItemSnapshot(kind: .resource, typeId: r.type?.id, zIndex: r.zIndex, style: nil)
+        default:
+            TileItemSnapshot(kind: .lostCityRumour, typeId: nil, zIndex: item.zIndex, style: nil)
+        }
+    }
+
+    static func tileSettlement(_ s: Settlement) -> TileSettlementSnapshot {
+        let colony = s as? Colony
+        return TileSettlementSnapshot(
+            typeId: s.type?.id ?? "",
+            isColony: colony != nil,
+            apparentUnitCount: colony?.apparentUnitCount ?? 0,
+            stockadeKey: colony?.stockadeKey,
+            isUndead: colony?.isUndead ?? false,
+            hasMissionary: (s as? IndianSettlement)?.missionary != nil,
+            ownerNationResourceKey: s.owner.map { JavaString.lastPart($0.nationId ?? "", ".") })
     }
 
     static func position(_ tile: Tile?) -> MapPosition? {
@@ -127,7 +156,7 @@ struct SnapshotBuilder {
         case is HighSeas: place = .highSeas
         default: place = .unknown
         }
-        return UnitSnapshot(
+        var snapshot = UnitSnapshot(
             id: unit.id ?? "",
             label: Messages.message(unit.label) ?? unit.type?.id ?? "",
             name: unit.name,
@@ -148,6 +177,9 @@ struct SnapshotBuilder {
             goods: unit.goodsList.compactMap { g in g.type.map { GoodsAmount(typeId: $0.id ?? "", amount: g.amount) } },
             carriedUnitIds: unit.unitList.map { $0.id ?? "" },
             destinationId: (unit.destination as? FreeColGameObject)?.id)
+        snapshot.hasNativeEthnicity = unit.hasNativeEthnicity
+        snapshot.isNativeBorn = unit.type?.hasAbility(Ability.bornInIndianSettlement) ?? false
+        return snapshot
     }
 
     static func colony(_ colony: Colony) -> ColonySnapshot {

@@ -2508,6 +2508,84 @@ save is a good early demo.
   background save when the app is suspended, haptics, VoiceOver labels
   taken from the existing translated strings.
 
+### 5a. How the interface is checked
+
+The engine is checked against Java's recordings; the interface can not
+be in the same way, as what matters is how it looks and feels. So:
+- **What to draw is decided outside SwiftUI** (the `FreeColMap`
+  module), as plain values: for each pass over the map, the image keys
+  to draw, where, and whether dimmed. These are ported from Java's
+  client (TileViewer, MapViewer, ImageLibrary) and tested like the
+  engine, against what Java's own key builders and variation choices
+  give for the same tiles.
+- **How it looks is checked by eye**, in the iOS Simulator, with
+  screenshots compared with Java's client on the same saved game.
+- **Speed is measured** on the oldest iPad to be supported, as the map
+  section above says.
+
+### 5b. Steps
+
+1. **A read-only map viewer:** an iOS app (`swift/FreeColApp`) that
+   loads a saved game through the engine and shows the map as the
+   human player sees it, with pan and zoom: base terrain with its
+   variations, unexplored borders, fog of war, hills and mountains,
+   forests, rivers, resources, rumours, settlements and the unit in
+   front on each tile, in Java's order.
+2. **The full map:** the transitions between terrain types (Java's
+   masks), beaches and river mouths, animated water, forest corners,
+   roads (RoadPainter), territorial borders, settlement chips and
+   labels, and unit chips.
+3. **Playing on the map:** selecting units, moving them (paths and the
+   goto cursor), the unit actions, and ending the turn, with the
+   engine's events shown; a new game from the setup screen.
+4. **The colony screen:** buildings and fields, dragging colonists,
+   production, the build queue and the warehouse.
+5. **Europe:** the docks, the market, recruiting, training and buying.
+6. **The other screens:** the Continental Congress, reports,
+   diplomacy and trade with natives and Europeans, the monarch's
+   messages, and save and load.
+7. **Touch and the system:** long presses and context menus, sheets,
+   the save folder in Files and iCloud, saving when suspended,
+   haptics and VoiceOver.
+8. **Speed:** measure on the oldest iPad; move the map to SpriteKit
+   only if Canvas can not hold 60 frames per second.
+
+**Step 1 status: done.** The app shows a saved game's map as the human
+player sees it, with pan and pinch to zoom.
+- **`FreeColMap`** (a new module, no UI code): `MapScene.plan` turns a
+  snapshot into what to draw, pass by pass in Java's order (base
+  terrain, fog, the edges of unexplored land, tile items and
+  settlements, units, what is above tiles), each an image key and
+  variation with where it goes on its tile. Java's key builders are
+  ported (terrain, borders, overlays, forests cut for rivers,
+  settlements by size, stockade and nation, units by role, ethnicity
+  and nation), as are its variation choices: sized images take a
+  variation by the tile's seed (x * 6841 + y * 7919), or by 0 where
+  none is given, and scaled images are always the first. Tile items
+  are drawn in z-index order around the hills and forests, and the
+  unit in front is the one with the most moves left, active ones
+  first, none on a settlement.
+- **The snapshots** carry what picks the images: whether a tile is
+  land and forested, its finished items with their z-indexes, its
+  settlement as seen (type, size shown, stockade, mission, nation),
+  each unit's ethnicity, and each player's nation key.
+- **The app** (`swift/FreeColApp.swiftpm`) is a Swift Playgrounds
+  style app package, which xcodebuild builds as it is (scheme
+  `FreeColApp`): the game's data and the test saved games are linked
+  folders copied into it. It loads a saved game through `GameEngine`,
+  finds images as Java's client does (the base data, then the default
+  rules'), and draws the tiles on screen with `Canvas`.
+- **Checked:** `MapImageOracle.java` records, for four players' views
+  of two saved games, the images Java's client would draw on each
+  tile, by its own key builders (or by reflection) and variation
+  choices; `MapSceneTests` plans the same views and matches every
+  tile, and every image the plan names exists. A wrong variation seed
+  planted in the planner is caught. The app was seen working in the
+  iPad simulator.
+- **Simplified until step 2:** water and rivers are drawn with their
+  plain images (Java draws them animated, rivers made from masks), and
+  roads, transitions, beaches, borders, chips and labels are not drawn.
+
 ## Phase 6: Polish and release
 
 - Sound and music (`common/sound` → AVFoundation), all translations, high

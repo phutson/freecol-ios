@@ -91,6 +91,9 @@ public struct PlayerSnapshot: Sendable, Equatable {
     /// The stance towards the player the snapshot is for (UNCONTACTED,
     /// PEACE, WAR...), or nil for that player itself.
     public let stance: String?
+    /// The last part of the nation's id ("dutch"), which picks
+    /// national images (getNationResourceKey).
+    public let nationResourceKey: String
 }
 
 /// The map, row by row.
@@ -125,6 +128,46 @@ public struct TileSnapshot: Sendable, Equatable {
     public let settlementId: String?
     /// The units the player can see here, the defender first.
     public let unitIds: [String]
+    /// Whether the tile type is land, and forested.
+    public var isLand = false
+    public var isForested = false
+    /// The settlement here as the player saw it, for drawing.
+    public var settlement: TileSettlementSnapshot?
+    /// The finished items on it (improvements, a resource, a rumour),
+    /// in the order the tile keeps them, for drawing by z-index.
+    public var items: [TileItemSnapshot] = []
+}
+
+/// A finished item on a tile, as the map draws it.
+public struct TileItemSnapshot: Sendable, Equatable {
+    public enum Kind: Sendable, Equatable {
+        case improvement
+        case resource
+        case lostCityRumour
+    }
+
+    public let kind: Kind
+    /// The improvement or resource type ("model.improvement.road").
+    public let typeId: String?
+    public let zIndex: Int
+    /// An improvement's style (a digit per side), for roads and rivers.
+    public let style: String?
+}
+
+/// A settlement as the map draws it: what picks its image.
+public struct TileSettlementSnapshot: Sendable, Equatable {
+    /// The settlement type ("model.settlement.colony", or a native one).
+    public let typeId: String
+    public let isColony: Bool
+    /// For a colony: the unit count it shows, its stockade, if any
+    /// ("stockade", "fort", "fortress"), and whether it is undead.
+    public let apparentUnitCount: Int
+    public let stockadeKey: String?
+    public let isUndead: Bool
+    /// For a native settlement: whether it has a missionary.
+    public let hasMissionary: Bool
+    /// The owner's nation resource key ("dutch", "inca").
+    public let ownerNationResourceKey: String?
 }
 
 /// Where a unit is.
@@ -170,6 +213,10 @@ public struct UnitSnapshot: Sendable, Equatable {
     public let goods: [GoodsAmount]
     public let carriedUnitIds: [String]
     public let destinationId: String?
+    /// Whether the unit is of native ethnicity, and whether its type
+    /// is born in native settlements, which pick its image.
+    public var hasNativeEthnicity = false
+    public var isNativeBorn = false
 }
 
 /// A colony of the player's.
