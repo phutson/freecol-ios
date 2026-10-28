@@ -2619,9 +2619,13 @@ with the client's default options.
   short, a label not nudged, the alarm text swapped, the colony number
   not italic) are caught.
 - **Not checked:** what composites look like inside (alphas and
-  compositing are only seen by eye), and the grey chip of a fortified
-  unit and the hitpoint bar, as no saved game has a fortified or hurt
-  unit outside a colony. The modern label style is not drawn yet.
+  compositing are only seen by eye). The modern label style is not
+  drawn yet.
+- **Later:** a purpose-built game (`MarksGameMaker.java`) adds a
+  fortified unit on open land and hurt ships at sea, alone and in
+  company, as a tenth view; the grey chip and the hitpoint bar match
+  Java's, and a fortified chip not greyed or a bar a pixel short are
+  caught.
 
 **Step 3 status: done.** The player plays on the map: starts a new
 game from the setup screen (or the sample game), moves units, sends
@@ -2688,6 +2692,61 @@ them by goto, uses the unit actions, and ends the turn.
   made. The player's copy is read whole after each command (about
   0.13 s on a 40 by 100 map on a Mac); applying the server's updates
   to it, as Java's client does, is left for the speed work (step 8).
+
+**Step 4 status: done.** A colony opens from the map (tapping it,
+or as Java opens it, on arriving at or founding it) and shows what
+Java's colony panel shows; colonists are dragged between its tiles,
+buildings and the outside, and the build queue is edited.
+- **The colony screen** (`ColonyView`, in the engine, made on the
+  player's copy of the game): the population (rebels, royalists, the
+  production bonus and the change in size that would move it); the
+  buildings in the panel's order (shuffled by the colony's place, as
+  Java's BuildingsPanel lays them out), each with its workers and the
+  production BuildingPanel shows (amount and most, cut to the
+  warehouse where the building avoids excess, and upkeep); the tiles
+  with what each worker makes and the centre's production; net
+  production; the warehouse; what is being built with the goods it
+  needs, held and made; the queue; the buildings and units the build
+  queue panel offers, each with its lock reasons (coastal, population,
+  limits, missing abilities from the colony or the queue, the upgrade
+  path); and, for each colonist in or outside the colony, each work
+  place's no-add reason, the work it would do there, and the claim
+  reason for a tile the colony does not own.
+- **The colony controller** (an extension of `PlayController`):
+  putting a colonist to work on a tile (claiming it first, then
+  saying if another tile would make more) or in a building, at the
+  work the place suits; changing work; putting a colonist outside
+  (not if the colony would lose what it needs, and asking before
+  giving up teaching or learning); setting the build queue; and,
+  after each, setting colonists to the work their places suit
+  (ColonyPanel.updateProduction).
+- **The app** shows the colony full screen: its tiles drawn from the
+  map with the workers and what they make, the buildings with their
+  pictures, workers and production, the construction and net
+  production, the colonists outside and ships in port, and the
+  warehouse; colonists are dragged onto tiles, buildings or outside,
+  and the build queue is a list to add to, reorder and clear, the
+  locked choices with Java's reasons.
+- **Checked:** `ColonyOracle.java` records what Java's panel shows
+  and decides for every colony in eight views of six saved games
+  (twenty-three colonies of four nations, one made for it:
+  `ColonyPanelGameMaker.java` adds an inland colony beside native
+  land, whose docks are locked, and fills every Dutch warehouse with
+  horses); `ColonyViewTests` matches them all. Planted bugs (the
+  buildings shuffled by another seed, a work place's work not chosen)
+  are caught. `ColonyPlayTests` works a colony through the engine:
+  a colonist to a tile, out of the colony and back into a building,
+  a change of work, and a new build queue. The app was seen working
+  in the iPad simulator, a colonist dragged into a building.
+- **Not checked:** two of the panel's rules never apply under the
+  rules as they are (no building is coastal only, and the model
+  already keeps a building that avoids excess from making more than
+  the warehouse holds), so planting bugs in them is not caught. The
+  flows are tested by playing, not against Java.
+- **Not done yet:** loading and unloading ships in port and arming
+  colonists with goods (dragging goods), the export settings,
+  paying for a building, and choosing a colonist's work from a menu;
+  teaching is shown but not arranged. Europe's screen is step 5.
 
 ## Phase 6: Polish and release
 

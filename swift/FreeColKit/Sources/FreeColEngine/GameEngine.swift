@@ -249,6 +249,15 @@ public actor GameEngine {
         case disband(unitId: String)
         case clearOrders(unitId: String)
         case executeGotoOrders
+        /// Put a colonist to work in a building or on a tile of its
+        /// colony.
+        case work(unitId: String, workLocationId: String)
+        /// Take a colonist out of its colony onto the colony's tile.
+        case putOutsideColony(unitId: String)
+        /// Change what a colonist works at (a goods type).
+        case changeWorkType(unitId: String, goodsTypeId: String)
+        /// Set what a colony builds, first to last.
+        case setBuildQueue(colonyId: String, queue: [String])
         /// End the turn: the other players play theirs, and the new
         /// turn begins.
         case endTurn
@@ -278,6 +287,13 @@ public actor GameEngine {
                 case .disband(let id): play.disband(id)
                 case .clearOrders(let id): play.clearOrders(id)
                 case .executeGotoOrders: play.executeGotoOrders()
+                case let .work(id, wl): play.work(id, at: wl)
+                case .putOutsideColony(let id): play.putOutsideColony(id)
+                case let .changeWorkType(id, goods):
+                    let colony = play.unit(id)?.colony?.id
+                    play.changeWorkType(id, goods)
+                    play.updateProduction(colony)
+                case let .setBuildQueue(colony, queue): play.setBuildQueue(colony, queue)
                 case .endTurn: ended = play.endTurn(showDialog: true)
                 }
             }
@@ -340,6 +356,15 @@ public actor GameEngine {
         Messages.$scopedBundle.withValue(messages) {
             guard game.currentPlayer === human else { return nil }
             return play.view.unit(unitId).map { play.view.actions($0) }
+        }
+    }
+
+    /// One of the player's colonies, as its panel shows it.
+    public func colonyScreen(_ colonyId: String) -> ColonyScreen? {
+        Messages.$scopedBundle.withValue(messages) {
+            guard let colony = play.view.game.getFreeColGameObject(colonyId, as: Colony.self),
+                  play.view.player.owns(colony) else { return nil }
+            return play.view.colonyScreen(colony)
         }
     }
 

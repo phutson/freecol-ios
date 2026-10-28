@@ -132,6 +132,11 @@ struct MapView: View {
 
         context.scaleBy(x: zoom, y: zoom)
         context.translateBy(x: -left, y: -top)
+        Self.render(draws, &context, images)
+    }
+
+    /// Draw a plan, in map pixels at scale 1.
+    static func render(_ draws: [MapDraw], _ context: inout GraphicsContext, _ images: MapImageStore) {
         for d in draws {
             let o = MapScene.origin(d.x, d.y)
             switch d.drawing {
@@ -204,7 +209,7 @@ struct MapView: View {
     /// A row of chips, as Java makes them (ImageLibrary.createChip): a
     /// black edge, the background, and the text 3 pixels in.  Each
     /// after the first is stepped along by the first's width and 2.
-    private func drawChips(_ c: inout GraphicsContext, _ chips: [MapChip]) {
+    private static func drawChips(_ c: inout GraphicsContext, _ chips: [MapChip]) {
         var step: CGFloat?
         var x: CGFloat = 0
         for chip in chips {
@@ -223,7 +228,7 @@ struct MapView: View {
 
     /// Text with its letters edged a pixel round (ImageLibrary's string
     /// images: 2 pixels in, 4 wider than the text).
-    private func drawText(_ c: inout GraphicsContext, _ text: MapText, _ placement: MapPlacement,
+    private static func drawText(_ c: inout GraphicsContext, _ text: MapText, _ placement: MapPlacement,
                           _ ox: CGFloat, _ oy: CGFloat) {
         let font = Self.font(text.font)
         let edge = c.resolve(Text(text.text).font(font).foregroundColor(Self.color(text.borderColor)))
@@ -237,7 +242,7 @@ struct MapView: View {
         c.draw(face, at: p, anchor: .topLeading)
     }
 
-    private func path(_ segments: [MapPathSegment]) -> Path {
+    private static func path(_ segments: [MapPathSegment]) -> Path {
         var p = Path()
         for s in segments {
             switch s {
@@ -271,7 +276,7 @@ struct MapView: View {
     }
 
     /// A tile's diamond.
-    private func diamond(_ x: CGFloat, _ y: CGFloat) -> Path {
+    static func diamond(_ x: CGFloat, _ y: CGFloat) -> Path {
         let tw = CGFloat(MapScene.tileWidth), th = CGFloat(MapScene.tileHeight)
         var p = Path()
         p.move(to: CGPoint(x: x + tw / 2, y: y))

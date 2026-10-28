@@ -88,7 +88,7 @@ final class PlayController {
     private var answers: [String: String] = [:]
     private(set) var question: PlayQuestion?
     private(set) var notices: [String] = []
-    private(set) var colonyToShow: String?
+    var colonyToShow: String?
     /// Whether the GUI is to be updated at the end of the request, and
     /// whether a new active unit is to be chosen anyway.
     private var updateRequested = false
@@ -131,32 +131,32 @@ final class PlayController {
         if updateRequested && question == nil { finishUpdate() }
     }
 
-    private var ourTurn: Bool { game.currentPlayer === human }
+    var ourTurn: Bool { game.currentPlayer === human }
 
-    private func unit(_ id: String?) -> Unit? { id.flatMap { view.unit($0) } }
+    func unit(_ id: String?) -> Unit? { id.flatMap { view.unit($0) } }
 
     /// Send a command; a refusal is told to the player, as Java shows
     /// the server's error.
-    private func command(_ c: PlayerCommand) -> Bool {
+    func command(_ c: PlayerCommand) -> Bool {
         let refusal = send(c)
         invalidate()
         if let refusal { notices.append(refusal) }
         return refusal == nil
     }
 
-    private func tell(_ t: StringTemplate) {
+    func tell(_ t: StringTemplate) {
         notices.append(Messages.message(t) ?? "")
     }
 
     /// The answer to a question, or nil if it is not answered yet (and
     /// then the request stops at it).
-    private func ask(_ q: PlayQuestion) -> String? {
+    func ask(_ q: PlayQuestion) -> String? {
         if let a = answers[q.id] { return a }
         if question == nil { question = q }
         return nil
     }
 
-    private func confirm(_ id: String, _ unitId: String?, _ text: StringTemplate, _ yes: String, _ no: String) -> Bool {
+    func confirm(_ id: String, _ unitId: String?, _ text: StringTemplate, _ yes: String, _ no: String) -> Bool {
         ask(PlayQuestion(id: id, text: Messages.message(text) ?? "",
                          choices: [PlayChoice(id: "yes", label: Messages.message(yes)),
                                    PlayChoice(id: "no", label: Messages.message(no))],
@@ -165,7 +165,7 @@ final class PlayController {
 
     /// Ask for the GUI to be brought up to date at the end of the
     /// request (Java's updateGUI, run later).
-    private func updateGUI(_ updateUnit: Bool = false) {
+    func updateGUI(_ updateUnit: Bool = false) {
         updateRequested = true
         if updateUnit { updateUnitRequested = true }
     }
@@ -672,10 +672,41 @@ final class PlayController {
         return command(.cashInTreasureTrain(unit: unitId)) && unit(unitId) == nil
     }
 
-    private func confirmLeaveColony(_ unitId: String) -> Bool {
-        // Java warns when a colony would lose what it needs; that comes
-        // with the colony screen.
-        true
+    /// Leaving a colony: not if the colony would lose what it needs,
+    /// and only if the player agrees to give up teaching or learning
+    /// (GUI.confirmLeaveColony).
+    func confirmLeaveColony(_ unitId: String) -> Bool {
+        guard let u = unit(unitId), let colony = u.colony else { return true }
+        if let message = colony.reducePopulationMessage {
+            tell(message)
+            return false
+        }
+        return confirmAbandonEducation(unitId, leaveColony: true)
+    }
+
+    /// Giving up teaching, or learning when leaving the colony, if the
+    /// player agrees (GUI.confirmAbandonEducation).
+    func confirmAbandonEducation(_ unitId: String, leaveColony: Bool) -> Bool {
+        guard let u = unit(unitId), u.isInColony else { return true }
+        let teacher = u.student != nil
+        let student = leaveColony && u.teacher != nil
+        if !teacher && !student { return true }
+        guard let school = (teacher ? u.location : u.teacher?.location) as? Building else { return true }
+        let label = u.label(.national)
+        let t: StringTemplate?
+        if leaveColony {
+            t = StringTemplate.template("abandonEducation.text").addStringTemplate("%unit%", label)
+                .addName("%colony%", school.colony?.name).addNamed("%building%", school)
+                .addStringTemplate("%action%", .key(teacher ? "abandonEducation.action.teaching"
+                                                            : "abandonEducation.action.studying"))
+        } else if teacher {
+            t = StringTemplate.template("abandonTeaching.text").addStringTemplate("%unit%", label)
+                .addNamed("%building%", school)
+        } else {
+            t = nil
+        }
+        guard let t else { return true }
+        return confirm("abandonEducation:\(unitId)", unitId, t, "abandonEducation.yes", "abandonEducation.no")
     }
 
     // MARK: Unit actions
@@ -720,7 +751,7 @@ final class PlayController {
     }
 
     /// Claim a tile, buying or taking it from natives (askClaimTile).
-    private func claimTile(_ tile: Tile, claimant: String, price: Int) -> Bool {
+    func claimTile(_ tile: Tile, claimant: String, price: Int) -> Bool {
         let player = view.player
         var price = price
         if price < 0 { return false }

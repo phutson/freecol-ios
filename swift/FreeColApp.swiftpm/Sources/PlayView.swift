@@ -47,6 +47,13 @@ struct PlayView: View {
             }
         }
         .modifier(Dialogs())
+        .fullScreenCover(isPresented: Binding(get: { store.colony != nil }, set: { if !$0 { store.closeColony() } })) {
+            if let colony = store.colony, let snapshot = store.snapshot {
+                ColonyView(colony: colony, snapshot: snapshot, images: images)
+                    .environment(store)
+                    .modifier(Dialogs())
+            }
+        }
     }
 }
 

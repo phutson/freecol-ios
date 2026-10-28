@@ -52,6 +52,12 @@ open class BuildableType: FreeColSpecObjectType {
         Dictionary(uniqueKeysWithValues: (requiredAbilityMap?.entries ?? []).map { ($0.key, $0.value) })
     }
 
+    /// The abilities required (true) or forbidden (false), in Java's
+    /// hash order.
+    public var requiredAbilityList: [(id: String, value: Bool)] {
+        (requiredAbilityMap?.entries ?? []).map { ($0.key, $0.value) }
+    }
+
     /// Whether an ability is required.
     public func requiresAbility(_ key: String) -> Bool {
         requiredAbilityMap?[key] ?? false

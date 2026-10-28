@@ -58,6 +58,8 @@ final class GameStore {
     var notices: [String] = []
     /// The messages of this turn, newest last.
     private(set) var messages: [String] = []
+    /// The colony being looked at, as its panel shows it.
+    private(set) var colony: ColonyScreen?
 
     /// The game's data, bundled with the app.
     static var dataDirectory: URL? {
@@ -190,6 +192,20 @@ final class GameStore {
         if r.activeUnitId != activeUnitId { stopGoto() }
         activeUnitId = r.activeUnitId
         await refreshActiveUnit()
+        // Java opens a colony's panel on arriving at or founding it.
+        if let id = r.colonyToShow ?? colony?.id {
+            colony = await engine?.colonyScreen(id)
+        }
+    }
+
+    // MARK: Colonies
+
+    func openColony(_ id: String) async {
+        colony = await engine?.colonyScreen(id)
+    }
+
+    func closeColony() {
+        colony = nil
     }
 
     private func refreshActiveUnit() async {
@@ -214,6 +230,12 @@ final class GameStore {
         }
         let tile = snapshot.map.tile(p.x, p.y)
         let mine = (tile?.unitIds ?? []).filter { snapshot.unit($0)?.ownerId == snapshot.playerId }
+        // A colony of the player's opens, unless the unit is moving into it.
+        if let colony = snapshot.colonies.first(where: { $0.position == p }),
+           !(activeUnit?.position.map { a in Direction.allDirections.contains { let s = $0.step(a.x, a.y); return s.x == p.x && s.y == p.y } } ?? false) {
+            await openColony(colony.id)
+            return
+        }
         if let active = activeUnit, let at = active.position, at != p,
            let d = Direction.allDirections.first(where: { let s = $0.step(at.x, at.y); return s.x == p.x && s.y == p.y }) {
             await play(.move(unitId: active.id, direction: d.javaName))

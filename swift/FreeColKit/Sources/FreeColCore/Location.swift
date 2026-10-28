@@ -135,6 +135,15 @@ public enum NoAddReason: JavaEnum, CustomStringConvertible {
     }
 }
 
+extension NoAddReason {
+    /// The message key describing the reason (getDescriptionKey).
+    public var descriptionKey: String {
+        let words = javaName.lowercased().split(separator: "_")
+        let key = words.enumerated().map { $0.offset == 0 ? String($0.element) : $0.element.capitalized }.joined()
+        return "model.noAddReason.\(key).description"
+    }
+}
+
 /// A location that holds units (common/model/UnitLocation): the base
 /// of tiles, units, settlements, Europe and the high seas.
 ///

@@ -226,7 +226,7 @@ import Testing
     /// their mouths with the items), high, and with borders.
     @Test(arguments: ["commands-dutch", "unitai-english", "unitai-french", "unitai-spanish",
                       "unitai-english-highest-still", "unitai-french-high", "unitai-spanish-borders",
-                      "natives-dutch", "combat-dutch"])
+                      "natives-dutch", "combat-dutch", "marks-dutch"])
     func layersAsJava(_ name: String) throws {
         let parts = name.split(separator: "-").map(String.init)
         let file = "freecol-\(parts[0])-seed1.fsg", nation = "model.nation." + parts[1]
