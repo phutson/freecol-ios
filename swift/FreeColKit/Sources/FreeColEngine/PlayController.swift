@@ -68,6 +68,11 @@ public enum ServerRequest: Sendable, Equatable {
     case loot(winnerId: String, loserId: String, goods: [GoodsAmount], spaceLeft: Int, title: String)
     /// What inciting natives against an enemy would cost, to agree to.
     case incite(unitId: String, settlementId: String, enemyId: String, gold: Int, text: String)
+    /// A step of trading with a native settlement.
+    case nativeTrade(NativeTradeScreen)
+    /// A negotiation with another European: one the player starts, or
+    /// a proposal received (NegotiationDialog).
+    case negotiation(Negotiation)
 }
 
 /// A founding father offered.
@@ -88,6 +93,19 @@ public enum RequestAnswer: Sendable, Equatable {
     case choice(String)
     /// The goods taken.
     case goods([GoodsAmount])
+    /// The next step of a native trade.
+    case trade(NativeTradeChoice)
+    /// The answer to a negotiation, with what is on the table.
+    case agreement(NegotiationAnswer, [TradeOffer])
+}
+
+/// How the player answers a negotiation.
+public enum NegotiationAnswer: Sendable, Equatable {
+    case accept
+    /// Propose what is on the table.
+    case send
+    /// Turn it down.
+    case cancel
 }
 
 /// Java's client InGameController, for playing on the map: moving
@@ -109,7 +127,7 @@ final class PlayController {
     }
 
     let game: ServerGame
-    private let human: Player
+    let human: Player
     /// Send a command to the server: nil if it was carried out, or why
     /// not.
     private let send: (PlayerCommand) -> String?
@@ -479,10 +497,7 @@ final class PlayController {
         case .enterIndianSettlementWithScout: result = moveScoutIndianSettlement(unitId, direction)
         case .enterIndianSettlementWithMissionary: result = moveUseMissionary(unitId, direction)
         case .enterForeignColonyWithScout: result = moveScoutColony(unitId, direction)
-        case .enterSettlementWithCarrierAndGoods:
-            // Trading comes with native trade and diplomacy.
-            if illegal { notices.append(Messages.message("model.option.notYetAvailable")) }
-            result = false
+        case .enterSettlementWithCarrierAndGoods: result = moveTrade(unitId, direction)
         case .moveNoAccessBeached: noAccess("move.noAccessBeached", nation: true, unit: false)
         case .moveNoAccessContact: noAccess("move.noAccessContact", nation: true, unit: false)
         case .moveNoAccessGoods: noAccess("move.noAccessGoods", nation: true, unit: true)

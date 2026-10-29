@@ -107,6 +107,8 @@ public enum PlayerCommand: Equatable, Sendable {
     /// The export data's attributes.
     case setGoodsLevels(colony: String?, exportData: [String: String]?)
     case setDestination(unit: String?, destination: String?)
+    /// Look into a foreign colony.
+    case spySettlement(unit: String?, settlement: String?)
     case trainUnitInEurope(unitType: String?)
     case unloadGoods(type: String?, amount: String?, carrier: String?)
     case work(unit: String?, workLocation: String?)
@@ -192,6 +194,7 @@ public enum PlayerCommand: Equatable, Sendable {
                                    exportData: children.first { $0.tag == "exportData" }?.attributes)
         case "chooseFoundingFather": self = .chooseFoundingFather(father: a["foundingFather"])
         case "setDestination": self = .setDestination(unit: a["unit"], destination: a["destination"])
+        case "spySettlement": self = .spySettlement(unit: a["unit"], settlement: a["settlement"])
         case "trainUnitInEurope": self = .trainUnitInEurope(unitType: a["unitType"])
         case "unloadGoods": self = .unloadGoods(type: a["type"], amount: a["amount"], carrier: a["carrier"])
         case "work": self = .work(unit: a["unit"], workLocation: a["workLocation"])

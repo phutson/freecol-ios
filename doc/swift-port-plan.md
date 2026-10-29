@@ -2803,11 +2803,11 @@ colonist's menu (in Europe or a colony) changes its role.
   step 6); trade routes.
   (Brewster, the Fountain of Youth and the monarch came with step 6.)
 
-**Step 6 is done in two parts.** The first, below, is done: the
-server's questions, entering settlements, the Continental Congress
-and reports, and save and load. The second, trading with natives
-and negotiating with Europeans (and what depends on them: tribute
-from Europeans, spying, and trade at settlements), is still to do.
+**Step 6 is done in two parts**, both done: the first, the server's
+questions, entering settlements, the Continental Congress and
+reports, and save and load; the second, trading with natives and
+negotiating with Europeans (with tribute from Europeans, spying, and
+trade at settlements).
 
 **Step 6, first part, status: done.**
 - **The server's questions** reach the player as requests, each with
@@ -2827,7 +2827,7 @@ from Europeans, spying, and trade at settlements), is still to do.
   incites the natives against an enemy, for a price asked in turn; an
   armed unit demands tribute (after Java's warning, by the nation's
   strength, stance and mood) or attacks; a scout at a foreign colony
-  may attack (negotiating and spying come with the second part).
+  may attack (negotiating and spying came with the second part).
 - **The Continental Congress and reports** (`ReportView`): the father
   being recruited, the liberty towards him and its cost, and every
   father's state (elected in a turn, recruiting or available);
@@ -2865,6 +2865,65 @@ from Europeans, spying, and trade at settlements), is still to do.
   reports Java has (colonies, labour, trade, natives, history,
   exploration, foreign affairs, requirements, production, cargo, high
   scores), which are not done yet.
+
+**Step 6, second part, status: done.**
+- **Trading with natives** (`TradeController`, `TradeView`): a laden
+  carrier entering a native settlement opens a trade, which the
+  natives' AI answers; each answer reaches the player as a request
+  with what Java's client shows (`NativeTradeScreen`): the natives'
+  words (the welcome, or goods bought, sold or given, or refused),
+  buying, selling and giving as they still may, the goods for sale
+  (the best three, as Java's client limits them), the player's goods
+  they would buy, each with Java's question, price and European
+  price, and, after haggling, the goods at the new price. The player
+  buys, sells or gives at the price or haggles, or closes the trade;
+  a trade with nothing left to do is closed, as Java's is, and the
+  natives' refusals (hostile, nothing to sell, done haggling) are
+  told.
+- **Negotiating with Europeans:** a scout negotiating with a colony
+  (not the REF's), a laden carrier trading with one, and the server's
+  proposals (a peace at first contact, the computer players' offers
+  and counter-offers) reach the player as a negotiation; the engine
+  shows it as Java's NegotiationDialog does (`NegotiationScreen`) for
+  what is on the table: the title and comment, the gold either side
+  has (the other's by its nation summary), and by the context the
+  stances to choose, the colonies, goods and units either side could
+  give (less those on the table), and the nations to incite, with the
+  agreement summed up in words (goods with their European prices) and
+  the answers Java offers (accepting only an agreement sent before
+  and unchanged, no cancelling at first contact). The answer is sent
+  as the agreement, made on the player's copy of the game; the other
+  side's acceptance or refusal is told, a counter-offer shown again.
+  Tribute from a European colony asks how much (Java's question, by
+  the strength and wealth of the other) and sends a peace for the
+  gold. A scout spying on a colony is shown its panel (the server's
+  `spySettlement` command, ported now).
+- **Checked:** `TradeOracle.java` records, for the natives game's
+  laden wagon trains, the trade as Java's server opens it and Java's
+  native AI answers it, and what Java's client shows of it; and for
+  the diplomacy game, the negotiation dialog for a scout's and a
+  merchantman's negotiation, for counter-offers with gold, a colony,
+  a stance, goods and a unit on the table, and for first contact,
+  and the tribute question. `TradeViewTests` matches them all,
+  through the engine (the natives' prices from the Swift AI).
+  Planted bugs (the goods for sale limited to one, no alliance
+  offered at peace, goods on the table not taken off the panel, the
+  summary's "in return for" missing, the wrong wealth in the tribute
+  question) are caught. `TradePlayTests` sells, buys, gives and
+  haggles, closes a trade with nothing left to do, negotiates gold
+  for nothing (accepted), cancels a negotiation, makes peace at first
+  contact, offers furs for gold (refused), demands tribute (paid),
+  accepts a French offer received, and spies on a colony; planted
+  bugs in the flows (an acceptance sent as a proposal, haggling at
+  the same price, tribute paid the wrong way, a finished trade left
+  open) are caught. The app was seen working in the iPad simulator:
+  a sale to the Aztecs, and an alliance proposed to and accepted by
+  the French.
+- **Not checked against Java:** the flows themselves, and natives'
+  answers other than opening (haggling depends on the AI's random
+  numbers, checked with it in Phase 4). Where Java's goods panel
+  takes goods off its list again each time it is updated, the engine
+  takes them off once.
 
 ## Phase 6: Polish and release
 

@@ -40,7 +40,7 @@ extension InGameController {
         case .attack, .lootCargo:
             return try performCombat(command, by: player)
 
-        case .declareIndependence, .diplomacy, .firstContact, .monarchAction:
+        case .declareIndependence, .diplomacy, .firstContact, .monarchAction, .spySettlement:
             return try performDiplomacy(command, by: player)
 
         case .endTurn:

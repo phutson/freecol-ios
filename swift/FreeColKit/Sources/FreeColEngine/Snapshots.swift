@@ -343,6 +343,8 @@ public enum EngineEvent: Sendable, Equatable {
     case request(ServerRequest)
     /// What the player is told in answer to a command of its own.
     case notice(String)
+    /// What a spy saw of a foreign colony: its panel.
+    case spied(ColonyScreen)
 }
 
 /// What came of a command.

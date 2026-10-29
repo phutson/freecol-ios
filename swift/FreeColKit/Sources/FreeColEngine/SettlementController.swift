@@ -97,7 +97,7 @@ extension PlayerView {
 /// moveTribute and moveScoutColony).
 extension PlayController {
 
-    private func settlement(_ unitId: String, _ direction: Direction) -> Settlement? {
+    func settlement(_ unitId: String, _ direction: Direction) -> Settlement? {
         unit(unitId)?.tile?.neighbour(direction)?.settlement
     }
 
@@ -200,26 +200,28 @@ extension PlayController {
                        "confirmTribute.yes", "confirmTribute.no") {
                 _ = command(.demandTribute(unit: unitId, direction: direction.javaName))
             }
-        } else {
-            // Tribute from Europeans is negotiated, which comes with
-            // diplomacy.
-            notices.append(Messages.message("model.option.notYetAvailable"))
+        } else if let colony = s as? Colony {
+            return moveEuropeanTribute(unitId, colony, direction)
         }
         return false
     }
 
-    /// A scout at a foreign colony: negotiate, spy or attack
-    /// (moveScoutColony).  Negotiating and spying come with diplomacy.
+    /// A scout at a foreign colony: negotiate (not with the REF), spy
+    /// or attack (moveScoutColony).
     func moveScoutColony(_ unitId: String, _ direction: Direction) -> Bool {
         guard let u = unit(unitId), let colony = settlement(unitId, direction) as? Colony,
               clearGotoOrders(unitId) else { return false }
+        let canNegotiate = colony.owner !== view.player.refPlayer
         switch choose("scoutColony:\(unitId)", unitId, PlayerView.scoutColonyText(u, colony),
-                      [("negotiate", "scoutColony.negotiate"), ("spy", "scoutColony.spy"),
-                       ("attack", "scoutColony.attack")]) {
+                      (canNegotiate ? [("negotiate", "scoutColony.negotiate")] : [])
+                          + [("spy", "scoutColony.spy"), ("attack", "scoutColony.attack")]) {
         case "attack":
             return moveAttackSettlement(unitId, direction)
-        case "negotiate", "spy":
-            notices.append(Messages.message("model.option.notYetAvailable"))
+        case "negotiate":
+            negotiate(u, colony, .diplomatic, direction)
+            return false
+        case "spy":
+            return moveSpy(unitId, direction)
         default:
             break
         }

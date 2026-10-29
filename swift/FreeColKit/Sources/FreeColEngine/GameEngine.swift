@@ -71,6 +71,14 @@ public actor GameEngine {
     /// Collects what the human player is sent, as events.
     private final class Shown {
         var events: [EngineEvent] = []
+        /// The native trade under way, as the client holds it.
+        var trade: NativeTrade?
+        /// Whether that trade is done, to be closed.
+        var tradeDone = false
+
+        func take(_ update: PlayerUpdate, _ player: Player) {
+            events += GameEngine.events(update, for: player, shown: self)
+        }
     }
 
     /// - Parameter savedAI: The AI's objects, for a saved game: the AI
@@ -90,7 +98,7 @@ public actor GameEngine {
         let shown = self.shown
         controller.deliver = { player, update in
             if player === human {
-                shown.events += GameEngine.events(update, for: human)
+                shown.take(update, human)
             } else if player.isAI {
                 ai.handle(update, for: player)
             }
@@ -100,7 +108,7 @@ public actor GameEngine {
         play = PlayController(game: game, human: human) { command in
             do {
                 if let cs = try controller.perform(command, by: human), let update = try cs.build(human) {
-                    shown.events += GameEngine.events(update, for: human)
+                    shown.take(update, human)
                 }
                 return nil
             } catch let e as CommandRefused {
@@ -182,7 +190,7 @@ public actor GameEngine {
             var refusal: String?
             do {
                 if let cs = try controller.perform(command, by: human), let update = try cs.build(human) {
-                    shown.events += GameEngine.events(update, for: human)
+                    shown.take(update, human)
                 }
             } catch let e as CommandRefused {
                 refusal = e.message
@@ -203,7 +211,7 @@ public actor GameEngine {
             shown.events = []
             do {
                 if let update = try controller.endTurn(human).build(human) {
-                    shown.events += GameEngine.events(update, for: human)
+                    shown.take(update, human)
                 }
                 // The computer players play their turns as they are
                 // given them, ending each.  Any whose AI did not is
@@ -419,6 +427,10 @@ public actor GameEngine {
             })
         case let (.incite(unit, settlement, enemy, gold, _), .accept(yes)):
             command = yes ? .incite(unit: unit, settlement: settlement, enemy: enemy, gold: String(gold)) : nil
+        case let (.nativeTrade, .trade(choice)):
+            command = nativeTrade(choice)
+        case let (.negotiation(n), .agreement(answer, items)):
+            command = diplomacy(n, answer, items)
         default:
             command = nil
         }
@@ -427,6 +439,63 @@ public actor GameEngine {
             return result(nil)
         }
         return perform(command)
+    }
+
+    /// The next step of the native trade under way (nativeTrade): what
+    /// to buy, sell or give, or close it.
+    private func nativeTrade(_ choice: NativeTradeChoice) -> PlayerCommand? {
+        guard let nt = shown.trade else { return nil }
+        let action: NativeTrade.NativeTradeAction
+        switch choice {
+        case let .buy(index, haggle), let .sell(index, haggle):
+            let buying = if case .buy = choice { true } else { false }
+            let items = (buying ? nt.settlementToUnit : nt.unitToSettlement).filter(\.priceIsValid)
+            guard let item = index.map({ items.indices.contains($0) ? items[$0] : nil }) ?? nt.item else {
+                return nil
+            }
+            nt.item = item
+            if haggle { item.price = NativeTradeItem.priceUnset }
+            action = buying ? .buy : .sell
+        case .gift(let index):
+            guard nt.unitToSettlement.indices.contains(index) else { return nil }
+            nt.item = nt.unitToSettlement[index]
+            action = .gift
+        case .close:
+            shown.trade = nil
+            action = .close
+        }
+        return .nativeTrade(action: action.javaName, trade: CommandElement(serializing: nt))
+    }
+
+    /// The agreement as answered, for the server (moveDiplomacy, or the
+    /// answer to a proposal): one the player starts and then cancels is
+    /// not sent, nor one to the REF.
+    private func diplomacy(_ n: Negotiation, _ answer: NegotiationAnswer, _ items: [TradeOffer]) -> PlayerCommand? {
+        let status: DiplomaticTrade.TradeStatus = switch answer {
+        case .accept: .acceptTrade
+        case .send: .proposeTrade
+        case .cancel: .rejectTrade
+        }
+        if n.direction != nil {
+            if status == .rejectTrade { return nil }
+            if let other = game.getFreeColGameObject(n.otherPlayerId) as? Player, other === human.refPlayer {
+                return nil
+            }
+        }
+        guard let dt = play.view.agreement(n, items, status, lookup: { game.getFreeColGameObject($0) }) else {
+            return nil
+        }
+        return .diplomacy(our: n.ourId, other: n.otherId, agreement: CommandElement(serializing: dt))
+    }
+
+    /// A negotiation as its dialog shows it, for the items on the table
+    /// (`changed` once the player has changed them).
+    public func negotiationScreen(_ n: Negotiation, items: [TradeOffer], changed: Bool) -> NegotiationScreen? {
+        Messages.$scopedBundle.withValue(messages) {
+            // The other's gold, as its nation summary has it.
+            let gold = (game.getFreeColGameObject(n.otherPlayerId) as? Player).map { NationSummary($0, human).gold }
+            return play.view.negotiationScreen(n, items, changed: changed, otherGold: gold ?? Player.goldNotAccounted)
+        }
     }
 
     /// The choice of the next emigrant, from the three waiting now, with
@@ -460,7 +529,7 @@ public actor GameEngine {
             let cs = try body(game, controller, human, random)
             play.invalidate()
             guard let update = try cs.build(human) else { return [] }
-            return GameEngine.events(update, for: human)
+            return GameEngine.events(update, for: human, shown: shown)
         }
     }
 
@@ -515,6 +584,17 @@ public actor GameEngine {
     }
 
     private func result(_ refusal: String?) -> CommandResult {
+        // A trade with nothing left to do is closed (nativeTrade).
+        if shown.tradeDone, let nt = shown.trade {
+            shown.tradeDone = false
+            shown.trade = nil
+            if let cs = try? controller.perform(.nativeTrade(action: NativeTrade.NativeTradeAction.close.javaName,
+                                                             trade: CommandElement(serializing: nt)), by: human),
+               let update = try? cs.build(human) {
+                shown.take(update, human)
+            }
+            play.invalidate()
+        }
         let events = shown.events
         shown.events = []
         return CommandResult(refusal: refusal, events: events,
@@ -608,6 +688,63 @@ public actor GameEngine {
         return Messages.message(t)
     }
 
+    /// A step of a native trade, from the natives (nativeTradeHandler):
+    /// the next to show, or what they refused.  The client keeps its
+    /// own copy of the trade, its goods for sale limited to the best
+    /// three.
+    private static func nativeTrade(_ m: NativeTradeMessage, _ player: Player, _ shown: Shown?) -> EngineEvent? {
+        let refusal: String
+        switch m.action {
+        case .nakHaggle: refusal = "trade.noTradeHaggle"
+        case .nakHostile: refusal = "trade.noTradeHostile"
+        case .nakNosale: refusal = "trade.nothingToSell"
+        case .ackOpen, .ackBuy, .ackSell, .ackGift, .ackBuyHaggle, .ackSellHaggle, .nakGoods:
+            guard let game = m.trade.game, let xr = try? FreeColXMLReader(string: m.trade.serialize(.toClient(player))),
+                  (try? xr.nextTag()) != nil, let nt = try? NativeTrade(game: game, xr) else { return nil }
+            nt.limitSettlementToUnit(3)
+            shown?.trade = nt
+            if nt.isDone {
+                shown?.tradeDone = true
+                return nil
+            }
+            return PlayerView.nativeTradeScreen(m.action, nt, player).map { .request(.nativeTrade($0)) }
+        default:
+            return nil
+        }
+        shown?.trade = nil
+        return .notice(Messages.message(StringTemplate.template(refusal)) ?? "")
+    }
+
+    /// A step of a negotiation (diplomacyHandler): a proposal to answer,
+    /// or the answer to one.
+    private static func diplomacy(_ m: DiplomacyMessage, _ player: Player) -> EngineEvent? {
+        guard let agreement = m.agreement, let other = agreement.otherPlayer(player), let context = agreement.context
+        else { return nil }
+        switch agreement.status {
+        case .acceptTrade:
+            return .notice(Messages.message(StringTemplate.template("diplomacy.offerAccepted")
+                .addStringTemplate("%nation%", other.nationLabel)) ?? "")
+        case .rejectTrade:
+            return .notice(Messages.message(StringTemplate.template("diplomacy.offerRejected")
+                .addStringTemplate("%nation%", other.nationLabel)) ?? "")
+        case .proposeTrade:
+            return .request(.negotiation(Negotiation(
+                ourId: m.ourId, otherId: m.otherId, otherPlayerId: other.id ?? "", context: context.javaName,
+                playerSent: agreement.sender === player, version: agreement.version,
+                items: PlayerView.offers(agreement, player),
+                comment: PlayerView.receiveMessage(context, other), direction: nil)))
+        }
+    }
+
+    /// What a spy sees of a colony: its panel, as its owner sees it
+    /// (spySettlementHandler).
+    private static func spied(_ settlement: Settlement) -> ColonyScreen? {
+        guard let colony = settlement as? Colony, let owner = colony.owner, let game = colony.game, let id = colony.id,
+              let view = try? PlayerView(of: game, for: owner),
+              let copy = view.game.getFreeColGameObject(id, as: Colony.self) else { return nil }
+        return view.colonyScreen(copy)
+    }
+
     /// Choosing emigrants (EmigrationDialog): from the three waiting.
     static func emigration(_ count: Int, fountainOfYouth: Bool, europe: Europe? = nil) -> ServerRequest {
         var text = Messages.message("emigrationDialog.chooseImmigrant")
@@ -622,7 +759,7 @@ public actor GameEngine {
 
     /// The events in what a player was sent: moves and attacks to show,
     /// and messages.
-    private static func events(_ update: PlayerUpdate, for player: Player) -> [EngineEvent] {
+    private static func events(_ update: PlayerUpdate, for player: Player, shown: Shown?) -> [EngineEvent] {
         var ret: [EngineEvent] = []
         for change in update.messages {
             switch change {
@@ -634,6 +771,12 @@ public actor GameEngine {
                                    attackerWon: success))
             case let .feature(parent, add, children) where add && parent === player:
                 for case let m as ModelMessage in children { ret.append(.message(SnapshotBuilder.message(m))) }
+            case let .spy(_, settlement):
+                if let screen = spied(settlement) { ret.append(.spied(screen)) }
+            case let .message(m as NativeTradeMessage):
+                if let event = nativeTrade(m, player, shown) { ret.append(event) }
+            case let .message(m as DiplomacyMessage):
+                if let event = diplomacy(m, player) { ret.append(event) }
             case let .message(m):
                 if let request = request(m, player) {
                     ret.append(.request(request))

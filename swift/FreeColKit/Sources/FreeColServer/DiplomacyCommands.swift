@@ -64,6 +64,27 @@ extension InGameController {
             if player.checkDeclareIndependence() != nil { throw CommandRefused("Declaration blocked") }
             return try declareIndependence(player, nationName, countryName)
 
+        case let .spySettlement(unitId, settlementId):
+            let unit = try ours(player, unitId, Unit.self)
+            if !unit.hasAbility(Ability.spyOnColony) {
+                throw CommandRefused("Unit lacks ability to spy on colony: \(unitId ?? "null")")
+            }
+            guard let colony = game.getFreeColGameObject(settlementId) as? Colony, let tile = colony.tile else {
+                throw CommandRefused("Not a colony: \(settlementId ?? "null")")
+            }
+            if !(unit.tile?.isAdjacent(tile) ?? false) {
+                throw CommandRefused("Unit \(unitId ?? "null") not adjacent to colony: \(settlementId ?? "null")")
+            }
+            let type = unit.moveType(tile)
+            if type != .enterForeignColonyWithScout {
+                throw CommandRefused("Unable to enter at: \(colony.name ?? ""): \(type.whyIllegal)")
+            }
+            // What the spy sees (spySettlement).
+            let cs = ChangeSet().addSpy(unit, colony)
+            unit.movesLeft = 0
+            cs.addPartial(.only(player), unit, ("movesLeft", String(unit.movesLeft)))
+            return cs
+
         default:
             preconditionFailure("Not a diplomacy command: \(command)")
         }

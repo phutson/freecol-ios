@@ -56,6 +56,12 @@ final class GameStore {
     /// told.
     private(set) var requests: [ServerRequest] = []
     var notices: [String] = []
+    /// A trade with natives under way, at its latest step.
+    private(set) var trade: NativeTradeScreen?
+    /// A negotiation to show: one the player starts, or a proposal.
+    private(set) var negotiation: Negotiation?
+    /// What a spy saw of a foreign colony.
+    var spiedColony: ColonyScreen?
     /// The messages of this turn, newest last.
     private(set) var messages: [String] = []
     /// The colony being looked at, as its panel shows it.
@@ -177,6 +183,31 @@ final class GameStore {
         }
     }
 
+    /// The next step of the native trade.
+    /// The trade stays shown until the natives answer, then gives way
+    /// to the next step, or closes when there is none.
+    func tradeStep(_ choice: NativeTradeChoice) {
+        guard let screen = trade else { return }
+        Task {
+            guard let engine else { return }
+            let r = await engine.respond(.nativeTrade(screen), .trade(choice))
+            trade = nil
+            await apply(r)
+        }
+    }
+
+    /// The negotiation as its dialog shows it, for the items on the
+    /// table.
+    func negotiationScreen(_ n: Negotiation, _ items: [TradeOffer], changed: Bool) async -> NegotiationScreen? {
+        await engine?.negotiationScreen(n, items: items, changed: changed)
+    }
+
+    /// Answer the negotiation with what is on the table.
+    func answer(_ n: Negotiation, _ answer: NegotiationAnswer, _ items: [TradeOffer]) {
+        negotiation = nil
+        self.answer(.negotiation(n), .agreement(answer, items))
+    }
+
     private func apply(_ r: CommandResult) async {
         if r.snapshot.turn != snapshot?.turn { messages = [] }
         snapshot = r.snapshot
@@ -185,8 +216,11 @@ final class GameStore {
         for e in r.events {
             switch e {
             case .message(let m): messages.append(m.text)
+            case .request(.nativeTrade(let screen)): trade = screen
+            case .request(.negotiation(let n)): negotiation = n
             case .request(let request): requests.append(request)
             case .notice(let text): notices.append(text)
+            case .spied(let screen): spiedColony = screen
             case .unitMoved, .attack: break
             }
         }

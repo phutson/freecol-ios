@@ -514,6 +514,12 @@ extension TradeRoute {
 }
 
 extension Player.Stance {
+    /// Whether natives may be incited against a player of this stance
+    /// (isIncitable).
+    public var isIncitable: Bool {
+        self == .ceaseFire || self == .peace
+    }
+
     /// The stance a tension calls for (getStanceFromTension): cease fire
     /// from war, then peace, as tension falls; war from peace as it
     /// rises.

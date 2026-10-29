@@ -51,6 +51,7 @@ struct PlayView: View {
         .sheet(isPresented: Binding(get: { store.reports != nil }, set: { if !$0 { store.closeReports() } })) {
             if let reports = store.reports { ReportsView(reports: reports, snapshot: snapshot).environment(store) }
         }
+        .modifier(TradeSheets())
         .fullScreenCover(isPresented: Binding(get: { store.europe != nil }, set: { if !$0 { store.closeEurope() } })) {
             if let europe = store.europe, let snapshot = store.snapshot {
                 EuropeView(europe: europe, snapshot: snapshot, images: images)
@@ -266,10 +267,11 @@ struct Dialogs: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .alert(store.question?.text ?? "", isPresented: binding(active && store.question != nil) { store.dismissQuestion() },
+            .alert(store.question?.text ?? "", isPresented: binding(active && !sheetShown && store.question != nil) { store.dismissQuestion() },
                    presenting: store.question) { q in
                 if q.choices.isEmpty {
-                    TextField("Name", text: $name).onAppear { name = q.suggestion ?? "" }
+                    TextField(q.suggestion.flatMap { Int($0) } != nil ? "Amount" : "Name", text: $name)
+                        .onAppear { name = q.suggestion ?? "" }
                     Button("OK") { store.answer(name) }
                     Button("Cancel", role: .cancel) { store.dismissQuestion() }
                 } else {
@@ -278,7 +280,7 @@ struct Dialogs: ViewModifier {
                     }
                 }
             }
-            .alert(requestTitle, isPresented: binding(active && store.question == nil && !store.requests.isEmpty) {},
+            .alert(requestTitle, isPresented: binding(active && !sheetShown && store.question == nil && !store.requests.isEmpty) {},
                    presenting: store.requests.first) { r in
                 switch r {
                 case let .newLandName(_, suggestion, _), let .newRegionName(_, _, _, suggestion, _):
@@ -314,6 +316,9 @@ struct Dialogs: ViewModifier {
                 case .incite:
                     Button("Yes") { store.answer(r, .accept(true)) }
                     Button("No", role: .cancel) { store.answer(r, .accept(false)) }
+                case .nativeTrade, .negotiation:
+                    // Shown in their own sheets.
+                    EmptyView()
                 }
             } message: { r in
                 switch r {
@@ -328,7 +333,7 @@ struct Dialogs: ViewModifier {
                 }
             }
             .alert(store.notices.first ?? "",
-                   isPresented: binding(active && store.question == nil && store.requests.isEmpty && !store.notices.isEmpty) {
+                   isPresented: binding(active && !sheetShown && store.question == nil && store.requests.isEmpty && !store.notices.isEmpty) {
                        store.notices.removeFirst()
                    }) {
                 Button("OK") {}
@@ -343,8 +348,14 @@ struct Dialogs: ViewModifier {
         case let .emigrate(count, _, _, _)?: count > 1 ? "Choose \(count) emigrants" : "Choose an emigrant"
         case let .nativeDemand(_, _, _, _, title, _, _, _)?, let .loot(_, _, _, _, title)?: title
         case .incite?: "Incite"
-        case nil: ""
+        case .nativeTrade?, .negotiation?, nil: ""
         }
+    }
+
+    /// Whether a trade, negotiation or spy's sheet is up, which an
+    /// alert would dismiss.
+    private var sheetShown: Bool {
+        store.trade != nil || store.negotiation != nil || store.spiedColony != nil
     }
 
     /// A presentation binding that runs an action when dismissed.
