@@ -60,6 +60,13 @@ final class GameStore {
     private(set) var messages: [String] = []
     /// The colony being looked at, as its panel shows it.
     private(set) var colony: ColonyScreen?
+    /// Europe, when the player is looking at it.
+    private(set) var europe: EuropeScreen?
+    /// Where ships in Europe could sail for.
+    private(set) var destinations: [(id: String, name: String)] = []
+    /// The role changes on offer for the units shown in Europe or a
+    /// colony.
+    private(set) var roles: [String: [RoleChoice]] = [:]
 
     /// The game's data, bundled with the app.
     static var dataDirectory: URL? {
@@ -196,12 +203,44 @@ final class GameStore {
         if let id = r.colonyToShow ?? colony?.id {
             colony = await engine?.colonyScreen(id)
         }
+        if europe != nil { await refreshEurope() }
+        await refreshRoles()
+    }
+
+    /// The role changes for the units on screen.
+    private func refreshRoles() async {
+        guard let engine else { return }
+        var ids: [String] = europe?.docks ?? []
+        if let c = colony {
+            ids += c.outsideUnitIds + c.buildings.flatMap(\.unitIds) + c.tiles.flatMap(\.unitIds)
+        }
+        var r: [String: [RoleChoice]] = [:]
+        for id in ids { r[id] = await engine.roleChoices(id) }
+        roles = r
+    }
+
+    // MARK: Europe
+
+    func openEurope() async {
+        await refreshEurope()
+        await refreshRoles()
+    }
+
+    private func refreshEurope() async {
+        guard let engine else { return }
+        europe = await engine.europeScreen()
+        destinations = await engine.sailingDestinations()
+    }
+
+    func closeEurope() {
+        europe = nil
     }
 
     // MARK: Colonies
 
     func openColony(_ id: String) async {
         colony = await engine?.colonyScreen(id)
+        await refreshRoles()
     }
 
     func closeColony() {

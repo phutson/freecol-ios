@@ -46,7 +46,15 @@ struct PlayView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .modifier(Dialogs())
+        // While a colony or Europe is shown, its own dialogs ask.
+        .modifier(Dialogs(active: store.colony == nil && store.europe == nil))
+        .fullScreenCover(isPresented: Binding(get: { store.europe != nil }, set: { if !$0 { store.closeEurope() } })) {
+            if let europe = store.europe, let snapshot = store.snapshot {
+                EuropeView(europe: europe, snapshot: snapshot, images: images)
+                    .environment(store)
+                    .modifier(Dialogs())
+            }
+        }
         .fullScreenCover(isPresented: Binding(get: { store.colony != nil }, set: { if !$0 { store.closeColony() } })) {
             if let colony = store.colony, let snapshot = store.snapshot {
                 ColonyView(colony: colony, snapshot: snapshot, images: images)
@@ -68,6 +76,9 @@ struct TopBar: View {
                 .font(.headline)
             if let gold = snapshot.player?.gold { Text("\(gold) gold").monospacedDigit() }
             Spacer()
+            if snapshot.europe != nil {
+                Button("Europe") { Task { await store.openEurope() } }
+            }
             Button("Next unit") { Task { await store.play(.wait) } }
             Button("End turn") { Task { await store.play(.endTurn) } }
                 .buttonStyle(.borderedProminent)
@@ -233,11 +244,14 @@ struct FlowLayout: Layout {
 /// is told, as alerts.
 struct Dialogs: ViewModifier {
     @Environment(GameStore.self) private var store
+    /// Whether these dialogs are the ones showing (a full screen cover
+    /// shows its own).
+    var active = true
     @State private var name = ""
 
     func body(content: Content) -> some View {
         content
-            .alert(store.question?.text ?? "", isPresented: binding(store.question != nil) { store.dismissQuestion() },
+            .alert(store.question?.text ?? "", isPresented: binding(active && store.question != nil) { store.dismissQuestion() },
                    presenting: store.question) { q in
                 if q.choices.isEmpty {
                     TextField("Name", text: $name).onAppear { name = q.suggestion ?? "" }
@@ -249,7 +263,7 @@ struct Dialogs: ViewModifier {
                     }
                 }
             }
-            .alert(requestTitle, isPresented: binding(store.question == nil && !store.requests.isEmpty) {},
+            .alert(requestTitle, isPresented: binding(active && store.question == nil && !store.requests.isEmpty) {},
                    presenting: store.requests.first) { r in
                 switch r {
                 case let .newLandName(_, suggestion, _), let .newRegionName(_, _, _, suggestion, _):
@@ -266,7 +280,7 @@ struct Dialogs: ViewModifier {
                 }
             }
             .alert(store.notices.first ?? "",
-                   isPresented: binding(store.question == nil && store.requests.isEmpty && !store.notices.isEmpty) {
+                   isPresented: binding(active && store.question == nil && store.requests.isEmpty && !store.notices.isEmpty) {
                        store.notices.removeFirst()
                    }) {
                 Button("OK") {}

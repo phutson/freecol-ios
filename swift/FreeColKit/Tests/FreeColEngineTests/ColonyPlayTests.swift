@@ -132,4 +132,44 @@ import Testing
         }
         Issue.record("No tile worker")
     }
+
+    /// A ship in port takes goods from the colony and gives them back,
+    /// and a colonist takes up the colony's tools.
+    @Test func cargoAndRoles() async throws {
+        let engine = try await Self.engine()
+        var found: (ColonyScreen, String)?
+        let snapshot = await engine.snapshot()
+        for c in snapshot.colonies where found == nil {
+            if let screen = await engine.colonyScreen(c.id),
+               let ship = screen.inPortUnitIds.first(where: { snapshot.unit($0)?.isNaval == true }) {
+                found = (screen, ship)
+            }
+        }
+        let (colony, ship) = try #require(found)
+        let goods = try #require(colony.warehouse.first { $0.amount >= 50 })
+        _ = try await engine.play(.load(goodsTypeId: goods.typeId, amount: 50, carrierId: ship))
+        let loaded = try #require(await engine.colonyScreen(colony.id))
+        #expect(loaded.warehouse.first { $0.typeId == goods.typeId }?.amount == goods.amount - 50)
+        #expect(await engine.snapshot().unit(ship)?.goods.contains { $0.typeId == goods.typeId && $0.amount == 50 } == true)
+        _ = try await engine.play(.unload(goodsTypeId: goods.typeId, amount: 50, carrierId: ship))
+        let back = try #require(await engine.colonyScreen(colony.id))
+        #expect(back.warehouse.first { $0.typeId == goods.typeId }?.amount == goods.amount)
+
+        // A colonist outside a colony with tools takes them up.
+        for c in await engine.snapshot().colonies {
+            guard let screen = await engine.colonyScreen(c.id),
+                  (screen.warehouse.first { $0.typeId == "model.goods.tools" }?.amount ?? 0) >= 20 else { continue }
+            for id in screen.outsideUnitIds {
+                guard let choice = await engine.roleChoices(id).first(where: { $0.roleId == "model.role.pioneer" })
+                else { continue }
+                _ = try await engine.play(.equip(unitId: id, roleId: choice.roleId, count: choice.count))
+                #expect(await engine.snapshot().unit(id)?.roleId == "model.role.pioneer")
+                let after = try #require(await engine.colonyScreen(c.id))
+                #expect((after.warehouse.first { $0.typeId == "model.goods.tools" }?.amount ?? 0)
+                        < (screen.warehouse.first { $0.typeId == "model.goods.tools" }?.amount ?? 0))
+                return
+            }
+        }
+        Issue.record("No colonist to equip")
+    }
 }

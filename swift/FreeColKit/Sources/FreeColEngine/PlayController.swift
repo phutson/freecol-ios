@@ -85,7 +85,7 @@ final class PlayController {
     var activeUnitId: String?
 
     // What one request was answered, asked and told.
-    private var answers: [String: String] = [:]
+    var answers: [String: String] = [:]
     private(set) var question: PlayQuestion?
     private(set) var notices: [String] = []
     var colonyToShow: String?

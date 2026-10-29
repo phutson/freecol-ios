@@ -2747,6 +2747,60 @@ buildings and the outside, and the build queue is edited.
   colonists with goods (dragging goods), the export settings,
   paying for a building, and choosing a colonist's work from a menu;
   teaching is shown but not arranged. Europe's screen is step 5.
+  (Loading ships in port and arming colonists came with step 5.)
+
+**Step 5 status: done.** Europe opens from the top bar and shows what
+Java's Europe panel shows: the ships in port with their cargo, the
+docks, the market, recruiting, training and buying, and the ships at
+sea. Goods are dragged between the market and ships, units between
+the docks and ships, and ships sail from a menu; the same ship cards
+and goods drags load and unload ships in a colony's port, and a
+colonist's menu (in Europe or a colony) changes its role.
+- **The Europe screen** (`EuropeView`, in the engine, made on the
+  player's copy of the game): recruiting (the price, the turns until
+  the next emigrant, the three waiting, and whether the player can
+  pay, as RecruitPanel shows them); the units trained and bought,
+  cheapest first, with whether the player can pay (NewUnitPanel); the
+  market's sale and purchase prices, boycotts and arrears
+  (MarketLabel); the docks, the ships in port, and those sailing to
+  Europe and America (DestinationPanel); and for each ship in port
+  its cargo, what a drag from the market would load of each goods
+  (as much as fits, a hold at most) and at what price, and who could
+  board. And the role changes the unit menu offers a unit in Europe
+  or a colony (QuickActionMenu.addRoleItems): each role at the most
+  the player can pay for, the price or income, and the menu's text.
+- **The Europe controller** (an extension of `PlayController`):
+  recruiting, training and buying (refused with Java's notice when the
+  player can not pay); buying goods onto a ship, and loading from a
+  colony or another ship; selling, with Java's boycott question (pay
+  the arrears, asking again, or dump the goods); paying arrears;
+  boarding and leaving ships; unloading everything; sailing, asking
+  first if colonists would be left on the docks with room aboard; and
+  changing roles, buying or selling the equipment in Europe or taking
+  it from the colony.
+- **Checked:** `EuropeOracle.java` records what Java's Europe panel
+  and unit menu show for six views of five saved games, one made for
+  it (`EuropeGameMaker.java`: some gold, so some purchases are
+  affordable and some not, units of several roles on the docks, two
+  ships in port, one full, and ships at sea both ways); `EuropeViewTests`
+  matches them all, roles for every unit in Europe and the colonies
+  included. Planted bugs (the recruiting turns a turn short, loads not
+  capped at a hold, units offered in the rules' order not by price,
+  roles not at the most the player can pay for) are caught.
+  `EuropePlayTests` buys and sells (a boycott asked about and paid),
+  recruits, trains (and is refused one too dear), boards and leaves a
+  ship, arms a colonist and sails; `ColonyPlayTests` loads and unloads
+  a ship in a colony's port and equips a colonist with the colony's
+  tools. The app was seen working in the iPad simulator: the furs
+  dragged to the market, the boycott question and the arrears paid.
+- **Not checked against Java:** the flows, and where a ship may sail:
+  the app offers the New World and the player's ports, where Java's
+  destination dialog lists every reachable destination with its
+  turns. The partial drags (some of a hold, with a modifier key) are
+  not offered.
+- **Not done yet:** Brewster's choice of recruit, the Fountain of
+  Youth, and the monarch's mercenaries (with the monarch's messages,
+  step 6); trade routes.
 
 ## Phase 6: Polish and release
 

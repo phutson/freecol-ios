@@ -131,8 +131,8 @@ struct ColonyView: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 170), spacing: 8)], spacing: 8) {
                 ForEach(colony.buildings.filter { $0.id != nil }, id: \.id) { b in
                     BuildingCard(building: b, snapshot: snapshot, images: images)
-                        .dropDestination(for: String.self) { ids, _ in
-                            guard let unit = ids.first, let id = b.id else { return false }
+                        .dropDestination(for: String.self) { items, _ in
+                            guard case .unit(let unit)? = items.first.flatMap(Drag.init), let id = b.id else { return false }
                             Task { await store.play(.work(unitId: unit, workLocationId: id)) }
                             return true
                         }
@@ -141,24 +141,33 @@ struct ColonyView: View {
         }
     }
 
-    /// Colonists outside the colony, and ships in port.
+    /// Colonists outside the colony, and ships in port with their
+    /// cargo.
     private var outside: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Outside the colony").font(.headline)
             HStack {
-                ForEach(colony.outsideUnitIds + colony.inPortUnitIds, id: \.self) { id in
+                ForEach(colony.outsideUnitIds, id: \.self) { id in
                     UnitIcon(unitId: id, snapshot: snapshot, images: images)
-                        .draggable(id)
+                        .draggable(Drag.unit(id).text).contextMenu { RoleMenu(unitId: id) }
                 }
                 Spacer(minLength: 0)
             }
             .frame(minHeight: 60)
             .padding(6)
             .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
-            .dropDestination(for: String.self) { ids, _ in
-                guard let unit = ids.first else { return false }
+            .dropDestination(for: String.self) { items, _ in
+                guard case .unit(let unit)? = items.first.flatMap(Drag.init) else { return false }
                 Task { await store.play(.putOutsideColony(unitId: unit)) }
                 return true
+            }
+            ForEach(colony.inPortUnitIds, id: \.self) { id in
+                if let ship = snapshot.unit(id) {
+                    ShipCard(shipId: id, goods: ship.goods, unitIds: ship.carriedUnitIds, snapshot: snapshot,
+                             images: images) {
+                        Button("Unload") { Task { await store.play(.unloadAll(carrierId: id)) } }
+                    }
+                }
             }
         }
     }
@@ -175,7 +184,14 @@ struct ColonyView: View {
                             .foregroundStyle(g.amount > colony.warehouseCapacity ? .red : .primary)
                     }
                     .frame(width: 44)
+                    .draggable(Drag.goods(g.typeId, min(100, g.amount), from: colony.id).text)
                 }
+            }
+            .dropDestination(for: String.self) { items, _ in
+                guard case let .goods(type, amount, from)? = items.first.flatMap(Drag.init), from != colony.id
+                else { return false }
+                Task { await store.play(.unload(goodsTypeId: type, amount: amount, carrierId: from)) }
+                return true
             }
         }
     }
@@ -237,7 +253,7 @@ struct ColonyTilesView: View {
             }
             ForEach(Array(t.unitIds.enumerated()), id: \.element) { i, id in
                 HStack(spacing: 0) {
-                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(id)
+                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(Drag.unit(id).text).contextMenu { RoleMenu(unitId: id) }
                     if let made = t.made[i] {
                         GoodsIcon(typeId: made.typeId, images: images, size: 16)
                         Text("\(made.amount)").font(.caption2).bold()
@@ -245,8 +261,8 @@ struct ColonyTilesView: View {
                 }
             }
         }
-        .dropDestination(for: String.self) { ids, _ in
-            guard let unit = ids.first, !t.isCentre else { return false }
+        .dropDestination(for: String.self) { items, _ in
+            guard case .unit(let unit)? = items.first.flatMap(Drag.init), !t.isCentre else { return false }
             Task { await store.play(.work(unitId: unit, workLocationId: t.id)) }
             return true
         }
@@ -279,7 +295,7 @@ struct BuildingCard: View {
             }
             HStack(spacing: 2) {
                 ForEach(building.unitIds, id: \.self) { id in
-                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(id)
+                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(Drag.unit(id).text).contextMenu { RoleMenu(unitId: id) }
                 }
             }
             .frame(minHeight: 34)

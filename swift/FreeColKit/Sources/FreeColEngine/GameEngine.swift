@@ -258,6 +258,27 @@ public actor GameEngine {
         case changeWorkType(unitId: String, goodsTypeId: String)
         /// Set what a colony builds, first to last.
         case setBuildQueue(colonyId: String, queue: [String])
+        /// Recruit one of the emigrants at the docks (0 to 2).
+        case recruit(index: Int)
+        /// Train or buy a unit in Europe.
+        case train(unitTypeId: String)
+        /// Load goods onto a carrier: bought in Europe, or from its
+        /// colony (or another carrier, if given).
+        case load(goodsTypeId: String, amount: Int, carrierId: String, sourceId: String? = nil)
+        /// Unload goods from a carrier: sold in Europe, or into its
+        /// colony.
+        case unload(goodsTypeId: String, amount: Int, carrierId: String)
+        /// Unload all a carrier holds.
+        case unloadAll(carrierId: String)
+        case payArrears(goodsTypeId: String)
+        /// Board a carrier where the unit is.
+        case board(unitId: String, carrierId: String)
+        case leaveShip(unitId: String)
+        /// Sail a ship from Europe (to the map or a colony), or for
+        /// Europe.
+        case sail(carrierId: String, destinationId: String)
+        /// Change a unit's role (Java's role ids), with its count.
+        case equip(unitId: String, roleId: String, count: Int)
         /// End the turn: the other players play theirs, and the new
         /// turn begins.
         case endTurn
@@ -294,6 +315,16 @@ public actor GameEngine {
                     play.changeWorkType(id, goods)
                     play.updateProduction(colony)
                 case let .setBuildQueue(colony, queue): play.setBuildQueue(colony, queue)
+                case .recruit(let i): play.recruit(i)
+                case .train(let type): play.train(type)
+                case let .load(goods, amount, carrier, source): play.load(goods, amount, onto: carrier, from: source)
+                case let .unload(goods, amount, carrier): play.unload(goods, amount, from: carrier)
+                case .unloadAll(let carrier): play.unloadAll(carrier)
+                case .payArrears(let goods): play.payArrears(goods)
+                case let .board(unit, carrier): play.board(unit, carrier)
+                case .leaveShip(let unit): play.leaveShip(unit)
+                case let .sail(carrier, destination): play.sail(carrier, to: destination)
+                case let .equip(unit, role, count): play.equip(unit, role, count)
                 case .endTurn: ended = play.endTurn(showDialog: true)
                 }
             }
@@ -366,6 +397,24 @@ public actor GameEngine {
                   play.view.player.owns(colony) else { return nil }
             return play.view.colonyScreen(colony)
         }
+    }
+
+    /// The player's Europe, as its panel shows it.
+    public func europeScreen() -> EuropeScreen? {
+        Messages.$scopedBundle.withValue(messages) { play.view.europeScreen() }
+    }
+
+    /// The role changes the unit menu offers a unit of the player's in
+    /// Europe or a settlement.
+    public func roleChoices(_ unitId: String) -> [RoleChoice] {
+        Messages.$scopedBundle.withValue(messages) {
+            play.view.unit(unitId).map { play.view.roleChoices($0) } ?? []
+        }
+    }
+
+    /// Where a ship in Europe could sail for, by identifier and name.
+    public func sailingDestinations() -> [(id: String, name: String)] {
+        Messages.$scopedBundle.withValue(messages) { play.sailingDestinations }
     }
 
     /// Save the game, as Java's server does, AI and all, so Java can
