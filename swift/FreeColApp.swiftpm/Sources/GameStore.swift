@@ -162,26 +162,19 @@ final class GameStore {
         pending = nil
     }
 
-    /// Answer what the server asked, with a name or yes or no.
-    func answer(_ request: ServerRequest, name: String?, accept: Bool) {
+    /// Answer what the server asked.  The request is taken at once,
+    /// before the alert showing it is dismissed; an emigrant chosen of
+    /// several owed asks for the next.
+    func answer(_ request: ServerRequest, _ answer: RequestAnswer) {
         requests.removeAll { $0 == request }
-        Task { await send(request, name: name, accept: accept) }
-    }
-
-    private func send(_ request: ServerRequest, name: String?, accept: Bool) async {
-        guard let engine else { return }
-        let command: PlayerCommand
-        switch request {
-        case let .newLandName(unit, suggestion, _):
-            command = .newLandName(unit: unit, name: (name?.isEmpty ?? true) ? suggestion : name)
-        case let .newRegionName(region, tile, unit, suggestion, _):
-            command = .newRegionName(region: region, tile: tile, unit: unit,
-                                     name: (name?.isEmpty ?? true) ? suggestion : name)
-        case let .firstContact(player, other, tile, _, _):
-            command = .firstContact(player: player, other: other, tile: tile, result: accept ? "true" : "false")
+        Task {
+            guard let engine else { return }
+            let r = await engine.respond(request, answer)
+            await apply(r)
+            if case let .emigrate(count, fountain, _, _) = request, count > 1 {
+                requests.insert(await engine.emigrationRequest(count: count - 1, fountainOfYouth: fountain), at: 0)
+            }
         }
-        let r = await engine.perform(command)
-        await apply(r)
     }
 
     private func apply(_ r: CommandResult) async {
@@ -193,6 +186,7 @@ final class GameStore {
             switch e {
             case .message(let m): messages.append(m.text)
             case .request(let request): requests.append(request)
+            case .notice(let text): notices.append(text)
             case .unitMoved, .attack: break
             }
         }
@@ -217,6 +211,66 @@ final class GameStore {
         var r: [String: [RoleChoice]] = [:]
         for id in ids { r[id] = await engine.roleChoices(id) }
         roles = r
+    }
+
+    // MARK: Reports
+
+    /// The reports, while they are shown.
+    private(set) var reports: Reports?
+
+    struct Reports {
+        let congress: CongressReport
+        let religion: [ReligionReport]
+        let military: UnitReport
+        let naval: UnitReport
+    }
+
+    func openReports() async {
+        guard let engine else { return }
+        reports = Reports(congress: await engine.congressReport(), religion: await engine.religionReport(),
+                          military: await engine.unitReport(military: true),
+                          naval: await engine.unitReport(military: false))
+    }
+
+    func closeReports() {
+        reports = nil
+    }
+
+    // MARK: Saving and loading
+
+    /// Where saved games are kept: the app's documents, so the Files app
+    /// shows them.
+    nonisolated static var savesDirectory: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
+
+    /// The saved games, newest first.
+    nonisolated static var savedGames: [URL] {
+        let fm = FileManager.default
+        let urls = (try? fm.contentsOfDirectory(at: savesDirectory, includingPropertiesForKeys: [.contentModificationDateKey]))
+            ?? []
+        return urls.filter { $0.pathExtension == "fsg" }.sorted { a, b in
+            let da = (try? a.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+            let db = (try? b.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+            return da > db
+        }
+    }
+
+    /// Save the game under a name.
+    func save(as name: String) async {
+        guard let engine, !name.isEmpty else { return }
+        let url = Self.savesDirectory.appendingPathComponent(name).appendingPathExtension("fsg")
+        do {
+            try await engine.save(to: url)
+            notices.append("Saved \(name).")
+        } catch {
+            notices.append("Could not save: \(error)")
+        }
+    }
+
+    /// Load a saved game.
+    func load(_ url: URL) async {
+        await start { try GameEngine(loading: url, messages: $1) }
     }
 
     // MARK: Europe

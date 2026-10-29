@@ -47,7 +47,10 @@ struct PlayView: View {
             }
         }
         // While a colony or Europe is shown, its own dialogs ask.
-        .modifier(Dialogs(active: store.colony == nil && store.europe == nil))
+        .modifier(Dialogs(active: store.colony == nil && store.europe == nil && store.reports == nil))
+        .sheet(isPresented: Binding(get: { store.reports != nil }, set: { if !$0 { store.closeReports() } })) {
+            if let reports = store.reports { ReportsView(reports: reports, snapshot: snapshot).environment(store) }
+        }
         .fullScreenCover(isPresented: Binding(get: { store.europe != nil }, set: { if !$0 { store.closeEurope() } })) {
             if let europe = store.europe, let snapshot = store.snapshot {
                 EuropeView(europe: europe, snapshot: snapshot, images: images)
@@ -69,6 +72,8 @@ struct PlayView: View {
 struct TopBar: View {
     @Environment(GameStore.self) private var store
     let snapshot: GameSnapshot
+    @State private var saving = false
+    @State private var saveName = ""
 
     var body: some View {
         HStack {
@@ -76,6 +81,10 @@ struct TopBar: View {
                 .font(.headline)
             if let gold = snapshot.player?.gold { Text("\(gold) gold").monospacedDigit() }
             Spacer()
+            Menu("Game") {
+                Button("Reports") { Task { await store.openReports() } }
+                Button("Save…") { saving = true }
+            }
             if snapshot.europe != nil {
                 Button("Europe") { Task { await store.openEurope() } }
             }
@@ -87,6 +96,12 @@ struct TopBar: View {
         .padding(10)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
         .disabled(store.busy)
+        .alert("Save the game", isPresented: $saving) {
+            TextField("Name", text: $saveName)
+                .onAppear { saveName = "\(snapshot.player?.nationName ?? "") \(snapshot.turnName)" }
+            Button("Save") { Task { await store.save(as: saveName) } }
+            Button("Cancel", role: .cancel) {}
+        }
     }
 }
 
@@ -268,15 +283,48 @@ struct Dialogs: ViewModifier {
                 switch r {
                 case let .newLandName(_, suggestion, _), let .newRegionName(_, _, _, suggestion, _):
                     TextField("Name", text: $name).onAppear { name = suggestion }
-                    Button("OK") { store.answer(r, name: name, accept: true) }
+                    Button("OK") { store.answer(r, .name(name)) }
                 case .firstContact:
-                    Button("Accept") { store.answer(r, name: nil, accept: true) }
-                    Button("Refuse", role: .cancel) { store.answer(r, name: nil, accept: false) }
+                    Button("Accept") { store.answer(r, .accept(true)) }
+                    Button("Refuse", role: .cancel) { store.answer(r, .accept(false)) }
+                case let .monarch(_, _, _, yes, no):
+                    if let yes { Button(yes) { store.answer(r, .accept(true)) } }
+                    Button(no, role: .cancel) { store.answer(r, .accept(false)) }
+                case let .chooseFather(fathers):
+                    ForEach(fathers, id: \.id) { f in
+                        Button("\(f.name) (\(f.typeName))") { store.answer(r, .choice(f.id)) }
+                    }
+                case let .emigrate(_, _, _, choices):
+                    ForEach(Array(choices.enumerated()), id: \.offset) { i, c in
+                        Button(c) { store.answer(r, .choice(String(i))) }
+                    }
+                case let .nativeDemand(_, _, _, _, _, _, yes, no):
+                    Button(yes) { store.answer(r, .accept(true)) }
+                    Button(no, role: .cancel) { store.answer(r, .accept(false)) }
+                case let .loot(_, _, goods, space, _):
+                    ForEach(Array(goods.enumerated()), id: \.offset) { _, g in
+                        Button("\(g.amount) \(g.typeId.split(separator: ".").last ?? "")") {
+                            store.answer(r, .goods([g]))
+                        }
+                    }
+                    if goods.count > 1 && space > 1 {
+                        Button("All that fits") { store.answer(r, .goods(Array(goods.prefix(space)))) }
+                    }
+                    Button("None", role: .cancel) { store.answer(r, .goods([])) }
+                case .incite:
+                    Button("Yes") { store.answer(r, .accept(true)) }
+                    Button("No", role: .cancel) { store.answer(r, .accept(false)) }
                 }
             } message: { r in
                 switch r {
-                case let .firstContact(_, _, _, _, text): Text(text)
-                default: EmptyView()
+                case let .firstContact(_, _, _, _, text), let .monarch(_, _, text, _, _),
+                     let .emigrate(_, _, text, _), let .nativeDemand(_, _, _, _, _, text, _, _),
+                     let .incite(_, _, _, _, text):
+                    Text(text)
+                case let .chooseFather(fathers):
+                    Text(fathers.map { "\($0.name): \($0.description)" }.joined(separator: "\n\n"))
+                default:
+                    EmptyView()
                 }
             }
             .alert(store.notices.first ?? "",
@@ -290,7 +338,11 @@ struct Dialogs: ViewModifier {
     private var requestTitle: String {
         switch store.requests.first {
         case let .newLandName(_, _, text)?, let .newRegionName(_, _, _, _, text)?: text
-        case let .firstContact(_, _, _, title, _)?: title
+        case let .firstContact(_, _, _, title, _)?, let .monarch(_, title, _, _, _)?: title
+        case .chooseFather?: "Continental Congress"
+        case let .emigrate(count, _, _, _)?: count > 1 ? "Choose \(count) emigrants" : "Choose an emigrant"
+        case let .nativeDemand(_, _, _, _, title, _, _, _)?, let .loot(_, _, _, _, title)?: title
+        case .incite?: "Incite"
         case nil: ""
         }
     }

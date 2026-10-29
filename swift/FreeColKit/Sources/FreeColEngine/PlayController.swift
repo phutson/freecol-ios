@@ -51,6 +51,43 @@ public enum ServerRequest: Sendable, Equatable {
     /// First contact with natives: welcome, and perhaps land offered (a
     /// firstContact command, accepted or not).
     case firstContact(playerId: String, otherId: String, tileId: String?, title: String, text: String)
+    /// The monarch acts (MonarchDialog): a tax raise or mercenaries to
+    /// accept or refuse (with a yes), or news to read.
+    case monarch(action: String, title: String, text: String, yes: String?, no: String)
+    /// Choose the next founding father, one of each type offered
+    /// (ChooseFoundingFatherDialog).
+    case chooseFather(fathers: [FatherOffer])
+    /// Choose emigrants from the three waiting, a number of times: the
+    /// Fountain of Youth's, or one at a time with Brewster
+    /// (EmigrationDialog).
+    case emigrate(count: Int, fountainOfYouth: Bool, text: String, choices: [String])
+    /// Natives demand goods or gold of a colony (NativeDemandDialog).
+    case nativeDemand(unitId: String, colonyId: String, goodsTypeId: String?, amount: Int,
+                      title: String, text: String, yes: String, no: String)
+    /// Take cargo from a beaten ship, as much as fits (CaptureGoodsDialog).
+    case loot(winnerId: String, loserId: String, goods: [GoodsAmount], spaceLeft: Int, title: String)
+    /// What inciting natives against an enemy would cost, to agree to.
+    case incite(unitId: String, settlementId: String, enemyId: String, gold: Int, text: String)
+}
+
+/// A founding father offered.
+public struct FatherOffer: Sendable, Equatable {
+    public let id: String
+    public let name: String
+    /// The father's type, translated ("Trade").
+    public let typeName: String
+    public let description: String
+}
+
+/// The player's answer to something the server asked.
+public enum RequestAnswer: Sendable, Equatable {
+    case accept(Bool)
+    /// A name (for a land or region).
+    case name(String)
+    /// A founding father, or an emigrant's place (0 to 2).
+    case choice(String)
+    /// The goods taken.
+    case goods([GoodsAmount])
 }
 
 /// Java's client InGameController, for playing on the map: moving
@@ -71,7 +108,7 @@ final class PlayController {
         static func < (a: MoveMode, b: MoveMode) -> Bool { a.rawValue < b.rawValue }
     }
 
-    private let game: ServerGame
+    let game: ServerGame
     private let human: Player
     /// Send a command to the server: nil if it was carried out, or why
     /// not.
@@ -87,8 +124,11 @@ final class PlayController {
     // What one request was answered, asked and told.
     var answers: [String: String] = [:]
     private(set) var question: PlayQuestion?
-    private(set) var notices: [String] = []
+    var notices: [String] = []
     var colonyToShow: String?
+    /// What the client itself asks the player, as the server would
+    /// (Brewster's choice of emigrant).
+    var requests: [ServerRequest] = []
     /// Whether the GUI is to be updated at the end of the request, and
     /// whether a new active unit is to be chosen anyway.
     private var updateRequested = false
@@ -125,6 +165,7 @@ final class PlayController {
         question = nil
         notices = []
         colonyToShow = nil
+        requests = []
         updateRequested = false
         updateUnitRequested = false
         body()
@@ -196,6 +237,12 @@ final class PlayController {
 
     // MARK: The turn
 
+    /// Whether there is immigration enough for an emigrant
+    /// (Player.checkEmigrate, as the client sees it).
+    static func mayEmigrate(_ player: Player) -> Bool {
+        player.isColonial && player.immigrationRequired <= player.immigration
+    }
+
     /// The player's turn begins (InGameController.setCurrentPlayer).
     func startTurn() {
         run([:]) {
@@ -204,6 +251,18 @@ final class PlayController {
             goingTo.reset()
             activeUnitId = nil
             updateGUI()
+            // With Brewster the player chooses who emigrates, unless all
+            // three are alike (setCurrentPlayer, emigration).
+            let player = view.player
+            if player.hasAbility(Ability.selectRecruit), Self.mayEmigrate(player), let europe = player.europe {
+                let waiting = europe.expandedRecruitables(full: false)
+                if Set(waiting.map { "\($0.id ?? "") \($0.roleId ?? "")" }).count <= 1 {
+                    while Self.mayEmigrate(view.player),
+                          command(.emigrateUnit(slot: String(Europe.MigrationType.defaultSlot))) {}
+                } else {
+                    requests.append(GameEngine.emigration(1, fountainOfYouth: false, europe: europe))
+                }
+            }
         }
     }
 
@@ -298,7 +357,7 @@ final class PlayController {
 
     /// Clear a unit's destination (askClearGotoOrders; trade routes are
     /// not assigned yet).
-    private func clearGotoOrders(_ unitId: String) -> Bool {
+    func clearGotoOrders(_ unitId: String) -> Bool {
         guard let u = unit(unitId) else { return false }
         return setDestination(u, nil)
     }
@@ -416,9 +475,12 @@ final class PlayController {
         case .attackUnit: result = moveAttack(unitId, direction)
         case .embark: result = moveEmbark(unitId, direction)
         case .enterIndianSettlementWithFreeColonist: result = moveLearnSkill(unitId, direction)
-        case .attackSettlement, .enterIndianSettlementWithScout, .enterIndianSettlementWithMissionary,
-             .enterForeignColonyWithScout, .enterSettlementWithCarrierAndGoods:
-            // Dealing with settlements comes with the screens for it.
+        case .attackSettlement: result = moveAttackSettlement(unitId, direction)
+        case .enterIndianSettlementWithScout: result = moveScoutIndianSettlement(unitId, direction)
+        case .enterIndianSettlementWithMissionary: result = moveUseMissionary(unitId, direction)
+        case .enterForeignColonyWithScout: result = moveScoutColony(unitId, direction)
+        case .enterSettlementWithCarrierAndGoods:
+            // Trading comes with native trade and diplomacy.
             if illegal { notices.append(Messages.message("model.option.notYetAvailable")) }
             result = false
         case .moveNoAccessBeached: noAccess("move.noAccessBeached", nation: true, unit: false)
@@ -535,7 +597,7 @@ final class PlayController {
 
     /// Confirm an act of war, unless at war already
     /// (GUI.confirmHostileAction).
-    private func confirmHostileAction(_ unitId: String, _ target: Tile) -> Bool {
+    func confirmHostileAction(_ unitId: String, _ target: Tile) -> Bool {
         guard let attacker = unit(unitId) else { return false }
         if attacker.hasAbility(Ability.piracy) { return true }
         let enemy: Player?
@@ -562,9 +624,13 @@ final class PlayController {
 
     /// Show the odds, and let the player think again (the pre-combat
     /// dialog, which the client shows by default).
-    private func confirmPreCombat(_ unitId: String, _ target: Tile) -> Bool {
+    func confirmPreCombat(_ unitId: String, _ target: Tile) -> Bool {
         guard let attacker = unit(unitId), let cm = view.game.combatModel as CombatModel? else { return false }
         let defender: FreeColGameObject? = target.settlement ?? target.defendingUnit(attacker)
+        // Java's dialog fails on anything but an attack on a unit or a
+        // settlement; then there are no odds to show.
+        guard let defender, cm.combatIsAttack(attacker, defender) || cm.combatIsSettlementAttack(attacker, defender)
+        else { return true }
         let offence = cm.offencePower(attacker, defender)
         let defence = cm.defencePower(attacker, defender)
         let odds = cm.calculateCombatOdds(attacker, defender).win

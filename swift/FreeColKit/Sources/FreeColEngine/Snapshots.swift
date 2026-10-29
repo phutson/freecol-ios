@@ -341,6 +341,8 @@ public enum EngineEvent: Sendable, Equatable {
     case message(MessageSnapshot)
     /// The server asks the player something.
     case request(ServerRequest)
+    /// What the player is told in answer to a command of its own.
+    case notice(String)
 }
 
 /// What came of a command.

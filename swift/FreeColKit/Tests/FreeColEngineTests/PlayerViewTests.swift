@@ -123,6 +123,41 @@ import Testing
                     }
                     return "\(a["direction"]?.stringValue ?? "") \(Float(n("offence"))) \(Float(n("defence"))) \(n("win"))"
                 })
+                // The questions on entering a settlement next door.
+                var visits: [String] = []
+                for (d, mt) in zip(Direction.allDirections, view.moveTypes(unit)) {
+                    guard let s = tile.neighbour(d)?.settlement else { continue }
+                    var text: StringTemplate?, choices: [String] = [], tribute: StringTemplate?
+                    switch mt {
+                    case .enterIndianSettlementWithScout:
+                        let is_ = s as! IndianSettlement
+                        let count = (game.getFreeColGameObject(is_.owner?.id) as? Player)?.settlementCount ?? 0
+                        text = PlayerView.scoutGreeting(is_, view.player, settlements: count)
+                        choices = ["speak", "tribute", "attack"]
+                        tribute = PlayerView.nativeTributeWarning(unit, is_)
+                    case .enterIndianSettlementWithMissionary:
+                        let is_ = s as! IndianSettlement
+                        let (establish, denounce) = PlayerView.missionaryOptions(is_, view.player)
+                        text = PlayerView.missionaryQuestion(is_, view.player)
+                        choices = (establish ? ["establish"] : []) + (denounce ? ["denounce"] : []) + ["incite"]
+                    case .attackSettlement:
+                        text = (s as? IndianSettlement)?.alarmLevelLabel(view.player)
+                            ?? (s as? Colony)?.alarmLevelLabel(view.player)
+                        choices = ["tribute", "attack"]
+                        tribute = (s as? IndianSettlement).map { PlayerView.nativeTributeWarning(unit, $0) }
+                    case .enterForeignColonyWithScout:
+                        text = PlayerView.scoutColonyText(unit, s as! Colony)
+                        choices = ["negotiate", "spy", "attack"]
+                    default:
+                        continue
+                    }
+                    visits.append("\(d.javaName) \(choices) \(Messages.message(text) ?? "") | "
+                                  + (tribute.flatMap { Messages.message($0) } ?? "-"))
+                }
+                check("\(id) visits", visits, (u["visits"]?.arrayValue ?? []).map { v in
+                    "\(v["direction"]?.stringValue ?? "") \((v["choices"]?.arrayValue ?? []).map { $0.stringValue ?? "" }) "
+                        + "\(v["text"]?.stringValue ?? "") | \(v["tribute"]?.stringValue ?? "-")"
+                })
                 check("\(id) destination path", view.destinationPath(unit), Self.javaPath(u["destinationPath"]))
                 if unit.isNaval { check("\(id) Europe path", view.europePath(unit), Self.javaPath(u["europePath"])) }
                 var gotos: [MapPosition: UnitPath] = [:]

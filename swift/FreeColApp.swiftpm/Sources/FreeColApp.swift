@@ -80,6 +80,14 @@ struct SetupView: View {
                 }
                 .disabled(name.isEmpty)
             }
+            let saved = GameStore.savedGames
+            if !saved.isEmpty {
+                Section("Saved games") {
+                    ForEach(saved, id: \.self) { url in
+                        Button(url.deletingPathExtension().lastPathComponent) { Task { await store.load(url) } }
+                    }
+                }
+            }
             Section {
                 Button("Play the sample game") { Task { await store.loadSample() } }
             }

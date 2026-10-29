@@ -341,6 +341,9 @@ public actor GameEngine {
             r.notices = play.notices
             r.activeUnitId = play.activeUnitId
             r.colonyToShow = play.colonyToShow
+            r = CommandResult(refusal: r.refusal, events: r.events + play.requests.map { .request($0) },
+                              snapshot: r.snapshot, question: r.question, notices: r.notices,
+                              activeUnitId: r.activeUnitId, colonyToShow: r.colonyToShow)
             return r
         }
     }
@@ -387,6 +390,77 @@ public actor GameEngine {
         Messages.$scopedBundle.withValue(messages) {
             guard game.currentPlayer === human else { return nil }
             return play.view.unit(unitId).map { play.view.actions($0) }
+        }
+    }
+
+    /// Answer something the server asked, by the command the request
+    /// names.
+    public func respond(_ request: ServerRequest, _ answer: RequestAnswer) -> CommandResult {
+        let command: PlayerCommand?
+        switch (request, answer) {
+        case let (.newLandName(unit, suggestion, _), .name(name)):
+            command = .newLandName(unit: unit, name: name.isEmpty ? suggestion : name)
+        case let (.newRegionName(region, tile, unit, suggestion, _), .name(name)):
+            command = .newRegionName(region: region, tile: tile, unit: unit, name: name.isEmpty ? suggestion : name)
+        case let (.firstContact(player, other, tile, _, _), .accept(yes)):
+            command = .firstContact(player: player, other: other, tile: tile, result: String(yes))
+        case let (.monarch(action, _, _, yes, _), .accept(accepted)):
+            command = yes == nil ? nil : .monarchAction(action: action, result: String(accepted))
+        case let (.chooseFather, .choice(id)):
+            command = .chooseFoundingFather(father: id)
+        case let (.emigrate, .choice(index)):
+            command = Int(index).map { .emigrateUnit(slot: String(Europe.MigrationType.migrantIndexToSlot($0))) }
+        case let (.nativeDemand(unit, colony, type, amount, _, _, _, _), .accept(accepted)):
+            command = .indianDemand(unit: unit, colony: colony, type: type, amount: String(amount),
+                                    result: (accepted ? IndianDemandAction.accept : .reject).javaName)
+        case let (.loot(winner, loser, _, _, _), .goods(taken)):
+            command = taken.isEmpty ? nil : .lootCargo(winner: winner, loser: loser, goods: taken.map {
+                CommandElement(tag: "goods", attributes: ["type": $0.typeId, "amount": String($0.amount)])
+            })
+        case let (.incite(unit, settlement, enemy, gold, _), .accept(yes)):
+            command = yes ? .incite(unit: unit, settlement: settlement, enemy: enemy, gold: String(gold)) : nil
+        default:
+            command = nil
+        }
+        guard let command else {
+            shown.events = []
+            return result(nil)
+        }
+        return perform(command)
+    }
+
+    /// The choice of the next emigrant, from the three waiting now, with
+    /// a number still to choose.
+    public func emigrationRequest(count: Int, fountainOfYouth: Bool) -> ServerRequest {
+        Messages.$scopedBundle.withValue(messages) {
+            GameEngine.emigration(count, fountainOfYouth: fountainOfYouth, europe: play.view.player.europe)
+        }
+    }
+
+    /// The Continental Congress, as its report shows it.
+    public func congressReport() -> CongressReport {
+        Messages.$scopedBundle.withValue(messages) { play.view.congressReport() }
+    }
+
+    /// The religion report, for each immigration goods type.
+    public func religionReport() -> [ReligionReport] {
+        Messages.$scopedBundle.withValue(messages) { play.view.religionReport() }
+    }
+
+    /// The military (land) or naval report.
+    public func unitReport(military: Bool) -> UnitReport {
+        Messages.$scopedBundle.withValue(messages) { play.view.unitReport(military: military) }
+    }
+
+    /// For tests: the server acts on the human player, as it may during
+    /// another player's turn, and the player is shown what it is sent.
+    func serverActs(_ body: (ServerGame, InGameController, Player, JavaRandom) throws -> ChangeSet) throws
+        -> [EngineEvent] {
+        try Messages.$scopedBundle.withValue(messages) {
+            let cs = try body(game, controller, human, random)
+            play.invalidate()
+            guard let update = try cs.build(human) else { return [] }
+            return GameEngine.events(update, for: human)
         }
     }
 
@@ -449,7 +523,7 @@ public actor GameEngine {
 
     /// What the server asks the player, for the requests the interface
     /// answers so far.
-    private static func request(_ m: ServerMessage) -> ServerRequest? {
+    private static func request(_ m: ServerMessage, _ player: Player) -> ServerRequest? {
         switch m {
         case let m as NewLandNameMessage:
             return .newLandName(unitId: m.unit.id ?? "", suggestion: m.name, text: Messages.message("newLand.text"))
@@ -467,9 +541,83 @@ public actor GameEngine {
                 .add("%settlementType%", (m.other.nationType as? IndianNationType)?.settlementTypeKey(plural: true))
             return .firstContact(playerId: m.player.id ?? "", otherId: m.other.id ?? "", tileId: m.tile?.id,
                                  title: Messages.message(title), text: Messages.message(text) ?? "")
+        case let m as MonarchActionMessage:
+            let key = m.action.textKey
+            let base = String(key.dropLast(".text".count))
+            let yes = Messages.containsKey(base + ".yes") ? Messages.message(base + ".yes") : nil
+            let no = Messages.message(Messages.containsKey(base + ".no") ? base + ".no" : "close")
+            let header = Messages.containsKey(base + ".header") ? base + ".header" : "monarchDialog.default"
+            return .monarch(action: m.action.javaName, title: Messages.message(header),
+                            text: Messages.message(StringTemplate.copy(key, m.template)) ?? "", yes: yes, no: no)
+        case let m as ChooseFoundingFatherMessage:
+            return .chooseFather(fathers: m.fathers.map { f in
+                FatherOffer(id: f.id ?? "", name: Messages.name(f),
+                            typeName: f.type.map { Messages.message($0.typeKey) } ?? "",
+                            description: Messages.description(f.id))
+            })
+        case let m as FountainOfYouthMessage:
+            return emigration(m.migrants, fountainOfYouth: true, europe: player.europe)
+        case let m as IndianDemandMessage where m.result == nil:
+            let nation = Messages.message(m.unit.owner?.nationLabel) ?? ""
+            let t: StringTemplate, yes: String, no: String
+            if let type = m.type, type.isFoodType {
+                t = StringTemplate.template("indianDemand.food.text")
+                (yes, no) = ("indianDemand.food.yes", "indianDemand.food.no")
+            } else if let type = m.type {
+                t = StringTemplate.template("indianDemand.other.text").addNamed("%goods%", type)
+                (yes, no) = ("accept", "indianDemand.other.no")
+            } else {
+                t = StringTemplate.template("indianDemand.gold.text")
+                (yes, no) = ("accept", "indianDemand.gold.no")
+            }
+            _ = t.addName("%nation%", nation).addName("%colony%", m.colony.name).addAmount("%amount%", m.amount)
+            return .nativeDemand(unitId: m.unit.id ?? "", colonyId: m.colony.id ?? "", goodsTypeId: m.type?.id,
+                                 amount: m.amount,
+                                 title: Messages.message(StringTemplate.template("nativeDemandDialog.name")
+                                     .addName("%colony%", m.colony.name)) ?? "",
+                                 text: Messages.message(t) ?? "", yes: Messages.message(yes), no: Messages.message(no))
+        case let m as LootCargoMessage:
+            return .loot(winnerId: m.winner.id ?? "", loserId: m.loserId,
+                         goods: m.goods.map { GoodsAmount(typeId: $0.type?.id ?? "", amount: $0.amount) },
+                         spaceLeft: m.winner.spaceLeft, title: Messages.message("captureGoodsDialog.title"))
+        case let m as InciteMessage where m.gold >= 0:
+            return .incite(unitId: m.unit.id ?? "", settlementId: m.settlement.id ?? "", enemyId: m.enemy.id ?? "",
+                           gold: m.gold,
+                           text: Messages.message(StringTemplate.template("missionarySettlement.inciteConfirm")
+                               .addStringTemplate("%enemy%", m.enemy.nationLabel).addAmount("%amount%", m.gold)) ?? "")
         default:
             return nil
         }
+    }
+
+    /// What the player is told in answer to its own command: what a
+    /// scout heard from a chief (scoutSpeakToChiefHandler).
+    private static func notice(_ m: ServerMessage) -> String? {
+        guard let m = m as? ScoutSpeakToChiefMessage else { return nil }
+        let t: StringTemplate
+        switch m.result {
+        case "": return nil
+        case "die": t = .key("scoutSettlement.speakDie")
+        case "expert": t = StringTemplate.template("scoutSettlement.expertScout").addNamed("%unit%", m.unit.type!)
+        case "tales": t = .key("scoutSettlement.speakTales")
+        case "nothing":
+            t = StringTemplate.template("scoutSettlement.speakNothing")
+                .addStringTemplate("%nation%", m.unit.owner?.nationLabel)
+        default: t = StringTemplate.template("scoutSettlement.speakBeads").add("%amount%", m.result)
+        }
+        return Messages.message(t)
+    }
+
+    /// Choosing emigrants (EmigrationDialog): from the three waiting.
+    static func emigration(_ count: Int, fountainOfYouth: Bool, europe: Europe? = nil) -> ServerRequest {
+        var text = Messages.message("emigrationDialog.chooseImmigrant")
+        if fountainOfYouth {
+            text = Messages.message(LostCityRumour.RumourType.fountainOfYouth.descriptionKey) + "\n\n" + text
+        }
+        return .emigrate(count: count, fountainOfYouth: fountainOfYouth, text: text,
+                         choices: (europe?.expandedRecruitables(full: false) ?? []).map {
+                             Messages.message($0.singleLabel) ?? ""
+                         })
     }
 
     /// The events in what a player was sent: moves and attacks to show,
@@ -487,7 +635,11 @@ public actor GameEngine {
             case let .feature(parent, add, children) where add && parent === player:
                 for case let m as ModelMessage in children { ret.append(.message(SnapshotBuilder.message(m))) }
             case let .message(m):
-                if let request = request(m) { ret.append(.request(request)) }
+                if let request = request(m, player) {
+                    ret.append(.request(request))
+                } else if let notice = notice(m) {
+                    ret.append(.notice(notice))
+                }
             default:
                 break
             }

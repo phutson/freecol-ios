@@ -2801,6 +2801,70 @@ colonist's menu (in Europe or a colony) changes its role.
 - **Not done yet:** Brewster's choice of recruit, the Fountain of
   Youth, and the monarch's mercenaries (with the monarch's messages,
   step 6); trade routes.
+  (Brewster, the Fountain of Youth and the monarch came with step 6.)
+
+**Step 6 is done in two parts.** The first, below, is done: the
+server's questions, entering settlements, the Continental Congress
+and reports, and save and load. The second, trading with natives
+and negotiating with Europeans (and what depends on them: tribute
+from Europeans, spying, and trade at settlements), is still to do.
+
+**Step 6, first part, status: done.**
+- **The server's questions** reach the player as requests, each with
+  the text and choices Java's dialog shows, and are answered by one
+  call (`GameEngine.respond`) that sends the command the request
+  names: the monarch (a tax raise or mercenaries to accept or refuse,
+  or news), the choice of the next founding father, emigrants chosen
+  from the three waiting (the Fountain of Youth's several, or, at the
+  start of a turn with Brewster, one, unless all three are alike),
+  natives' demands of a colony, loot from a beaten ship, and the
+  price of inciting natives. What a scout hears from a chief is told.
+- **Entering settlements** (`SettlementController`): a scout at a
+  native settlement is greeted as Java's dialog greets it (the
+  alarm, the nation and its number of settlements, the skill taught
+  and the goods wanted) and chooses to speak, demand tribute or
+  attack; a missionary establishes a mission, denounces another's or
+  incites the natives against an enemy, for a price asked in turn; an
+  armed unit demands tribute (after Java's warning, by the nation's
+  strength, stance and mood) or attacks; a scout at a foreign colony
+  may attack (negotiating and spying come with the second part).
+- **The Continental Congress and reports** (`ReportView`): the father
+  being recruited, the liberty towards him and its cost, and every
+  father's state (elected in a turn, recruiting or available);
+  religion (immigration needed, held and made, and the colonies with
+  churches); and the military and naval reports (the forces by type
+  and role, most first, the REF's, and the units by where they are,
+  colonies by name, then Europe, then the rest).
+- **Save and load:** games are saved in the app's documents (seen in
+  the Files app) and listed on the setup screen to load.
+- **Checked:** `PlayOracle.java` now also records, for each
+  settlement a unit could enter, the question Java's GUI asks (text
+  and choices) and its tribute warning; `PlayerViewTests` matches all
+  of them in eight views (scouts, missionaries establishing and
+  denouncing, armed units and scouts at colonies).
+  `ReportOracle.java` records the reports for six views (one game,
+  `EuropeGameMaker`'s, now has fathers elected and one recruiting);
+  `ReportViewTests` matches them. Planted bugs (a happy settlement's
+  tribute warning taken as content's, a greeting counting one
+  settlement more, elected fathers shown as not elected, Europe
+  listed before the colonies) are caught. `RequestTests` sends each
+  of the server's questions through the engine (by a test-only hook
+  that runs a server action on the player) and answers it: a tax
+  raise accepted, news from the monarch, a father chosen, two
+  Fountain of Youth emigrants, Brewster's emigrant at the start of a
+  turn, natives' demand for food met, and loot taken.
+  `SettlementPlayTests` has a scout speak with a chief, a missionary
+  found a mission and a soldier demand tribute. The app was seen
+  working in the iPad simulator: the reports, and a game saved,
+  listed and loaded.
+- **Fixed on the way:** the pre-combat odds now only ask for the
+  powers of a real attack, where Swift stopped dead on what Java
+  throws for (a combat that is neither an attack on a unit nor on a
+  settlement).
+- **Not checked against Java:** the flows themselves, and the other
+  reports Java has (colonies, labour, trade, natives, history,
+  exploration, foreign affairs, requirements, production, cargo, high
+  scores), which are not done yet.
 
 ## Phase 6: Polish and release
 
