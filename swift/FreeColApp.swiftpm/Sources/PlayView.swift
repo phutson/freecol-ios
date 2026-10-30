@@ -52,6 +52,12 @@ struct PlayView: View {
             if let reports = store.reports { ReportsView(reports: reports, snapshot: snapshot).environment(store) }
         }
         .modifier(TradeSheets())
+        .sheet(isPresented: Binding(get: { store.sendingUnitId != nil }, set: { if !$0 { store.sendingUnitId = nil } })) {
+            if let id = store.sendingUnitId { DestinationSheet(unitId: id).environment(store) }
+        }
+        .sheet(isPresented: Binding(get: { store.routes != nil }, set: { if !$0 { store.closeRoutes() } })) {
+            if let routes = store.routes { TradeRoutesView(screen: routes).environment(store) }
+        }
         .fullScreenCover(isPresented: Binding(get: { store.europe != nil }, set: { if !$0 { store.closeEurope() } })) {
             if let europe = store.europe, let snapshot = store.snapshot {
                 EuropeView(europe: europe, snapshot: snapshot, images: images)
@@ -84,6 +90,7 @@ struct TopBar: View {
             Spacer()
             Menu("Game") {
                 Button("Reports") { Task { await store.openReports() } }
+                Button("Trade routes") { Task { await store.openRoutes() } }
                 Button("Save…") { saving = true }
             }
             if snapshot.europe != nil {
@@ -181,6 +188,8 @@ struct UnitPanel: View {
                 button("Clear orders") { await store.play(.clearOrders(unitId: unit.id)) }
             }
             button("Disband") { await store.play(.disband(unitId: unit.id)) }
+            button("Send to") { store.sendingUnitId = unit.id }
+            if unit.isCarrier { RouteMenu(unitId: unit.id).buttonStyle(.bordered) }
         }
     }
 
@@ -355,7 +364,8 @@ struct Dialogs: ViewModifier {
     /// Whether a trade, negotiation or spy's sheet is up, which an
     /// alert would dismiss.
     private var sheetShown: Bool {
-        store.trade != nil || store.negotiation != nil || store.spiedColony != nil
+        store.trade != nil || store.negotiation != nil || store.spiedColony != nil || store.routes != nil
+            || store.sendingUnitId != nil
     }
 
     /// A presentation binding that runs an action when dismissed.

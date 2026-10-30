@@ -335,8 +335,18 @@ final class PlayController {
         var active = activeUnitId
         var ret = true
         moveMode = max(moveMode, .executeGotoOrders)
-        // Trade routes are not followed yet.
-        if question != nil { return false }
+        // The trade route units first.
+        for id in view.player.units.filter(\.isReadyToTrade).sorted(by: { a, b in
+            let na = a.tradeRoute?.name ?? "", nb = b.tradeRoute?.name ?? ""
+            return na != nb ? na < nb : FreeColObject.compareIds(a, b) < 0
+        }).compactMap(\.id) {
+            activeUnitId = id
+            if !moveToDestination(id) {
+                ret = false
+                break
+            }
+        }
+        if !ret || question != nil { return false }
         if let active { goingTo.setNext(active, view) }
         while let u = goingTo.next(view), let id = u.id {
             activeUnitId = id
@@ -365,6 +375,27 @@ final class PlayController {
         updateGUI()
     }
 
+    /// Send a unit to a place chosen from the destinations
+    /// (selectDestination): towards Europe or away from it, or on its
+    /// way.
+    func selectDestination(_ unitId: String, _ destinationId: String) {
+        guard ourTurn, confirmClearTradeRoute(unitId), let u = unit(unitId),
+              let destination = view.game.getFreeColGameObject(destinationId) as? any Location,
+              setDestination(u, destination), let u = unit(unitId) else { return }
+        if destination is Europe {
+            if let t = u.tile, t.isDirectlyHighSeasConnected {
+                _ = moveTowardEurope(unitId)
+            } else {
+                _ = moveToDestination(unitId)
+            }
+        } else if u.isInEurope {
+            _ = moveAwayFromEurope(unitId)
+        } else {
+            _ = moveToDestination(unitId)
+        }
+        updateGUI()
+    }
+
     /// The path a unit's destination takes (or Java's goto cursor, to
     /// a place).
     private func setDestination(_ u: Unit, _ destination: (any Location)?) -> Bool {
@@ -373,10 +404,9 @@ final class PlayController {
         return unit(id)?.destination?.id == destination?.id
     }
 
-    /// Clear a unit's destination (askClearGotoOrders; trade routes are
-    /// not assigned yet).
+    /// Clear a unit's trade route and destination (askClearGotoOrders).
     func clearGotoOrders(_ unitId: String) -> Bool {
-        guard let u = unit(unitId) else { return false }
+        guard assignRoute(unitId, nil), let u = unit(unitId) else { return false }
         return setDestination(u, nil)
     }
 
@@ -388,7 +418,7 @@ final class PlayController {
         guard let u = unit(unitId) else { return true }
         let player = view.player
         if !ourTurn || u.isAtSea || u.movesLeft <= 0 || u.state == .skipped { return true }
-        if u.tradeRoute != nil { return true }
+        if u.tradeRoute != nil { return followTradeRoute(unitId) }
         guard let destination = u.destination else { return true }
         if !changeState(unitId, .active) { return true }
         guard let u = unit(unitId), let path = PlayerView.path(u.findPath(destination)) else {
@@ -419,7 +449,7 @@ final class PlayController {
     }
 
     /// Follow a path (movePath).
-    private func movePath(_ unitId: String, _ path: UnitPath) -> Bool {
+    func movePath(_ unitId: String, _ path: UnitPath) -> Bool {
         for step in path.steps {
             guard let u = unit(unitId) else { return false }
             switch step.place {

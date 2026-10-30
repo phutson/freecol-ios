@@ -246,6 +246,14 @@ public actor GameEngine {
         case move(unitId: String, direction: String)
         /// Go along a goto path to its end.
         case goTo(unitId: String, destination: PathPlace)
+        /// Trade routes: a new one, its name and stops changed, deleted,
+        /// and given to a unit (or taken away).
+        case newTradeRoute
+        case updateTradeRoute(TradeRouteInfo)
+        case deleteTradeRoute(routeId: String)
+        case assignTradeRoute(unitId: String, routeId: String?)
+        /// Send a unit to a place chosen from its destinations.
+        case selectDestination(unitId: String, destinationId: String)
         /// Sentry or fortify (Java's unit state names).
         case changeState(unitId: String, state: String)
         /// Done with this unit this turn.
@@ -306,6 +314,11 @@ public actor GameEngine {
                 case let .move(id, name):
                     if let d = Direction.allDirections.first(where: { $0.javaName == name }) { play.moveUnit(id, d) }
                 case let .goTo(id, destination): play.goTo(id, destination)
+                case let .selectDestination(id, destination): play.selectDestination(id, destination)
+                case .newTradeRoute: play.newTradeRoute()
+                case .updateTradeRoute(let route): play.updateTradeRoute(route)
+                case .deleteTradeRoute(let id): play.deleteTradeRoute(id)
+                case let .assignTradeRoute(unit, route): play.assignTradeRoute(unit, route)
                 case let .changeState(id, name):
                     if let state = Unit.UnitState.allCases.first(where: { $0.javaName == name }) {
                         play.changeState(id, state)
@@ -521,6 +534,42 @@ public actor GameEngine {
         Messages.$scopedBundle.withValue(messages) { play.view.unitReport(military: military) }
     }
 
+    /// The player's trade routes, and what they can be made of.
+    public func tradeRoutes() -> TradeRoutesScreen {
+        Messages.$scopedBundle.withValue(messages) { play.view.tradeRoutesScreen() }
+    }
+
+    /// The cargo report.
+    public func cargoReport() -> UnitReport {
+        Messages.$scopedBundle.withValue(messages) { play.view.unitReport(.cargo) }
+    }
+
+    /// The summary of a player the server would send.
+    private func summary(_ id: String) -> NationSummary? {
+        (game.getFreeColGameObject(id) as? Player).map { NationSummary($0, human) }
+    }
+
+    public func explorationReport() -> [RegionRow] { Messages.$scopedBundle.withValue(messages) { play.view.explorationReport() } }
+    public func historyReport() -> [HistoryRow] { Messages.$scopedBundle.withValue(messages) { play.view.historyReport() } }
+    public func educationReport() -> [SchoolRow] { Messages.$scopedBundle.withValue(messages) { play.view.educationReport() } }
+    public func tradeReport() -> TradeReport { Messages.$scopedBundle.withValue(messages) { play.view.tradeReport() } }
+    public func requirementsReport() -> [RequirementsRow] { Messages.$scopedBundle.withValue(messages) { play.view.requirementsReport() } }
+    public func labourReport() -> [LabourRow] { Messages.$scopedBundle.withValue(messages) { play.view.labourReport() } }
+    public func colonyReport() -> [ColonyReportRow] { Messages.$scopedBundle.withValue(messages) { play.view.colonyReport() } }
+    public func productionReport(goodsTypeIds: [String]) -> ProductionReport {
+        Messages.$scopedBundle.withValue(messages) { play.view.productionReport(goodsTypeIds) }
+    }
+    /// The goods the production report can show, by identifier and name.
+    public func productionGoods() -> [(id: String, name: String)] {
+        Messages.$scopedBundle.withValue(messages) { play.view.productionGoods.map { ($0.id ?? "", Messages.name($0)) } }
+    }
+    public func foreignReport() -> [ForeignRow] {
+        Messages.$scopedBundle.withValue(messages) { play.view.foreignReport(summary: { summary($0) }) }
+    }
+    public func nativesReport() -> [NativeNationRow] {
+        Messages.$scopedBundle.withValue(messages) { play.view.nativesReport(summary: { summary($0) }) }
+    }
+
     /// For tests: the server acts on the human player, as it may during
     /// another player's turn, and the player is shown what it is sent.
     func serverActs(_ body: (ServerGame, InGameController, Player, JavaRandom) throws -> ChangeSet) throws
@@ -555,9 +604,12 @@ public actor GameEngine {
         }
     }
 
-    /// Where a ship in Europe could sail for, by identifier and name.
-    public func sailingDestinations() -> [(id: String, name: String)] {
-        Messages.$scopedBundle.withValue(messages) { play.sailingDestinations }
+    /// The places a unit could be sent to, as Java's destination dialog
+    /// lists them (for a ship in Europe, where it could sail for).
+    public func destinations(_ unitId: String, order: DestinationOrder = .owner) -> [DestinationChoice] {
+        Messages.$scopedBundle.withValue(messages) {
+            play.view.unit(unitId).map { play.view.destinations($0, order: order) } ?? []
+        }
     }
 
     /// Save the game, as Java's server does, AI and all, so Java can

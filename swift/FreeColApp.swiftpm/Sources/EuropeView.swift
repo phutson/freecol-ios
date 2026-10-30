@@ -86,12 +86,8 @@ struct EuropeView: View {
             ForEach(europe.carriers, id: \.id) { c in
                 ShipCard(shipId: c.id, goods: c.goods, unitIds: c.unitIds, snapshot: snapshot, images: images) {
                     Button("Unload") { Task { await store.play(.unloadAll(carrierId: c.id)) } }
-                    Menu("Sail to") {
-                        ForEach(store.destinations, id: \.id) { d in
-                            Button(d.name) {
-                                Task { await store.play(.sail(carrierId: c.id, destinationId: d.id)) }
-                            }
-                        }
+                    DestinationMenu(title: "Sail to", destinations: store.destinations[c.id] ?? []) { id in
+                        Task { await store.play(.sail(carrierId: c.id, destinationId: id)) }
                     }
                 }
             }
@@ -258,5 +254,26 @@ struct RoleMenu: View {
         ForEach(store.roles[unitId] ?? [], id: \.roleId) { c in
             Button(c.text) { Task { await store.play(.equip(unitId: unitId, roleId: c.roleId, count: c.count)) } }
         }
+    }
+}
+
+/// Java's destination dialog as a menu: home and the player's colonies
+/// first, the others' settlements under "Other destinations".
+struct DestinationMenu: View {
+    let title: String
+    let destinations: [DestinationChoice]
+    let choose: (String) -> Void
+
+    var body: some View {
+        Menu(title) {
+            ForEach(destinations.filter(\.isOwn), id: \.id) { d in Button(d.text) { choose(d.id) } }
+            let others = destinations.filter { !$0.isOwn }
+            if !others.isEmpty {
+                Menu("Other destinations") {
+                    ForEach(others, id: \.id) { d in Button(d.text) { choose(d.id) } }
+                }
+            }
+        }
+        .disabled(destinations.isEmpty)
     }
 }

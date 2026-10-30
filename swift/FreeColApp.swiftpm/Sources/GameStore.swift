@@ -45,6 +45,8 @@ final class GameStore {
     private(set) var activeUnitId: String?
     private(set) var actions: UnitActions?
     private(set) var destinationPath: UnitPath?
+    /// The unit being sent somewhere, while its destinations are shown.
+    var sendingUnitId: String?
     /// Choosing a goto destination: the tile tapped and the path to it.
     private(set) var choosingGoto = false
     private(set) var gotoTarget: MapPosition?
@@ -69,7 +71,7 @@ final class GameStore {
     /// Europe, when the player is looking at it.
     private(set) var europe: EuropeScreen?
     /// Where ships in Europe could sail for.
-    private(set) var destinations: [(id: String, name: String)] = []
+    private(set) var destinations: [String: [DestinationChoice]] = [:]
     /// The role changes on offer for the units shown in Europe or a
     /// colony.
     private(set) var roles: [String: [RoleChoice]] = [:]
@@ -257,13 +259,60 @@ final class GameStore {
         let religion: [ReligionReport]
         let military: UnitReport
         let naval: UnitReport
+        let cargo: UnitReport
+        let colonies: [ColonyReportRow]
+        let education: [SchoolRow]
+        let exploration: [RegionRow]
+        let foreign: [ForeignRow]
+        let history: [HistoryRow]
+        let labour: [LabourRow]
+        let natives: [NativeNationRow]
+        let requirements: [RequirementsRow]
+        let trade: TradeReport
+        let productionGoods: [(id: String, name: String)]
     }
 
     func openReports() async {
         guard let engine else { return }
         reports = Reports(congress: await engine.congressReport(), religion: await engine.religionReport(),
                           military: await engine.unitReport(military: true),
-                          naval: await engine.unitReport(military: false))
+                          naval: await engine.unitReport(military: false), cargo: await engine.cargoReport(),
+                          colonies: await engine.colonyReport(), education: await engine.educationReport(),
+                          exploration: await engine.explorationReport(), foreign: await engine.foreignReport(),
+                          history: await engine.historyReport(), labour: await engine.labourReport(),
+                          natives: await engine.nativesReport(), requirements: await engine.requirementsReport(),
+                          trade: await engine.tradeReport(), productionGoods: await engine.productionGoods())
+    }
+
+    func productionReport(_ goodsTypeIds: [String]) async -> ProductionReport? {
+        await engine?.productionReport(goodsTypeIds: goodsTypeIds)
+    }
+
+    // MARK: Trade routes
+
+    /// The trade routes, while they are shown.
+    private(set) var routes: TradeRoutesScreen?
+
+    func openRoutes() async {
+        routes = await engine?.tradeRoutes()
+    }
+
+    func destinations(_ unitId: String, order: DestinationOrder) async -> [DestinationChoice] {
+        await engine?.destinations(unitId, order: order) ?? []
+    }
+
+    func routeList() async -> [TradeRouteInfo] {
+        await engine?.tradeRoutes().routes ?? []
+    }
+
+    func closeRoutes() {
+        routes = nil
+    }
+
+    /// Do something to the routes, and show them as they are then.
+    func changeRoutes(_ action: GameEngine.PlayAction) async {
+        await play(action)
+        await openRoutes()
     }
 
     func closeReports() {
@@ -317,7 +366,9 @@ final class GameStore {
     private func refreshEurope() async {
         guard let engine else { return }
         europe = await engine.europeScreen()
-        destinations = await engine.sailingDestinations()
+        var d: [String: [DestinationChoice]] = [:]
+        for c in europe?.carriers ?? [] { d[c.id] = await engine.destinations(c.id) }
+        destinations = d
     }
 
     func closeEurope() {

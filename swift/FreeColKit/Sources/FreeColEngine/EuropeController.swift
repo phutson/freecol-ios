@@ -163,33 +163,21 @@ extension PlayController {
         for id in (unit(carrierId)?.units ?? []).compactMap(\.id) { leaveShip(id) }
     }
 
-    /// Where a ship in Europe could sail for: the New World, or one of
-    /// the player's coastal colonies.
-    var sailingDestinations: [(id: String, name: String)] {
-        var ret: [(String, String)] = []
-        if let map = view.game.map, let id = map.id {
-            ret.append((id, Messages.message(locationLabel(map, for: view.player)) ?? ""))
-        }
-        for c in view.player.colonyList where c.isConnectedPort {
-            if let id = c.id { ret.append((id, c.name ?? "")) }
-        }
-        return ret
-    }
-
     /// Sail a ship from Europe for a destination, or towards Europe
     /// (DestinationPanel.add): asking first if colonists would be left
     /// on the docks with room aboard.
     func sail(_ carrierId: String, to destinationId: String) {
         guard ourTurn, let ship = unit(carrierId), ship.isNaval, let europe = view.player.europe else { return }
+        if ship.tradeRoute != nil && (!confirmClearTradeRoute(carrierId) || !assignRoute(carrierId, nil)) { return }
         if destinationId == europe.id {
             if ship.isInEurope { return }
             if command(.moveTo(unit: carrierId, destination: destinationId)) { updateGUI() }
             return
         }
         if ship.isInEurope, europe.units.contains(where: { !$0.isNaval }), ship.hasSpaceLeft {
-            let name = (view.game.getFreeColGameObject(destinationId) as? any Location)
-                .flatMap { locationLabel($0, for: view.player) }
-            let t = StringTemplate.template("europePanel.leaveColonists").addStringTemplate("%newWorld%", name)
+            // Named for the panel the ship was dropped on: the New World.
+            let t = StringTemplate.template("europePanel.leaveColonists")
+                .addStringTemplate("%newWorld%", locationLabel(view.game.map, for: view.player))
             if !confirm("leaveColonists:\(carrierId)", carrierId, t, "ok", "cancel") { return }
         }
         if command(.moveTo(unit: carrierId, destination: destinationId)) { updateGUI() }

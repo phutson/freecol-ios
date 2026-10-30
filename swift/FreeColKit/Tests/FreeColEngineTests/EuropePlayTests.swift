@@ -119,7 +119,7 @@ import Testing
 
         // A ship sails for the New World, leaving the docks' colonists.
         let ship = try #require(before.carriers.first { $0.spaceLeft > 0 })
-        let map = try #require(await engine.sailingDestinations().first)
+        let map = try #require(await engine.destinations(ship.id).first)
         _ = try await PlayTests.playAccepting(engine, .sail(carrierId: ship.id, destinationId: map.id), asked: &asked)
         #expect(asked.contains("leaveColonists:\(ship.id)"))
         let sailing = try await Self.europe(engine)

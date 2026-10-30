@@ -133,12 +133,21 @@ extension PlayerView {
 
     /// The military (land) or naval report.
     func unitReport(military: Bool) -> UnitReport {
+        unitReport(military ? .military : .naval)
+    }
+
+    /// The military, naval or cargo report (ReportUnitPanel and its
+    /// subclasses).
+    func unitReport(_ kind: UnitReportKind) -> UnitReport {
+        let military = kind == .military
         var whereAt: [ObjectIdentifier: (any Location, [FreeColCore.Unit])] = [:]
         var forces: [UnitCount] = []
         for u in player.units {
-            let reportable = military
-                ? !u.isNaval && (u.hasAbility(Ability.expertSoldier) || u.isOffensiveUnit)
-                : u.isNaval
+            let reportable = switch kind {
+            case .military: !u.isNaval && (u.hasAbility(Ability.expertSoldier) || u.isOffensiveUnit)
+            case .naval: u.isNaval
+            case .cargo: u.isCarrier || u.canCarryTreasure
+            }
             guard reportable, let loc = u.location?.up() else { continue }
             whereAt[ObjectIdentifier(loc as AnyObject), default: (loc, [])].1.append(u)
             let type = u.type?.id ?? "", role = u.role?.id ?? ""
@@ -155,7 +164,7 @@ extension PlayerView {
         }
         let spec = game.specification
         let ref = byNumber((player.refUnits ?? []).compactMap { au in
-            guard let type = au.type(spec!), type.isNaval != military else { return nil }
+            guard kind != .cargo, let type = au.type(spec!), type.isNaval != military else { return nil }
             return UnitCount(typeId: au.id ?? "", roleId: au.roleId ?? "", number: au.number)
         })
 

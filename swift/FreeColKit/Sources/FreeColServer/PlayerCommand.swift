@@ -110,6 +110,13 @@ public enum PlayerCommand: Equatable, Sendable {
     /// Look into a foreign colony.
     case spySettlement(unit: String?, settlement: String?)
     case trainUnitInEurope(unitType: String?)
+    /// Trade routes: a new one, its stops changed, given to a unit (or
+    /// taken away), deleted, and a unit's next stop.
+    case newTradeRoute
+    case updateTradeRoute(route: CommandElement?)
+    case assignTradeRoute(unit: String?, route: String?)
+    case deleteTradeRoute(route: String?)
+    case setCurrentStop(unit: String?, index: String?)
     case unloadGoods(type: String?, amount: String?, carrier: String?)
     case work(unit: String?, workLocation: String?)
 
@@ -194,6 +201,11 @@ public enum PlayerCommand: Equatable, Sendable {
                                    exportData: children.first { $0.tag == "exportData" }?.attributes)
         case "chooseFoundingFather": self = .chooseFoundingFather(father: a["foundingFather"])
         case "setDestination": self = .setDestination(unit: a["unit"], destination: a["destination"])
+        case "newTradeRoute": self = .newTradeRoute
+        case "updateTradeRoute": self = .updateTradeRoute(route: children.first { $0.tag == "tradeRoute" })
+        case "assignTradeRoute": self = .assignTradeRoute(unit: a["unit"], route: a["tradeRoute"])
+        case "deleteTradeRoute": self = .deleteTradeRoute(route: a["tradeRoute"])
+        case "setCurrentStop": self = .setCurrentStop(unit: a["unit"], index: a["index"])
         case "spySettlement": self = .spySettlement(unit: a["unit"], settlement: a["settlement"])
         case "trainUnitInEurope": self = .trainUnitInEurope(unitType: a["unitType"])
         case "unloadGoods": self = .unloadGoods(type: a["type"], amount: a["amount"], carrier: a["carrier"])

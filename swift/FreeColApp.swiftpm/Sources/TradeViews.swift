@@ -287,3 +287,146 @@ struct SpiedColonySheet: View {
         }
     }
 }
+
+/// The trade routes (TradeRoutePanel and TradeRouteInputPanel): each with
+/// its stops and what is loaded at them.
+struct TradeRoutesView: View {
+    @Environment(GameStore.self) private var store
+    let screen: TradeRoutesScreen
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(screen.routes) { r in
+                    NavigationLink {
+                        TradeRouteEditor(route: r, screen: screen).environment(store)
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text(r.name)
+                            Text(r.stops.map(\.locationName).joined(separator: " → ") + " · \(r.unitIds.count) units")
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .onDelete { offsets in
+                    for i in offsets {
+                        let id = screen.routes[i].id
+                        Task { await store.changeRoutes(.deleteTradeRoute(routeId: id)) }
+                    }
+                }
+            }
+            .navigationTitle("Trade routes")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("New") { Task { await store.changeRoutes(.newTradeRoute) } }
+                }
+                ToolbarItem(placement: .cancellationAction) { Button("Done") { store.closeRoutes() } }
+            }
+        }
+    }
+}
+
+struct TradeRouteEditor: View {
+    @Environment(GameStore.self) private var store
+    @Environment(\.dismiss) private var dismiss
+    @State var route: TradeRouteInfo
+    let screen: TradeRoutesScreen
+
+    var body: some View {
+        Form {
+            TextField("Name", text: $route.name)
+            ForEach(Array(route.stops.indices), id: \.self) { i in
+                Section(route.stops[i].locationName) {
+                    ForEach(Array(screen.goodsIds.enumerated()), id: \.offset) { g, id in
+                        CheckRow(title: screen.goodsNames[g], isOn: Binding(get: { route.stops[i].cargo.contains(id) }, set: { on in
+                            if on { route.stops[i].cargo.append(id) } else { route.stops[i].cargo.removeAll { $0 == id } }
+                        }))
+                    }
+                    Button("Remove stop", role: .destructive) { route.stops.remove(at: i) }
+                }
+            }
+            Menu("Add a stop") {
+                ForEach(screen.locations, id: \.locationId) { l in Button(l.locationName) { route.stops.append(l) } }
+            }
+        }
+        .navigationTitle(route.name)
+        .toolbar {
+            Button("Save") {
+                Task {
+                    await store.changeRoutes(.updateTradeRoute(route))
+                    dismiss()
+                }
+            }
+        }
+    }
+}
+
+/// Give the unit a trade route, or take it away.
+struct RouteMenu: View {
+    @Environment(GameStore.self) private var store
+    let unitId: String
+    @State private var routes: [TradeRouteInfo] = []
+
+    var body: some View {
+        Menu("Route") {
+            ForEach(routes) { r in
+                Button(r.name) { Task { await store.play(.assignTradeRoute(unitId: unitId, routeId: r.id)) } }
+            }
+            Button("None") { Task { await store.play(.assignTradeRoute(unitId: unitId, routeId: nil)) } }
+        }
+        .task(id: unitId) { routes = await store.routeList() }
+    }
+}
+
+/// Where to send a unit (SelectDestinationDialog).
+struct DestinationSheet: View {
+    @Environment(GameStore.self) private var store
+    let unitId: String
+    @State private var order = DestinationOrder.owner
+    @State private var onlyMine = true
+    @State private var list: [DestinationChoice] = []
+
+    var body: some View {
+        NavigationStack {
+            List {
+                CheckRow(title: "Only my colonies", isOn: $onlyMine)
+                Picker("Sort by", selection: $order) {
+                    Text("Owner").tag(DestinationOrder.owner)
+                    Text("Name").tag(DestinationOrder.name)
+                    Text("Distance").tag(DestinationOrder.distance)
+                }
+                ForEach(list.filter { !onlyMine || $0.isOwn }, id: \.id) { d in
+                    Button(d.text) {
+                        store.sendingUnitId = nil
+                        Task { await store.play(.selectDestination(unitId: unitId, destinationId: d.id)) }
+                    }
+                }
+            }
+            .navigationTitle("Send to")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { store.sendingUnitId = nil } }
+            }
+        }
+        .task(id: order) { list = await store.destinations(unitId, order: order) }
+    }
+}
+
+/// A row with a tick, turned on and off by tapping it.
+struct CheckRow: View {
+    let title: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        Button {
+            isOn.toggle()
+        } label: {
+            HStack {
+                Text(title)
+                Spacer()
+                if isOn { Image(systemName: "checkmark") }
+            }
+        }
+    }
+}

@@ -46,6 +46,9 @@ extension InGameController {
         case .endTurn:
             return try endTurn(player)
 
+        case .newTradeRoute, .updateTradeRoute, .assignTradeRoute, .deleteTradeRoute, .setCurrentStop:
+            return try performTradeRoute(command, by: player)
+
         case let .abandonColony(colonyId):
             let colony = try ours(player, colonyId, Colony.self)
             let count = colony.unitCount

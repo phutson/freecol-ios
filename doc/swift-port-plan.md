@@ -2801,7 +2801,7 @@ colonist's menu (in Europe or a colony) changes its role.
 - **Not done yet:** Brewster's choice of recruit, the Fountain of
   Youth, and the monarch's mercenaries (with the monarch's messages,
   step 6); trade routes.
-  (Brewster, the Fountain of Youth and the monarch came with step 6.)
+  (All of these came with step 6.)
 
 **Step 6 is done in two parts**, both done: the first, the server's
 questions, entering settlements, the Continental Congress and
@@ -2924,6 +2924,45 @@ trade at settlements).
   numbers, checked with it in Phase 4). Where Java's goods panel
   takes goods off its list again each time it is updated, the engine
   takes them off once.
+
+**Step 6, what was left over, status: done.**
+- **Destinations** (`DestinationView`): where a unit can be sent is
+  Java's destination dialog, by the same path search: Europe or the
+  map, the player's settlements, and others' it has contacted, with
+  turns and what is of interest there (a mission, sale prices, skills,
+  war), in its three orders. Ships in Europe sail by it, and "Send to"
+  offers it for any unit on the map.
+- **The other reports** (`AdvisorReports`): cargo, colonies (Java's
+  classic layout), labour, trade, production, requirements, education,
+  natives, foreign affairs, exploration and history. The compact
+  colony and labour reports are not ported, since they lay out the same
+  facts; high scores wait for Phase 6, and the app already shows the
+  turn's messages.
+- **Trade routes** (`TradeController`, and the server's commands, new
+  in `TradeRouteCommands`): routes are made, renamed, given stops and
+  cargo, refused by Java's checks, given to a unit or taken away, and
+  deleted; going to orders follow them first, unloading, loading,
+  moving and finding the next stop with work, as Java's client does,
+  with its question when a warehouse would overflow. Java's summary of
+  each unit's activity is off by default there, and not offered here.
+- **The monarch's mercenaries** needed nothing new: they already come
+  as the monarch's request. A test now shows them accepted and paid for.
+- **Checked:** `DestinationOracle.java` records the destinations of
+  every unit in four games, and `AdvisorOracle.java` the reports in
+  eight, one for exploration and history; `DestinationViewTests` and
+  `AdvisorReportTests` match them. Planted bugs (mission mark, a
+  turn short, reversed exploration order, capital mark, warehouse
+  waste, missing experts, the cargo filter) are caught.
+  `TradeRoutePlayTests` makes and refuses routes, sends a ship from
+  port to port until its sugar is delivered, and clears a route;
+  routes that do not load or do not unload are caught. The app was
+  seen in the iPad simulator: destinations, a new route in the editor
+  and the report menu.
+- **Not checked against Java:** following routes (only by play tests
+  in Swift, with their default options), and the app's route
+  screens beyond opening them. Java's production report keeps
+  buildings in a hash set; here they are in the rules' order, and the
+  labour report's other places are by identifier.
 
 ## Phase 6: Polish and release
 
