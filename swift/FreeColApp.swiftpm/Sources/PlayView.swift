@@ -32,7 +32,8 @@ struct PlayView: View {
     var body: some View {
         ZStack(alignment: .top) {
             MapView(snapshot: snapshot, images: images, activeUnitId: store.activeUnitId, path: store.shownPath,
-                    onTap: { p in Task { await store.tap(p) } })
+                    onTap: { p in Task { await store.tap(p) } },
+                    onLongPress: { p in Task { await store.openTileMenu(p) } })
                 .ignoresSafeArea()
             VStack(spacing: 0) {
                 TopBar(snapshot: snapshot)
@@ -52,6 +53,13 @@ struct PlayView: View {
             if let reports = store.reports { ReportsView(reports: reports, snapshot: snapshot).environment(store) }
         }
         .modifier(TradeSheets())
+        .sheet(isPresented: Binding(get: { store.tileMenu != nil }, set: { if !$0 { store.closeTileMenu() } })) {
+            if let menu = store.tileMenu { TileMenuSheet(menu: menu).environment(store) }
+        }
+        .sensoryFeedback(.impact, trigger: store.combats)
+        .sensoryFeedback(.warning, trigger: store.warnings)
+        .sensoryFeedback(.success, trigger: snapshot.turn)
+        .sensoryFeedback(.selection, trigger: store.activeUnitId)
         .sheet(isPresented: Binding(get: { store.sendingUnitId != nil }, set: { if !$0 { store.sendingUnitId = nil } })) {
             if let id = store.sendingUnitId { DestinationSheet(unitId: id).environment(store) }
         }
@@ -81,6 +89,7 @@ struct TopBar: View {
     let snapshot: GameSnapshot
     @State private var saving = false
     @State private var saveName = ""
+    @State private var newName = ""
 
     var body: some View {
         HStack {
@@ -104,6 +113,16 @@ struct TopBar: View {
         .padding(10)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
         .disabled(store.busy)
+        .alert("Rename the colony", isPresented: Binding(get: { store.renamingColonyId != nil },
+                                                         set: { if !$0 { store.renamingColonyId = nil } })) {
+            TextField("Name", text: $newName)
+            Button("Rename") {
+                if let id = store.renamingColonyId {
+                    Task { await store.play(.renameColony(colonyId: id, name: newName)) }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
         .alert("Save the game", isPresented: $saving) {
             TextField("Name", text: $saveName)
                 .onAppear { saveName = "\(snapshot.player?.nationName ?? "") \(snapshot.turnName)" }
@@ -365,7 +384,7 @@ struct Dialogs: ViewModifier {
     /// alert would dismiss.
     private var sheetShown: Bool {
         store.trade != nil || store.negotiation != nil || store.spiedColony != nil || store.routes != nil
-            || store.sendingUnitId != nil
+            || store.sendingUnitId != nil || store.tileMenu != nil
     }
 
     /// A presentation binding that runs an action when dismissed.

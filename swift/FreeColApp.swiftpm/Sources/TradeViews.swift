@@ -430,3 +430,25 @@ struct CheckRow: View {
         }
     }
 }
+
+/// What a long press on a tile offers (TilePopup).
+struct TileMenuSheet: View {
+    @Environment(GameStore.self) private var store
+    let menu: TileMenu
+
+    var body: some View {
+        NavigationStack {
+            List(Array(menu.items.enumerated()), id: \.offset) { _, item in
+                Button(item.label.trimmingCharacters(in: .whitespaces)) { Task { await store.choose(item) } }
+                    .disabled(!item.enabled)
+                    .padding(.leading, CGFloat(item.label.prefix { $0 == " " }.count) * 3)
+            }
+            .navigationTitle(menu.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { store.closeTileMenu() } }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}

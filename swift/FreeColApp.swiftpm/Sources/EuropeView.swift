@@ -129,6 +129,8 @@ struct EuropeView: View {
                         Text("\(g.paidForSale)/\(g.costToBuy)").font(.caption).monospacedDigit()
                     }
                     .frame(width: 52)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityValue("Sells for \(g.paidForSale), costs \(g.costToBuy)")
                     .draggable(Drag.goods(g.typeId, 100, from: "market").text)
                     .contextMenu {
                         if !g.canTrade {

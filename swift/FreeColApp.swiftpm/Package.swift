@@ -24,7 +24,8 @@ let package = Package(
             displayVersion: "0.1",
             bundleVersion: "1",
             supportedDeviceFamilies: [.pad, .phone],
-            supportedInterfaceOrientations: [.portrait, .landscapeLeft, .landscapeRight, .portraitUpsideDown(.when(deviceFamilies: [.pad]))]
+            supportedInterfaceOrientations: [.portrait, .landscapeLeft, .landscapeRight, .portraitUpsideDown(.when(deviceFamilies: [.pad]))],
+            additionalInfoPlistContentFilePath: "AdditionalInfo.plist"
         ),
     ],
     dependencies: [

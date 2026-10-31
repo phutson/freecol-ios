@@ -22,11 +22,23 @@ import SwiftUI
 @main
 struct FreeColApp: App {
     @State private var store = GameStore()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(store)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .background, store.hasGame else { return }
+            // The system allows a little time to finish, if asked.
+            let application = UIApplication.shared
+            var task = UIBackgroundTaskIdentifier.invalid
+            task = application.beginBackgroundTask { application.endBackgroundTask(task) }
+            Task {
+                await store.autosave()
+                application.endBackgroundTask(task)
+            }
         }
     }
 }
@@ -59,6 +71,9 @@ struct SetupView: View {
     @State private var name = "Player"
     @State private var rules = "freecol"
     @State private var difficulty = "model.difficulty.medium"
+    @State private var saved = GameStore.savedGames
+    @State private var importing = false
+    @State private var importFailure: String?
 
     static let difficulties = [("model.difficulty.veryEasy", "Very easy"), ("model.difficulty.easy", "Easy"),
                                ("model.difficulty.medium", "Medium"), ("model.difficulty.hard", "Hard"),
@@ -80,17 +95,38 @@ struct SetupView: View {
                 }
                 .disabled(name.isEmpty)
             }
-            let saved = GameStore.savedGames
-            if !saved.isEmpty {
-                Section("Saved games") {
-                    ForEach(saved, id: \.self) { url in
+            Section("Saved games") {
+                ForEach(saved, id: \.self) { url in
+                    HStack {
                         Button(url.deletingPathExtension().lastPathComponent) { Task { await store.load(url) } }
+                            .buttonStyle(.borderless)
+                        Spacer()
+                        // To Files, iCloud Drive or another device.
+                        ShareLink(item: url) { Image(systemName: "square.and.arrow.up") }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel("Share \(url.deletingPathExtension().lastPathComponent)")
                     }
                 }
+                .onDelete { offsets in
+                    for i in offsets { try? FileManager.default.removeItem(at: saved[i]) }
+                    saved = GameStore.savedGames
+                }
+                Button("Import from Files…") { importing = true }
             }
             Section {
                 Button("Play the sample game") { Task { await store.loadSample() } }
             }
+        }
+        .fileImporter(isPresented: $importing, allowedContentTypes: [.data]) { result in
+            do {
+                try GameStore.importGame(try result.get())
+                saved = GameStore.savedGames
+            } catch {
+                importFailure = "\(error)"
+            }
+        }
+        .alert(importFailure ?? "", isPresented: Binding(get: { importFailure != nil }, set: { if !$0 { importFailure = nil } })) {
+            Button("OK") {}
         }
         .frame(maxWidth: 500)
         .scrollContentBackground(.hidden)

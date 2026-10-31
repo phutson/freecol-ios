@@ -34,12 +34,18 @@ struct MapView: View {
     var path: UnitPath?
     /// A tile tapped.
     var onTap: (MapPosition) -> Void = { _ in }
+    /// A tile pressed and held.
+    var onLongPress: (MapPosition) -> Void = { _ in }
 
     /// The map pixel (at scale 1) at the screen's centre, and the zoom.
     @State private var centre: CGPoint?
     @State private var zoom: CGFloat = 0.75
     @State private var dragStart: CGPoint?
     @State private var zoomStart: CGFloat?
+    /// Where the finger came down, for a long press, which does not say.
+    @State private var touch: CGPoint?
+    /// A long press was just recognized: its lifting is not a tap.
+    @State private var held = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -55,8 +61,40 @@ struct MapView: View {
             }
             .gesture(drag(centre).simultaneously(with: magnify))
             .simultaneousGesture(SpatialTapGesture().onEnded { value in
-                if let tile = tile(at: value.location, geometry.size, centre) { onTap(tile) }
+                if held {
+                    held = false
+                } else if let tile = tile(at: value.location, geometry.size, centre) {
+                    onTap(tile)
+                }
             })
+            .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { touch = $0.startLocation })
+            .simultaneousGesture(LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+                if let touch, let tile = tile(at: touch, geometry.size, centre) {
+                    held = true
+                    onLongPress(tile)
+                }
+            })
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Map")
+            .accessibilityChildren { accessibleMap }
+        }
+    }
+
+    /// What VoiceOver reads of the map, which is drawn as one picture:
+    /// the colonies and the player's units on it.  Activating one taps
+    /// it; the menu of its tile is a further action.
+    @ViewBuilder private var accessibleMap: some View {
+        ForEach(snapshot.colonies, id: \.id) { c in
+            Rectangle().accessibilityLabel("Colony \(c.name)")
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { onTap(c.position) }
+                .accessibilityAction(named: "Menu") { onLongPress(c.position) }
+        }
+        ForEach(snapshot.ownUnits.filter { if case .tile = $0.place { true } else { false } }, id: \.id) { u in
+            Rectangle().accessibilityLabel(u.id == activeUnitId ? "\(u.label), being moved" : u.label)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { if let p = u.position { onTap(p) } }
+                .accessibilityAction(named: "Menu") { if let p = u.position { onLongPress(p) } }
         }
     }
 

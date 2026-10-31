@@ -771,7 +771,7 @@ final class PlayController {
 
     /// Cash in a treasure train in a colony, if the player agrees
     /// (checkCashInTreasureTrain).
-    private func checkCashInTreasureTrain(_ unitId: String) -> Bool {
+    func checkCashInTreasureTrain(_ unitId: String) -> Bool {
         guard ourTurn, let u = unit(unitId), u.canCarryTreasure, u.canCashInTreasureTrain else { return false }
         if view.player.europe != nil && !u.isInEurope {
             let fee = u.transportFee

@@ -248,6 +248,9 @@ public actor GameEngine {
         case goTo(unitId: String, destination: PathPlace)
         /// Trade routes: a new one, its name and stops changed, deleted,
         /// and given to a unit (or taken away).
+        case activateAll(MapPosition)
+        case renameColony(colonyId: String, name: String)
+        case cashIn(unitId: String)
         case newTradeRoute
         case updateTradeRoute(TradeRouteInfo)
         case deleteTradeRoute(routeId: String)
@@ -315,6 +318,9 @@ public actor GameEngine {
                     if let d = Direction.allDirections.first(where: { $0.javaName == name }) { play.moveUnit(id, d) }
                 case let .goTo(id, destination): play.goTo(id, destination)
                 case let .selectDestination(id, destination): play.selectDestination(id, destination)
+                case .activateAll(let p): play.activateAll(p)
+                case let .renameColony(id, name): play.renameColony(id, name)
+                case .cashIn(let id): play.cashIn(id)
                 case .newTradeRoute: play.newTradeRoute()
                 case .updateTradeRoute(let route): play.updateTradeRoute(route)
                 case .deleteTradeRoute(let id): play.deleteTradeRoute(id)
@@ -532,6 +538,13 @@ public actor GameEngine {
     /// The military (land) or naval report.
     public func unitReport(military: Bool) -> UnitReport {
         Messages.$scopedBundle.withValue(messages) { play.view.unitReport(military: military) }
+    }
+
+    /// What a long press on a tile offers.
+    public func tileMenu(_ position: MapPosition) -> TileMenu? {
+        Messages.$scopedBundle.withValue(messages) {
+            play.view.tile(position).map { play.view.tileMenu($0, activeUnit: play.unit(play.activeUnitId)) }
+        }
     }
 
     /// The player's trade routes, and what they can be made of.

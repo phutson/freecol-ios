@@ -45,6 +45,12 @@ final class GameStore {
     private(set) var activeUnitId: String?
     private(set) var actions: UnitActions?
     private(set) var destinationPath: UnitPath?
+    /// What a long press on a tile offers, while it is shown, and where.
+    private(set) var tileMenu: TileMenu?
+    private(set) var tileMenuAt: MapPosition?
+    /// Counted, for the haptics: fights shown, and refusals and warnings.
+    private(set) var combats = 0
+    private(set) var warnings = 0
     /// The unit being sent somewhere, while its destinations are shown.
     var sendingUnitId: String?
     /// Choosing a goto destination: the tile tapped and the path to it.
@@ -214,16 +220,26 @@ final class GameStore {
         if r.snapshot.turn != snapshot?.turn { messages = [] }
         snapshot = r.snapshot
         notices += r.notices
-        if let refusal = r.refusal { notices.append(refusal) }
+        if let refusal = r.refusal {
+            notices.append(refusal)
+            warnings += 1
+        }
+        if !r.notices.isEmpty { warnings += 1 }
+        for text in r.notices { AccessibilityNotification.Announcement(text).post() }
         for e in r.events {
             switch e {
-            case .message(let m): messages.append(m.text)
+            case .message(let m):
+                messages.append(m.text)
+                AccessibilityNotification.Announcement(m.text).post()
+            case .attack: combats += 1
             case .request(.nativeTrade(let screen)): trade = screen
             case .request(.negotiation(let n)): negotiation = n
             case .request(let request): requests.append(request)
-            case .notice(let text): notices.append(text)
+            case .notice(let text):
+                notices.append(text)
+                AccessibilityNotification.Announcement(text).post()
             case .spied(let screen): spiedColony = screen
-            case .unitMoved, .attack: break
+            case .unitMoved: break
             }
         }
         if r.activeUnitId != activeUnitId { stopGoto() }
@@ -350,6 +366,80 @@ final class GameStore {
             notices.append("Could not save: \(error)")
         }
     }
+
+    /// Save the game, kept under one name, as the app goes into the
+    /// background, where the system may end it unseen.
+    func autosave() async {
+        guard let engine else { return }
+        try? await engine.save(to: Self.savesDirectory.appendingPathComponent("Autosave").appendingPathExtension("fsg"))
+    }
+
+    /// Copy in a saved game from elsewhere (Files, iCloud Drive).
+    nonisolated static func importGame(_ url: URL) throws {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        let to = savesDirectory.appendingPathComponent(url.lastPathComponent)
+        if url.standardizedFileURL == to.standardizedFileURL { return }
+        try? FileManager.default.removeItem(at: to)
+        try FileManager.default.copyItem(at: url, to: to)
+    }
+
+    // MARK: The tile menu
+
+    func openTileMenu(_ p: MapPosition) async {
+        tileMenuAt = p
+        tileMenu = await engine?.tileMenu(p)
+    }
+
+    func closeTileMenu() {
+        tileMenu = nil
+    }
+
+    /// Do what a tile menu's item says.
+    func choose(_ item: TileMenuItem) async {
+        tileMenu = nil
+        guard let at = tileMenuAt else { return }
+        let active = activeUnitId
+        switch item.kind {
+        case .attack:
+            if let a = activeUnit?.position,
+               let d = Direction.allDirections.first(where: { let s = $0.step(a.x, a.y); return s.x == at.x && s.y == at.y }),
+               let active {
+                await play(.move(unitId: active, direction: d.javaName))
+            }
+        case .goTo:
+            if let active { await play(.goTo(unitId: active, destination: .tile(at))) }
+        case .goToEurope: await goToEurope()
+        case .activate:
+            if let active { await play(.changeState(unitId: active, state: "ACTIVE")) }
+        case .fortify:
+            if let active { await play(.changeState(unitId: active, state: "FORTIFYING")) }
+        case .skip:
+            if let active { await play(.skip(unitId: active)) }
+        case .cashIn:
+            if let active { await play(.cashIn(unitId: active)) }
+        case .clearOrders:
+            if let active { await play(.clearOrders(unitId: active)) }
+        case .colony(let id): await openColony(id)
+        case .rename(let id):
+            renamingColonyId = id
+        case .settlement(let id):
+            if let row = await engine?.nativesReport().flatMap(\.settlements).first(where: { $0.id == id }) {
+                let wanted = row.wanted.filter { !$0.isEmpty }.joined(separator: ", ")
+                notices.append([row.name, row.alarm, row.skill, row.mostHated, row.mission ?? "", wanted]
+                    .filter { !$0.isEmpty }.joined(separator: "\n"))
+            }
+        case .tile:
+            notices.append(item.label)
+        case .unit(let id): await play(.select(unitId: id))
+        case .dumpCargo(let id): await play(.unloadAll(carrierId: id))
+        case .activateAll: await play(.activateAll(at))
+        case .goods: break
+        }
+    }
+
+    /// The colony being renamed, while its name is asked for.
+    var renamingColonyId: String?
 
     /// Load a saved game.
     func load(_ url: URL) async {

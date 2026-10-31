@@ -2835,8 +2835,9 @@ trade at settlements).
   churches); and the military and naval reports (the forces by type
   and role, most first, the REF's, and the units by where they are,
   colonies by name, then Europe, then the rest).
-- **Save and load:** games are saved in the app's documents (seen in
-  the Files app) and listed on the setup screen to load.
+- **Save and load:** games are saved in the app's documents and
+  listed on the setup screen to load.  (They only reached the Files
+  app with step 7, which added the keys that needs.)
 - **Checked:** `PlayOracle.java` now also records, for each
   settlement a unit could enter, the question Java's GUI asks (text
   and choices) and its tribute warning; `PlayerViewTests` matches all
@@ -2963,6 +2964,36 @@ trade at settlements).
   screens beyond opening them. Java's production report keeps
   buildings in a hash set; here they are in the rules' order, and the
   labour report's other places are by identifier.
+
+**Step 7 status: partly done.**
+- **Long presses and context menus:** a long press on the map opens
+  Java's tile menu (`TileMenuView`, TilePopup) in a sheet: attacking
+  with the odds or going to the tile, the active unit's actions,
+  the colony and renaming it, the settlement, the tile, and the units
+  with what they carry.  Reading about a tile or a native settlement
+  shows a short notice, not Java's panels.
+- **Files and sharing:** the app's documents are now open to the Files
+  app, saved games can be shared, deleted and imported, which reaches
+  iCloud Drive through the system's pickers.
+- **Saving when suspended:** going to the background saves "Autosave",
+  in the time the system allows.  Answers awaited from the player, such
+  as a trade under way, are not saved, as in Java.
+- **Haptics and VoiceOver:** haptics for fights, warnings, a new turn
+  and a change of unit.  VoiceOver reads the colonies and the player's
+  units on the map, with the tile menu as an action, goods and prices,
+  and announces messages and notices.
+- **Checked:** `TileMenuOracle.java` records the menus for every unit
+  on the map and the tiles round it in four games, and `TileMenuTests`
+  matches them; planted bugs (no fortify, no attack, activating all
+  miscounted) are caught.  In the iPad simulator: a long press, the
+  Info.plist keys, an autosave written on going home and loaded after
+  the app was ended.
+- **Not done:** an iCloud container of the app's own, syncing by itself
+  (that needs a signing team and entitlements).  VoiceOver can not yet
+  do what takes a drag: placing colonists and moving goods.
+- **Not checked:** haptics and VoiceOver, which need a device; sharing,
+  importing and the Files app by hand; renaming and the other menu
+  actions in the app, except renaming and activating all in the engine.
 
 ## Phase 6: Polish and release
 

@@ -184,6 +184,7 @@ struct ColonyView: View {
                             .foregroundStyle(g.amount > colony.warehouseCapacity ? .red : .primary)
                     }
                     .frame(width: 44)
+                    .accessibilityElement(children: .combine)
                     .draggable(Drag.goods(g.typeId, min(100, g.amount), from: colony.id).text)
                 }
             }
@@ -346,6 +347,7 @@ struct GoodsIcon: View {
             }
         }
         .frame(width: size, height: size)
+        .accessibilityLabel(typeId.split(separator: ".").last.map { $0.prefix(1).uppercased() + $0.dropFirst() } ?? typeId)
     }
 }
 
