@@ -91,6 +91,8 @@ public struct ShownProduction: Sendable, Equatable {
 public struct ColonyTileView: Sendable, Equatable {
     public let id: String
     public let position: MapPosition
+    /// The tile as a place in the colony ("Prairie (north of Boston)").
+    public let name: String
     public let unitIds: [String]
     /// What each unit makes here (UnitLabel), if it works anything.
     public let made: [GoodsAmount?]
@@ -188,6 +190,7 @@ extension PlayerView {
                 }
                 : []
             return ColonyTileView(id: ct.id ?? "", position: MapPosition(x: wt?.x ?? 0, y: wt?.y ?? 0),
+                                  name: wt.flatMap { Messages.message($0.colonyTileLocationLabel(colony)) } ?? "",
                                   unitIds: ct.units.compactMap(\.id), made: made, centre: centre,
                                   isCentre: ct.isColonyCenterTile)
         }

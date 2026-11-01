@@ -2988,9 +2988,13 @@ trade at settlements).
   miscounted) are caught.  In the iPad simulator: a long press, the
   Info.plist keys, an autosave written on going home and loaded after
   the app was ended.
+- **Without dragging:** everything a drag does also has a context menu,
+  by a long press or VoiceOver's actions: colonists work in a building
+  or on a tile, go outside or board a ship; goods load from a warehouse
+  or the market, and unload or sell from a ship; units board and leave.
 - **Not done:** an iCloud container of the app's own, syncing by itself
-  (that needs a signing team and entitlements).  VoiceOver can not yet
-  do what takes a drag: placing colonists and moving goods.
+  (that needs a signing team and entitlements, which this app package's
+  manifest can not declare, so it needs a regular Xcode project).
 - **Not checked:** haptics and VoiceOver, which need a device; sharing,
   importing and the Files app by hand; renaming and the other menu
   actions in the app, except renaming and activating all in the engine.

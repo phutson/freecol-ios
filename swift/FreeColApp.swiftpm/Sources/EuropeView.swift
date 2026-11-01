@@ -101,7 +101,14 @@ struct EuropeView: View {
                 ForEach(europe.docks, id: \.self) { id in
                     UnitIcon(unitId: id, snapshot: snapshot, images: images)
                         .draggable(Drag.unit(id).text)
-                        .contextMenu { RoleMenu(unitId: id) }
+                        .contextMenu {
+                            RoleMenu(unitId: id)
+                            ForEach(europe.carriers, id: \.id) { c in
+                                Button("Board \(snapshot.unit(c.id)?.label ?? c.id)") {
+                                    Task { await store.play(.board(unitId: id, carrierId: c.id)) }
+                                }
+                            }
+                        }
                 }
             }
             .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
@@ -133,6 +140,11 @@ struct EuropeView: View {
                     .accessibilityValue("Sells for \(g.paidForSale), costs \(g.costToBuy)")
                     .draggable(Drag.goods(g.typeId, 100, from: "market").text)
                     .contextMenu {
+                        ForEach(europe.carriers, id: \.id) { c in
+                            Button("Buy 100 onto \(snapshot.unit(c.id)?.label ?? c.id)") {
+                                Task { await store.play(.load(goodsTypeId: g.typeId, amount: 100, carrierId: c.id)) }
+                            }
+                        }
                         if !g.canTrade {
                             Button("Pay arrears (\(g.arrears))") {
                                 Task { await store.play(.payArrears(goodsTypeId: g.typeId)) }
@@ -201,6 +213,8 @@ struct ShipCard<Buttons: View>: View {
     let unitIds: [String]
     let snapshot: GameSnapshot
     let images: MapImageStore
+    /// The colony it is in port at, if any.
+    var colony: ColonyScreen?
     @ViewBuilder var buttons: Buttons
 
     var body: some View {
@@ -214,11 +228,24 @@ struct ShipCard<Buttons: View>: View {
                             GoodsIcon(typeId: g.typeId, images: images, size: 28)
                             Text("\(g.amount)").font(.caption2).monospacedDigit()
                         }
+                        .accessibilityElement(children: .combine)
                         .draggable(Drag.goods(g.typeId, g.amount, from: shipId).text)
+                        .contextMenu {
+                            Button(colony == nil ? "Sell" : "Unload") {
+                                Task { await store.play(.unload(goodsTypeId: g.typeId, amount: g.amount, carrierId: shipId)) }
+                            }
+                        }
                     }
                     ForEach(unitIds, id: \.self) { id in
                         UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 36)
                             .draggable(Drag.unit(id).text)
+                            .contextMenu {
+                                if let colony {
+                                    ColonyUnitMenu(colony: colony, unitId: id)
+                                } else {
+                                    Button("Leave the ship") { Task { await store.play(.leaveShip(unitId: id)) } }
+                                }
+                            }
                     }
                 }
                 .frame(minHeight: 40)

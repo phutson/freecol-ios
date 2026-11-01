@@ -130,7 +130,7 @@ struct ColonyView: View {
             Text("Buildings").font(.headline)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 170), spacing: 8)], spacing: 8) {
                 ForEach(colony.buildings.filter { $0.id != nil }, id: \.id) { b in
-                    BuildingCard(building: b, snapshot: snapshot, images: images)
+                    BuildingCard(colony: colony, building: b, snapshot: snapshot, images: images)
                         .dropDestination(for: String.self) { items, _ in
                             guard case .unit(let unit)? = items.first.flatMap(Drag.init), let id = b.id else { return false }
                             Task { await store.play(.work(unitId: unit, workLocationId: id)) }
@@ -149,7 +149,7 @@ struct ColonyView: View {
             HStack {
                 ForEach(colony.outsideUnitIds, id: \.self) { id in
                     UnitIcon(unitId: id, snapshot: snapshot, images: images)
-                        .draggable(Drag.unit(id).text).contextMenu { RoleMenu(unitId: id) }
+                        .draggable(Drag.unit(id).text).contextMenu { ColonyUnitMenu(colony: colony, unitId: id) }
                 }
                 Spacer(minLength: 0)
             }
@@ -164,7 +164,7 @@ struct ColonyView: View {
             ForEach(colony.inPortUnitIds, id: \.self) { id in
                 if let ship = snapshot.unit(id) {
                     ShipCard(shipId: id, goods: ship.goods, unitIds: ship.carriedUnitIds, snapshot: snapshot,
-                             images: images) {
+                             images: images, colony: colony) {
                         Button("Unload") { Task { await store.play(.unloadAll(carrierId: id)) } }
                     }
                 }
@@ -186,6 +186,18 @@ struct ColonyView: View {
                     .frame(width: 44)
                     .accessibilityElement(children: .combine)
                     .draggable(Drag.goods(g.typeId, min(100, g.amount), from: colony.id).text)
+                    .contextMenu {
+                        if g.amount > 0 {
+                            ForEach(colony.inPortUnitIds, id: \.self) { ship in
+                                Button("Load onto \(snapshot.unit(ship)?.label ?? ship)") {
+                                    Task {
+                                        await store.play(.load(goodsTypeId: g.typeId, amount: min(100, g.amount),
+                                                               carrierId: ship, sourceId: colony.id))
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
             .dropDestination(for: String.self) { items, _ in
@@ -254,7 +266,7 @@ struct ColonyTilesView: View {
             }
             ForEach(Array(t.unitIds.enumerated()), id: \.element) { i, id in
                 HStack(spacing: 0) {
-                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(Drag.unit(id).text).contextMenu { RoleMenu(unitId: id) }
+                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(Drag.unit(id).text).contextMenu { ColonyUnitMenu(colony: colony, unitId: id) }
                     if let made = t.made[i] {
                         GoodsIcon(typeId: made.typeId, images: images, size: 16)
                         Text("\(made.amount)").font(.caption2).bold()
@@ -270,8 +282,39 @@ struct ColonyTilesView: View {
     }
 }
 
+/// Where a unit in a colony can be put, as dragging it would, and its
+/// role changes: for those who can not drag, by touch or VoiceOver.
+struct ColonyUnitMenu: View {
+    @Environment(GameStore.self) private var store
+    let colony: ColonyScreen
+    let unitId: String
+
+    var body: some View {
+        RoleMenu(unitId: unitId)
+        Menu("Work in") {
+            ForEach(colony.buildings.filter { $0.id != nil && !$0.unitIds.contains(unitId) }, id: \.id) { b in
+                Button(b.name) { Task { await store.play(.work(unitId: unitId, workLocationId: b.id ?? "")) } }
+            }
+        }
+        Menu("Work on") {
+            ForEach(colony.tiles.filter { !$0.isCentre && !$0.unitIds.contains(unitId) }, id: \.id) { t in
+                Button(t.name) { Task { await store.play(.work(unitId: unitId, workLocationId: t.id)) } }
+            }
+        }
+        if !colony.outsideUnitIds.contains(unitId) {
+            Button("Put outside the colony") { Task { await store.play(.putOutsideColony(unitId: unitId)) } }
+        }
+        ForEach(colony.inPortUnitIds.filter { $0 != unitId }, id: \.self) { ship in
+            Button("Board \(store.snapshot?.unit(ship)?.label ?? ship)") {
+                Task { await store.play(.board(unitId: unitId, carrierId: ship)) }
+            }
+        }
+    }
+}
+
 /// A building: its picture, name, production and workers.
 struct BuildingCard: View {
+    let colony: ColonyScreen
     let building: ColonyBuildingSlot
     let snapshot: GameSnapshot
     let images: MapImageStore
@@ -296,7 +339,7 @@ struct BuildingCard: View {
             }
             HStack(spacing: 2) {
                 ForEach(building.unitIds, id: \.self) { id in
-                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(Drag.unit(id).text).contextMenu { RoleMenu(unitId: id) }
+                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(Drag.unit(id).text).contextMenu { ColonyUnitMenu(colony: colony, unitId: id) }
                 }
             }
             .frame(minHeight: 34)
