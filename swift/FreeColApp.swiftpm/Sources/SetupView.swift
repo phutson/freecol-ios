@@ -287,11 +287,33 @@ struct OptionRow: View {
 
     private var value: GameEngine.OptionValue { values[option.id] ?? option.value }
 
+    @State private var explaining = false
+
     var body: some View {
-        control
-            .disabled(!option.isEditable)
-            .help(option.description)
-            .accessibilityHint(option.description)
+        HStack {
+            // Borderless, so a tap on the row is not also a tap on the
+            // info button beside it.
+            control
+                .buttonStyle(.borderless)
+                .disabled(!option.isEditable)
+                .help(option.description)
+                .accessibilityHint(option.description)
+            // What the option does, as Java's tooltip says, for a click
+            // or a tap: an iPad has no hover.
+            if !option.description.isEmpty {
+                Button { explaining = true } label: { Image(systemName: "info.circle") }
+                    .buttonStyle(.borderless)
+                    .help(option.description)
+                    .accessibilityLabel("About \(option.name)")
+                    .popover(isPresented: $explaining) {
+                        Text(option.description)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(idealWidth: 320)
+                            .padding()
+                            .presentationCompactAdaptation(.popover)
+                    }
+            }
+        }
     }
 
     @ViewBuilder private var control: some View {

@@ -3118,7 +3118,9 @@ as it can with the iOS app.
     nations) and its national advantage, which follows the nation chosen
     as in Java's PlayersTable.  An Other nations page sets which European
     and native nations play.  The Map Generator Options and Game Options
-    pages show the spec's own groups with Java's names, among them map
+    pages show the spec's own groups with Java's names.  Each option has
+    Java's description as a tooltip, and as an ⓘ button that shows it
+    when clicked or tapped, since an iPad has no hover.  They include map
     size, land mass, rivers, mountains, lost city rumours, forests, bonus
     resources, temperature and the game rules.  Each page has a Defaults
     button.  File, text and unit list options are not shown.
