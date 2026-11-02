@@ -38,9 +38,9 @@ extension PlayerView {
     /// - Throws: Unhandled for a message this does not handle, or a
     ///   reading error; the copy must then be read again.
     func apply(_ update: PlayerUpdate, sentTo serverPlayer: Player) throws {
-        let xw = FreeColXMLWriter(scope: .toClient(serverPlayer))
+        let xw = FreeColXMLWriter(scope: .toClient(serverPlayer), recording: true)
         update.toXML(xw)
-        let xr = try FreeColXMLReader(string: xw.xml)
+        let xr = FreeColXMLReader(recorded: xw)
         try xr.nextTag()
         try applyMessage(xr)
         placeholders += xr.retainedObjects
@@ -52,7 +52,9 @@ extension PlayerView {
     /// fields change without a message saying so (its tension towards
     /// others, for one), and they are few to read.
     func rereadPlayer(_ serverPlayer: Player) throws {
-        let xr = try FreeColXMLReader(string: serverPlayer.serialize(.toClient(serverPlayer)))
+        let xw = FreeColXMLWriter(scope: .toClient(serverPlayer), recording: true)
+        serverPlayer.toXML(xw)
+        let xr = FreeColXMLReader(recorded: xw)
         try xr.nextTag()
         guard try xr.readFreeColObject(game, Player.self) === player else {
             throw Unhandled(description: "player read again")

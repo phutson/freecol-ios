@@ -99,6 +99,20 @@ public enum JavaString {
 
     /// Java's `Long.decode(s)`, returning nil where Java throws.
     public static func decodeLongOrNil(_ s: String) -> Int64? {
+        // The usual case, a plain decimal of up to 18 digits (no leading
+        // zero, which Java reads as octal), the same either way.
+        var utf8 = s.utf8[...]
+        let minus = utf8.first == UInt8(ascii: "-")
+        if minus { utf8 = utf8.dropFirst() }
+        if let first = utf8.first, utf8.count <= 18, first != UInt8(ascii: "0") || utf8.count == 1 {
+            var value: Int64 = 0
+            var plain = true
+            for byte in utf8 {
+                guard byte >= UInt8(ascii: "0") && byte <= UInt8(ascii: "9") else { plain = false; break }
+                value = value * 10 + Int64(byte - UInt8(ascii: "0"))
+            }
+            if plain { return minus ? -value : value }
+        }
         // Accumulate in Int64 negatively, so Int64.min fits.
         var units = Substring(s)
         guard !units.isEmpty else { return nil }

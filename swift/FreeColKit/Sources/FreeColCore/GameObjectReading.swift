@@ -201,7 +201,10 @@ extension GameObjectReadable {
 
     private func copy(in game: Game?, scope: FreeColXMLWriter.WriteScope) throws -> Self {
         guard let game = game ?? self.game else { throw FreeColXMLError("No game to copy \(self) in") }
-        let xr = try FreeColXMLReader(string: serialize(scope))
+        // Recorded and read straight back, without making text.
+        let xw = FreeColXMLWriter(scope: scope, recording: true)
+        toXML(xw)
+        let xr = FreeColXMLReader(recorded: xw)
         xr.replaceScope(intern: false)
         try xr.nextTag()
         guard let copy = try xr.readFreeColObject(game, Self.self) else {

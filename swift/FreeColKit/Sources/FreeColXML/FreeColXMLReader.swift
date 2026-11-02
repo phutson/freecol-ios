@@ -90,6 +90,12 @@ public final class FreeColXMLReader {
         self.tags = tags
     }
 
+    /// Read what a recording writer recorded, as if it had been written
+    /// out and parsed.
+    public convenience init(recorded writer: FreeColXMLWriter) {
+        self.init(tags: writer.recorded)
+    }
+
     /// A reader of its own for the current element, standing before its
     /// start tag, while this one moves to the element's end: for an
     /// element to be read later, by something else.

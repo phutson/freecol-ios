@@ -92,7 +92,11 @@ final class PlayerView {
 
     /// Read the player's copy of a game, as the server sends it.
     init(of serverGame: Game, for serverPlayer: Player) throws {
-        let xr = try FreeColXMLReader(string: serverGame.serialize(.toClient(serverPlayer)))
+        // Written as the server sends it and read back, as Java's client
+        // reads it, but recorded rather than made into text and parsed.
+        let xw = FreeColXMLWriter(scope: .toClient(serverPlayer), recording: true)
+        serverGame.toXML(xw)
+        let xr = FreeColXMLReader(recorded: xw)
         try xr.nextTag()
         let game = Game(specification: nil)
         game.isClientCopy = true

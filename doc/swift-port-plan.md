@@ -3235,6 +3235,27 @@ as it can with the iOS app.
     differ until those tiles are explored.
   - **Not timed in the app:** the second copy of the app could not be
     read through Accessibility while the first was open.
+  - **Copies without XML text (option B):** the player's copy of the
+    game, the updates read into it, and the server's copies of objects
+    (`copy`, as for the tiles players last saw) are no longer written as
+    XML text and parsed with Foundation's parser.
+    - **How:** a recording `FreeColXMLWriter` collects the tags the parser
+      would have produced, and `FreeColXMLReader(recorded:)` reads them
+      straight back.  The same writers and readers decide what each
+      player may see, so the visibility rules are not written twice.
+    - **Number parsing:** Java's number parsing has a fast path for plain
+      decimals, with the same results.
+    - **Result:** the copy takes 60 ms on the default map, down from
+      115 ms, and 250 ms on 200 by 200, down from 570 ms.
+    - **Checked:** RecordedCopyTests compares the recorded copy with the
+      text copy for eight games and every player in them, and they are
+      the same.  A planted bug in the recorded attributes was caught.
+      Element text is never written by the game, so a bug there could
+      not show.
+    - **What remains:** building the objects, and the writers' sorting.
+    - **Not this:** ending a turn on a 200 by 200 map takes 14 s, against
+      under 1 s on the default map, almost all of it the computer
+      players' turns.  That is the speed work of Phase 5 step 8.
   - **No spinner for a move:** the spinner showed, and the top bar and
     unit panel dimmed, the moment the engine was busy, so even a 5 ms
     move flashed them.  Both now wait until it has been busy for 0.4 s,
@@ -3266,6 +3287,55 @@ as it can with the iOS app.
   - **Look:** not seen.  Nobody has looked at the Mac window or listened
     to its sound.
   - **Release:** distribution signing and notarization.
+
+### Design: one game seen through the player's eyes (option C)
+
+The player's side of the engine (the port of Java's client) works on a
+copy of the game holding what the player may know.  Option C would drop
+the copy and have that code read the server's game through a filter.
+It comes after option B (above), as the user chose.
+
+- **What the filter must hide** (what Java's writer leaves out for a
+  client):
+  - **Tiles:** unexplored tiles show nothing; fogged ones show the
+    player's last-seen copy, which the server already keeps per player.
+    Units on a tile show only while the player sees it, and never inside
+    a foreign settlement.
+  - **Foreign settlements:** their units, goods, buildings and others'
+    contact.  A native settlement shows what the player has learned of
+    it.
+  - **Other players:** their gold, tax, market, Europe, monarch and
+    history; only their tension towards the player.
+  - **Foreign units:** cargo, work and some other fields.
+- **The hard part:** the client code's own reads, about 140 places in
+  6,500 lines, can go through a filter by rote.  But it also calls about
+  35 kinds of shared model method that walk the game themselves: move
+  type, pathfinding, defenders and combat odds, land claims and prices,
+  native settlements' wanted goods and alarm, sailing turns.  On the
+  server's objects those would see what the player must not: a defender
+  in fog, the braves in a camp.  Each needs a viewing player, in
+  FreeColCore, which the server and the AI share and which is checked
+  against Java everywhere.
+- **Stages, each kept working and committed alone:**
+  1. **A player view:** every read the client code makes goes through a
+     `PlayerKnowledge` type, still backed by today's copy.  No change in
+     behaviour.
+  2. **A harness:** the same type backed by the server's game with the
+     filter, run beside the copy-backed one in every play test.  It
+     records any answer that differs (move types, paths, questions,
+     commands sent).
+  3. **The shared rules, one group at a time:** move type and the moves
+     it allows; pathfinding; combat odds and defenders; settlement
+     knowledge (skills, wanted goods, alarm); land claims and prices.
+     Each group takes a viewing player, until the harness finds no
+     difference.
+  4. **Removing the copy,** and ClientUpdates with it, leaving a full
+     read only for saving.
+- **Cost and gain:** several weeks.  It ends the copy's cost at the end
+  of each turn (about 250 ms on a 200 by 200 map after option B) and its
+  memory.  Moves already take a few milliseconds.  The risk is drifting
+  from Java's client, which the harness and the Java recordings guard
+  against.
 
 ## Size and order
 

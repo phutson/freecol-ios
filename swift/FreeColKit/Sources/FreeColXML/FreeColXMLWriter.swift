@@ -78,8 +78,17 @@ public final class FreeColXMLWriter {
     /// Whether the current start tag is still open for attributes.
     private var inStartTag = false
 
-    public init(scope: WriteScope = .toSave()) {
+    /// Recording, rather than writing text: the tags a reader would get
+    /// from parsing the text, for reading straight back (a copy of the
+    /// game, an update), without making the text or parsing it.
+    private let recording: Bool
+    private(set) var recorded: [XMLTag] = []
+    private var pendingName = ""
+    private var pendingAttributes: [String: String] = [:]
+
+    public init(scope: WriteScope = .toSave(), recording: Bool = false) {
         writeScope = scope
+        self.recording = recording
     }
 
     /// The XML written so far, with any open start tag closed.
@@ -111,6 +120,13 @@ public final class FreeColXMLWriter {
 
     public func writeStartElement(_ tag: String) {
         closeStartTag()
+        if recording {
+            pendingName = tag
+            pendingAttributes = [:]
+            openTags.append(tag)
+            inStartTag = true
+            return
+        }
         output += "<" + tag
         openTags.append(tag)
         inStartTag = true
@@ -118,6 +134,11 @@ public final class FreeColXMLWriter {
 
     public func writeEndElement() {
         let tag = openTags.removeLast()
+        if recording {
+            closeStartTag()
+            recorded.append(XMLTag(event: .end, name: tag, attributes: [:]))
+            return
+        }
         if inStartTag {
             output += "/>"
             inStartTag = false
@@ -128,12 +149,22 @@ public final class FreeColXMLWriter {
 
     public func writeCharacters(_ text: String) {
         closeStartTag()
+        if recording {
+            // As the parser gives it: text belongs to a start tag just
+            // before it, and is dropped elsewhere.
+            if let last = recorded.indices.last, recorded[last].event == .start { recorded[last].text += text }
+            return
+        }
         output += Self.escape(text, attribute: false)
     }
 
     private func closeStartTag() {
         if inStartTag {
-            output += ">"
+            if recording {
+                recorded.append(XMLTag(event: .start, name: pendingName, attributes: pendingAttributes))
+            } else {
+                output += ">"
+            }
             inStartTag = false
         }
     }
@@ -142,6 +173,11 @@ public final class FreeColXMLWriter {
 
     public func writeAttribute(_ name: String, _ value: String) {
         precondition(inStartTag, "Attribute \(name) outside a start tag")
+        if recording {
+            // A repeated attribute would not parse; the last one stands.
+            pendingAttributes[name] = value
+            return
+        }
         output += " " + name + "=\"" + Self.escape(value, attribute: true) + "\""
     }
 
