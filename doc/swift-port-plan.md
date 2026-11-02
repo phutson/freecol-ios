@@ -3101,15 +3101,59 @@ as it can with the iOS app.
     package still declares that it supports several windows; nothing in
     the app opens one now.
   - **Menu bar:** Save Game… (Command-S), a Game menu and a Unit menu,
-    with Java's keys.  These are Return for End Turn, W, O, E, T, Space,
+    with Java's keys.  These are W, O, E, T, Space,
     S, F, B, P, R, C, G, Z and D, and the arrows, Home, End, Page Up and
-    Page Down for moves.
+    Page Down for moves.  End Turn is Command-Return, not Java's Return
+    alone, which is too easy to press by accident; one probably ended a
+    new game's first turn.
   - **Right-click:** opens the tile menu.  Catalyst gives a right click
     to a context menu interaction, not as a touch, so the app catches it
     there and shows its own menu.  The
     `UIApplicationSupportsIndirectInputEvents` key is set.
   - **Window:** at least 900 by 640 points.  Catalyst scales the iPad
     layout to 77%, so on screen that is 693 by 493.
+- **New game choices** (`SetupView.swift`, on the iPad too), as Java's
+  start game panel and option dialogs offer them:
+  - **Choices:** your nation (any of the eight selectable European
+    nations) and its national advantage, which follows the nation chosen
+    as in Java's PlayersTable.  An Other nations page sets which European
+    and native nations play.  The Map Generator Options and Game Options
+    pages show the spec's own groups with Java's names, among them map
+    size, land mass, rivers, mountains, lost city rumours, forests, bonus
+    resources, temperature and the game rules.  Each page has a Defaults
+    button.  File, text and unit list options are not shown.
+  - **Engine:** `NewGameSetup` lists the choices.  `NewGameChoices` makes
+    them as Java does after the player logs in: the nation (made
+    available, then taken), its type, then the advantage, then the other
+    nations' states.
+  - **Checked against Java:** MapGenOracle records a fourth new game,
+    chosen this way.  It is Portugal with the trade advantage, without
+    Spain or the Sioux, with more rumours, more bonuses, more land and no
+    fog of war.  The Swift game matches it.  Planted bugs in the
+    advantage, the nations' states and the old nation's release each
+    failed the test.  Making the nation available before taking it, as
+    Java's server requires, changes nothing in the game, so no test
+    catches its removal.
+  - **Tests:** `NewGameSetupTests` checks that every name and choice is
+    worded, not shown as a key.  Two choice lists have no wording in
+    Java, which shows their keys; they get their last word here.  It also
+    checks a started game for nation, advantage, nations left out and
+    options.
+  - **Tried in the apps:**
+    - **Mac:** Spain and the Sioux turned off, Sweden on, the map wider
+      and fog of war off.  The saved game had exactly those.
+    - **iPad simulator:** choosing Swedish set the advantage to Building,
+      and the game started as Sweden.
+  - **Named settings:** the Settings section saves all of these under a
+    name and loads them again.  That covers the rules, difficulty,
+    nation, advantage, other nations and options; delete with a swipe or
+    the context menu.  They are JSON files in the app's Application
+    Support folder, where Java's option dialogs save to a file.  Tried in
+    the simulator: a save wrote its file.  Loading settings with other
+    rules and difficulty brought back Classic, Hard, Sweden with the
+    Naval advantage (not Sweden's own Building) and a map 50 wide.
+  - **Not offered:** editing a difficulty level's own settings, which
+    Java allows for a custom difficulty.
 - **Saved games:** the Mac app is sandboxed, so they are in its container
   (`~/Library/Containers/net.sf.freecol.ios/Data/Documents`).  Import
   and the share button move them in and out.

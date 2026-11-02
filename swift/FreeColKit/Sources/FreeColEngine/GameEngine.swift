@@ -129,11 +129,14 @@ public actor GameEngine {
     ///   - rules: The rule set ("freecol" or "classic").
     ///   - difficulty: The difficulty level.
     ///   - options: Map generator and game option settings, by id.
+    ///   - choices: The player's nation, its advantage, and which other
+    ///     nations play.
     ///   - seed: The random seed; a random one if nil.
     ///   - playerName: The human player's name.
     ///   - messages: The translated strings to use.
     public init(newGame data: FreeColDataDirectory, rules: String = "freecol",
                 difficulty: String = "model.difficulty.medium", options: [String: OptionValue] = [:],
+                choices: NewGameChoices = NewGameChoices(),
                 seed: Int64? = nil, playerName: String, messages: MessageBundle) throws {
         let random = JavaRandom(seed: seed ?? Int64.random(in: Int64.min...Int64.max))
         let game = try Messages.$scopedBundle.withValue(messages) { () throws -> ServerGame in
@@ -144,7 +147,7 @@ public actor GameEngine {
                 case .boolean(let b): spec.setBoolean(id, b)
                 }
             }
-            return ServerGame.startNewGame(spec, random, playerName: playerName)
+            return ServerGame.startNewGame(spec, random, playerName: playerName, choices: choices)
         }
         try self.init(game: game, random: random, messages: messages)
     }

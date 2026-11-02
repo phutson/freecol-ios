@@ -89,7 +89,7 @@ final class GameStore {
     private(set) var roles: [String: [RoleChoice]] = [:]
 
     /// The game's data, bundled with the app.
-    static var dataDirectory: URL? {
+    nonisolated static var dataDirectory: URL? {
         Bundle.main.url(forResource: "data", withExtension: nil)
     }
 
@@ -112,12 +112,23 @@ final class GameStore {
     // MARK: Starting
 
     /// Start a new game, as the setup screen asks.
-    func newGame(playerName: String, rules: String, difficulty: String) async {
+    func newGame(playerName: String, rules: String, difficulty: String,
+                 options: [String: GameEngine.OptionValue] = [:], choices: NewGameChoices = NewGameChoices()) async {
         await start {
             let data = FreeColDataDirectory(url: $0)
-            return try GameEngine(newGame: data, rules: rules, difficulty: difficulty,
-                                  playerName: playerName, messages: $1)
+            return try GameEngine(newGame: data, rules: rules, difficulty: difficulty, options: options,
+                                  choices: choices, playerName: playerName, messages: $1)
         }
+    }
+
+    /// What may be chosen before a new game under these rules, or nil if
+    /// the data can not be read.
+    nonisolated static func newGameSetup(rules: String, difficulty: String) async -> NewGameSetup? {
+        guard let data = dataDirectory else { return nil }
+        return await Task.detached(priority: .userInitiated) {
+            try? NewGameSetup.load(FreeColDataDirectory(url: data), rules: rules, difficulty: difficulty,
+                                   messages: GameStore.messages(data))
+        }.value
     }
 
     /// Load the bundled saved game.

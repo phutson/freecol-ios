@@ -24,8 +24,9 @@ import UIKit
 /// The game's commands in the menu bar (on the Mac) and for a hardware
 /// keyboard (on an iPad), with the keys of Java's client
 /// (FreeColMessages.properties, "*Action.accelerator").  Java's Ctrl is
-/// Command here, and the numeric keypad's moves are left to the arrows,
-/// Home, End, Page Up and Page Down, its other keys.
+/// Command here, End Turn is Command-Return rather than Return, and the
+/// numeric keypad's moves are left to the arrows, Home, End, Page Up and
+/// Page Down, its other keys.
 struct GameCommands: Commands {
     let store: GameStore
 
@@ -42,7 +43,8 @@ struct GameCommands: Commands {
                 .disabled(!store.hasGame)
         }
         CommandMenu("Game") {
-            play("End Turn", .endTurn, key: .return)
+            // Java's key is Return alone, too easily pressed by accident.
+            play("End Turn", .endTurn, key: .return, modifiers: .command)
             play("Wait", .wait, key: "w")
             Button("Execute Go-to Orders") { Task { await store.play(.executeGotoOrders) } }
                 .keyboardShortcut("o", modifiers: [])
@@ -92,9 +94,10 @@ struct GameCommands: Commands {
         }
     }
 
-    private func play(_ title: String, _ action: GameEngine.PlayAction, key: KeyEquivalent) -> some View {
+    private func play(_ title: String, _ action: GameEngine.PlayAction, key: KeyEquivalent,
+                      modifiers: EventModifiers = []) -> some View {
         Button(title) { Task { await store.play(action) } }
-            .keyboardShortcut(key, modifiers: [])
+            .keyboardShortcut(key, modifiers: modifiers)
             .disabled(!store.hasGame || store.busy)
     }
 

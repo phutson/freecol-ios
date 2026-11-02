@@ -323,6 +323,16 @@ public final class Player: FreeColGameObject, GameObjectReadable {
         if let newNationType { addFeatures(of: newNationType) }
     }
 
+    /// Take another nation, before the game starts: the old one becomes
+    /// available, the new one not.  Only the nation changes; its type is
+    /// set separately, as Java's client does.
+    public func setNation(_ newNation: Nation) {
+        let oldNation = nation
+        nationId = newNation.id
+        if let oldNation { game?.nationOptions?.setNationState(oldNation, .available) }
+        game?.nationOptions?.setNationState(newNation, .notAvailable)
+    }
+
     /// Whether a player at peace (or in a cease fire) with this one
     /// could be turned against it by the monarch.
     public func isPotentialEnemy(_ player: Player) -> Bool {

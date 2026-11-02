@@ -32,7 +32,7 @@ extension ServerGame {
     ///   - random: The server's random source.
     ///   - playerName: The human player's name.
     public static func startNewGame(_ specification: Specification, _ random: JavaRandom,
-                                    playerName: String) -> ServerGame {
+                                    playerName: String, choices: NewGameChoices = NewGameChoices()) -> ServerGame {
         let game = newGame(specification, random)
         let generator = SimpleMapGenerator(random)
         // The human logs in (LoginMessage.preGameLogin).
@@ -41,9 +41,28 @@ extension ServerGame {
             human.name = playerName
             game.addPlayer(human)
             if game.currentPlayer == nil { game.currentPlayer = human }
+            game.choose(choices, for: human)
         }
         game.buildGame(generator, random)
         return game
+    }
+
+    /// The player's choices on the start game panel, as Java's
+    /// PlayersTable makes them: a nation, made available first, and its
+    /// type; an advantage; then the other nations' availability.
+    func choose(_ choices: NewGameChoices, for human: Player) {
+        guard let spec = specification, let options = nationOptions else { return }
+        if let id = choices.nationId, let nation = spec.getNation(id), id != human.nationId {
+            options.setNationState(nation, .available)
+            human.setNation(nation)
+            human.changeNationType(nation.type)
+        }
+        if let id = choices.nationTypeId, let type = spec.getNationType(id) {
+            human.changeNationType(type)
+        }
+        for (id, state) in choices.nationStates.sorted(by: { $0.key < $1.key }) where id != human.nationId {
+            if let nation = spec.getNation(id) { options.setNationState(nation, state) }
+        }
     }
 
     /// Fill in the game (FreeColServer.buildGame): a player for every
@@ -170,5 +189,20 @@ extension IndianSettlement {
             unit.changeHomeIndianSettlement(self)
             _ = unit.setLocation(self)
         }
+    }
+}
+
+/// What the player chose before a new game: its nation, the nation's
+/// type (its national advantage), and which other nations play.
+public struct NewGameChoices: Sendable, Equatable {
+    public var nationId: String?
+    public var nationTypeId: String?
+    public var nationStates: [String: NationOptions.NationState]
+
+    public init(nationId: String? = nil, nationTypeId: String? = nil,
+                nationStates: [String: NationOptions.NationState] = [:]) {
+        self.nationId = nationId
+        self.nationTypeId = nationTypeId
+        self.nationStates = nationStates
     }
 }

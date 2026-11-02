@@ -62,19 +62,28 @@ struct MapGenTests {
         return spec
     }
 
-    /// Whole new games, for a human Dutch player: the other nations'
+    /// Whole new games, for a human Dutch player (or as the player
+    /// chose: Portugal, with the trade advantage, without Spain or the
+    /// Sioux): the other nations'
     /// players, the map with native settlements, lost city rumours and
     /// the Europeans' units, and each player's starting gold, recruits
     /// and prices.
     @Test func newGames() throws {
         let games = try Self.recorded("newgames", "games")
-        #expect(games.count == 3)
+        #expect(games.count == 4)
         try Messages.$scopedBundle.withValue(ColonyTurnTests.english) {
             for expected in games {
                 let name = expected["name"]?.stringValue ?? "?"
                 let spec = try Self.specification(expected)
                 let random = JavaRandom(seed: try #require(expected["seed"]?.intValue))
-                let game = ServerGame.startNewGame(spec, random, playerName: "Player")
+                var choices = NewGameChoices(nationId: expected["nation"]?.stringValue,
+                                             nationTypeId: expected["nationType"]?.stringValue)
+                for (id, state) in expected["states"]?.objectValue ?? [:] {
+                    choices.nationStates[id] = NationOptions.NationState.allCases.first {
+                        $0.javaName == state.stringValue
+                    }
+                }
+                let game = ServerGame.startNewGame(spec, random, playerName: "Player", choices: choices)
                 var diffs = XmlTree.differences(try NewTurnTests.saveTree(game), expected["save"] ?? .null, "save",
                                                 limit: 30)
                 if random.serializedState != expected["random"]?.stringValue { diffs.append("random differs") }
