@@ -6,3 +6,4 @@ xcuserdata/
 *.xcodeproj
 Package.resolved
 /build/
+/swift/build/

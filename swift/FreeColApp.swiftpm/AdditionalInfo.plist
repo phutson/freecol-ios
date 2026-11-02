@@ -6,5 +6,9 @@
     <true/>
     <key>LSSupportsOpeningDocumentsInPlace</key>
     <true/>
+	<!-- A mouse's buttons, for a right click on the map (the Mac, and an
+	     iPad with a mouse or trackpad). -->
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 </dict>
 </plist>

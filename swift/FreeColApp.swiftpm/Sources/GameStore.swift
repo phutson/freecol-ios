@@ -53,6 +53,10 @@ final class GameStore {
     private(set) var warnings = 0
     /// The unit being sent somewhere, while its destinations are shown.
     var sendingUnitId: String?
+    /// Whether the player is naming a game to save, or setting the
+    /// volumes (asked from the top bar or the menu bar).
+    var savePrompt = false
+    var soundSettingsShown = false
     /// Choosing a goto destination: the tile tapped and the path to it.
     private(set) var choosingGoto = false
     private(set) var gotoTarget: MapPosition?
@@ -349,7 +353,8 @@ final class GameStore {
     // MARK: Saving and loading
 
     /// Where saved games are kept: the app's documents, so the Files app
-    /// shows them.
+    /// shows them.  On the Mac the app is sandboxed, and they are in its
+    /// container (Library/Containers/net.sf.freecol.ios/Data/Documents).
     nonisolated static var savesDirectory: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }

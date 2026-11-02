@@ -29,7 +29,9 @@ struct FreeColApp: App {
             ContentView()
                 .environment(store)
                 .onAppear { store.startAudio() }
+                .background(MinimumWindowSize(size: CGSize(width: 900, height: 640)))
         }
+        .commands { GameCommands(store: store) }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .background, store.hasGame else { return }
             // The system allows a little time to finish, if asked.

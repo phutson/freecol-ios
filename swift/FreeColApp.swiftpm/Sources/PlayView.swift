@@ -87,8 +87,6 @@ struct PlayView: View {
 struct TopBar: View {
     @Environment(GameStore.self) private var store
     let snapshot: GameSnapshot
-    @State private var saving = false
-    @State private var soundSettings = false
     @State private var saveName = ""
     @State private var newName = ""
 
@@ -101,8 +99,8 @@ struct TopBar: View {
             Menu("Game") {
                 Button("Reports") { Task { await store.openReports() } }
                 Button("Trade routes") { Task { await store.openRoutes() } }
-                Button("Save…") { saving = true }
-                Button("Sound…") { soundSettings = true }
+                Button("Save…") { store.savePrompt = true }
+                Button("Sound…") { store.soundSettingsShown = true }
             }
             if snapshot.europe != nil {
                 Button("Europe") { Task { await store.openEurope() } }
@@ -126,13 +124,15 @@ struct TopBar: View {
             }
             Button("Cancel", role: .cancel) {}
         }
-        .alert("Save the game", isPresented: $saving) {
+        .alert("Save the game", isPresented: Binding(get: { store.savePrompt }, set: { store.savePrompt = $0 })) {
             TextField("Name", text: $saveName)
                 .onAppear { saveName = "\(snapshot.player?.nationName ?? "") \(snapshot.turnName)" }
             Button("Save") { Task { await store.save(as: saveName) } }
             Button("Cancel", role: .cancel) {}
         }
-        .sheet(isPresented: $soundSettings) { SoundSettings() }
+        .sheet(isPresented: Binding(get: { store.soundSettingsShown }, set: { store.soundSettingsShown = $0 })) {
+            SoundSettings()
+        }
     }
 }
 
@@ -333,6 +333,17 @@ struct Dialogs: ViewModifier {
                     }
                 }
             }
+            // One alert can follow another without the field reappearing:
+            // each question's suggestion is set as it comes.
+            .onChange(of: store.question) { _, q in
+                if let q, q.choices.isEmpty { name = q.suggestion ?? "" }
+            }
+            .onChange(of: store.requests.first) { _, r in
+                switch r {
+                case let .newLandName(_, suggestion, _), let .newRegionName(_, _, _, suggestion, _): name = suggestion
+                default: break
+                }
+            }
             .alert(requestTitle, isPresented: binding(active && !sheetShown && store.question == nil && !store.requests.isEmpty) {},
                    presenting: store.requests.first) { r in
                 switch r {
@@ -386,10 +397,10 @@ struct Dialogs: ViewModifier {
                 }
             }
             .alert(store.notices.first ?? "",
-                   isPresented: binding(active && !sheetShown && store.question == nil && store.requests.isEmpty && !store.notices.isEmpty) {
-                       store.notices.removeFirst()
-                   }) {
-                Button("OK") {}
+                   isPresented: binding(active && !sheetShown && store.question == nil && store.requests.isEmpty && !store.notices.isEmpty) {}) {
+                // Only OK takes a notice away: one hidden by a sheet
+                // shows again after it.
+                Button("OK") { if !store.notices.isEmpty { store.notices.removeFirst() } }
             }
     }
 

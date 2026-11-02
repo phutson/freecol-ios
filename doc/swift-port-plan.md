@@ -3085,6 +3085,52 @@ as it can with the iOS app.
 - **Release:** signing and notarization for outside the App Store, or the
   Mac App Store; this also depends on the license decision from Phase 0.
 
+### Status: the Mac app runs (Mac Catalyst)
+
+- **Chosen:** Mac Catalyst.  The app package builds for it unchanged
+  (`swift/scripts/build-mac.sh`, into `swift/build/mac`), with no Xcode
+  project.  A native build of the same screens failed with 68 compile
+  errors at about 30 places (UIKit images, the audio session, iOS-only
+  modifiers).  Going native later stays possible.
+- **Made for the Mac** (`MacCommands.swift`), which an iPad with a
+  keyboard or mouse also gets:
+  - **Menu bar:** Save Game… (Command-S), a Game menu and a Unit menu,
+    with Java's keys.  These are Return for End Turn, W, O, E, T, Space,
+    S, F, B, P, R, C, G, Z and D, and the arrows, Home, End, Page Up and
+    Page Down for moves.
+  - **Right-click:** opens the tile menu.  Catalyst gives a right click
+    to a context menu interaction, not as a touch, so the app catches it
+    there and shows its own menu.  The
+    `UIApplicationSupportsIndirectInputEvents` key is set.
+  - **Window:** at least 900 by 640 points.  Catalyst scales the iPad
+    layout to 77%, so on screen that is 693 by 493.
+- **Saved games:** the Mac app is sandboxed, so they are in its container
+  (`~/Library/Containers/net.sf.freecol.ios/Data/Documents`).  Import
+  and the share button move them in and out.
+- **Checked** by driving the app through Accessibility, because this
+  session can not capture the screen:
+  - **Playing:** the sample game starts and plays.
+  - **Keys:** W selects the next unit, and the right arrow moves the
+    unit.  Letters typed into a name field stay there and do not trigger
+    the shortcuts.
+  - **Right-click:** opens the tile menu, but not on top of a sheet.
+  - **Saving:** Command-S asks for a name and saves.
+  - **Sound sheet:** opens, and the window keeps its minimum size.
+- **Found and fixed in the shared screens:**
+  - **Prefill:** a naming alert that directly followed another kept the
+    last answer, not Java's suggestion.
+  - **Crash:** opening a sheet over a notice crashed the app.  Its
+    dismissal removed a notice from an empty list.  Now only OK removes
+    a notice, and a notice hidden by a sheet shows again after it.
+- **Not done:**
+  - **Map controls:** no scroll wheel or trackpad panning, and no
+    keyboard zoom (Java's + and -).  Dragging and pinching work.
+  - **Hover:** the map shows nothing on hover.
+  - **Reports:** none of Java's per-report function keys.
+  - **Look:** not seen.  Nobody has looked at the Mac window or listened
+    to its sound.
+  - **Release:** distribution signing and notarization.
+
 ## Size and order
 
 | Phase              | Java ported                       | Can run in parallel with |

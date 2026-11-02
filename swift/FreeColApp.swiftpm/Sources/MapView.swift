@@ -74,6 +74,9 @@ struct MapView: View {
                     onLongPress(tile)
                 }
             })
+            .background(SecondaryClickReader { point in
+                if let tile = tile(at: point, geometry.size, centre) { onLongPress(tile) }
+            })
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Map")
             .accessibilityChildren { accessibleMap }
