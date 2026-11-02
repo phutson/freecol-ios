@@ -3094,6 +3094,12 @@ as it can with the iOS app.
   modifiers).  Going native later stays possible.
 - **Made for the Mac** (`MacCommands.swift`), which an iPad with a
   keyboard or mouse also gets:
+  - **New Game:** File > New Game… (Command-N) asks before stopping the
+    running game, as Java does, and returns to the setup screen.  The
+    Game menu on the top bar offers it too.  It replaces Catalyst's New
+    Window, which opened a second window onto the same game.  The app
+    package still declares that it supports several windows; nothing in
+    the app opens one now.
   - **Menu bar:** Save Game… (Command-S), a Game menu and a Unit menu,
     with Java's keys.  These are Return for End Turn, W, O, E, T, Space,
     S, F, B, P, R, C, G, Z and D, and the arrows, Home, End, Page Up and

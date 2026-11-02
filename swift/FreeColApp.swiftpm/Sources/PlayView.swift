@@ -99,6 +99,7 @@ struct TopBar: View {
             Menu("Game") {
                 Button("Reports") { Task { await store.openReports() } }
                 Button("Trade routes") { Task { await store.openRoutes() } }
+                Button("New game…") { store.stopGamePrompt = true }
                 Button("Save…") { store.savePrompt = true }
                 Button("Sound…") { store.soundSettingsShown = true }
             }
@@ -128,6 +129,11 @@ struct TopBar: View {
             TextField("Name", text: $saveName)
                 .onAppear { saveName = "\(snapshot.player?.nationName ?? "") \(snapshot.turnName)" }
             Button("Save") { Task { await store.save(as: saveName) } }
+            Button("Cancel", role: .cancel) {}
+        }
+        .alert("A game is already running.",
+               isPresented: Binding(get: { store.stopGamePrompt }, set: { store.stopGamePrompt = $0 })) {
+            Button("Stop Game", role: .destructive) { store.stopGame() }
             Button("Cancel", role: .cancel) {}
         }
         .sheet(isPresented: Binding(get: { store.soundSettingsShown }, set: { store.soundSettingsShown = $0 })) {

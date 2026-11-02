@@ -30,6 +30,12 @@ struct GameCommands: Commands {
     let store: GameStore
 
     var body: some Commands {
+        // Java's New starts a new game, not another window onto this one.
+        CommandGroup(replacing: .newItem) {
+            Button("New Game…") { store.stopGamePrompt = true }
+                .keyboardShortcut("n")
+                .disabled(!store.hasGame || store.busy)
+        }
         CommandGroup(after: .saveItem) {
             Button("Save Game…") { store.savePrompt = true }
                 .keyboardShortcut("s")

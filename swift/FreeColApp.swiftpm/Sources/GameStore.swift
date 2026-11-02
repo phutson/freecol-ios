@@ -57,6 +57,8 @@ final class GameStore {
     /// volumes (asked from the top bar or the menu bar).
     var savePrompt = false
     var soundSettingsShown = false
+    /// Whether the player is asked to stop the game for a new one.
+    var stopGamePrompt = false
     /// Choosing a goto destination: the tile tapped and the path to it.
     private(set) var choosingGoto = false
     private(set) var gotoTarget: MapPosition?
@@ -530,6 +532,37 @@ final class GameStore {
             let next = activeUnitId.flatMap { mine.firstIndex(of: $0) }.map { mine[($0 + 1) % mine.count] } ?? mine[0]
             await play(.select(unitId: next))
         }
+    }
+
+    /// Leave the game for the setup screen, once the player agrees to
+    /// stop it (ConnectController.newGame).
+    func stopGame() {
+        stopGoto()
+        engine = nil
+        snapshot = nil
+        failure = nil
+        activeUnitId = nil
+        actions = nil
+        destinationPath = nil
+        tileMenu = nil
+        tileMenuAt = nil
+        sendingUnitId = nil
+        savePrompt = false
+        question = nil
+        pending = nil
+        requests = []
+        notices = []
+        trade = nil
+        negotiation = nil
+        spiedColony = nil
+        messages = []
+        colony = nil
+        europe = nil
+        destinations = [:]
+        roles = [:]
+        reports = nil
+        routes = nil
+        renamingColonyId = nil
     }
 
     // MARK: Goto
