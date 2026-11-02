@@ -77,6 +77,9 @@ public actor GameEngine {
         var tradeDone = false
         /// The players the human player has met, to know a first meeting.
         var met: Set<String> = []
+        /// How many updates the human player has been sent from
+        /// elsewhere than its own commands (others' turns and actions).
+        var deliveries = 0
 
         func take(_ update: PlayerUpdate, _ player: Player) {
             events += GameEngine.events(update, for: player, shown: self)
@@ -101,6 +104,7 @@ public actor GameEngine {
         shown.met = Set(game.livePlayers.filter { human.stance($0) != .uncontacted }.compactMap(\.id))
         controller.deliver = { player, update in
             if player === human {
+                shown.deliveries += 1
                 shown.take(update, human)
             } else if player.isAI {
                 ai.handle(update, for: player)
@@ -109,15 +113,20 @@ public actor GameEngine {
         self.controller = controller
         self.ai = ai
         play = PlayController(game: game, human: human) { command in
+            // What the player is sent, unless it was also told something
+            // from elsewhere meanwhile.
+            let before = shown.deliveries
+            var updates: [PlayerUpdate] = []
             do {
                 if let cs = try controller.perform(command, by: human), let update = try cs.build(human) {
                     shown.take(update, human)
+                    updates.append(update)
                 }
-                return nil
+                return (nil, shown.deliveries == before ? updates : nil)
             } catch let e as CommandRefused {
-                return e.message
+                return (e.message, shown.deliveries == before ? updates : nil)
             } catch {
-                return "\(error)"
+                return ("\(error)", nil)
             }
         }
     }
@@ -591,6 +600,11 @@ public actor GameEngine {
     public func nativesReport() -> [NativeNationRow] {
         Messages.$scopedBundle.withValue(messages) { play.view.nativesReport(summary: { summary($0) }) }
     }
+
+    /// For tests: compare the player's copy, kept up to date after each
+    /// command, with one read afresh; and what was found.
+    func checkClientUpdates() { play.checkUpdates = true }
+    var clientUpdates: (applied: Int, mismatches: [String]) { (play.updatesApplied, play.updateMismatches) }
 
     /// For tests: the server acts on the human player, as it may during
     /// another player's turn, and the player is shown what it is sent.

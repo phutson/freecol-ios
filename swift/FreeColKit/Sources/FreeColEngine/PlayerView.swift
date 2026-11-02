@@ -85,6 +85,10 @@ public struct UnitActions: Sendable, Equatable {
 final class PlayerView {
     let game: Game
     let player: Player
+    /// Objects made by reference while updates were read (a tile's
+    /// owning settlement not yet seen), which Java's client holds through
+    /// the reference, as Swift's weak one does not.
+    var placeholders: [AnyObject] = []
 
     /// Read the player's copy of a game, as the server sends it.
     init(of serverGame: Game, for serverPlayer: Player) throws {
@@ -98,6 +102,7 @@ final class PlayerView {
         }
         self.game = game
         self.player = player
+        placeholders = xr.retainedObjects
     }
 
     func unit(_ id: String) -> Unit? {

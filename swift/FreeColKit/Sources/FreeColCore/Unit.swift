@@ -671,8 +671,11 @@ public final class Unit: GoodsLocation, GameObjectReadable, Locatable, Ownable, 
         // Java does not make the route if it is not read yet.
         tradeRoute = try xr.findFreeColGameObject(game, "tradeRoute", TradeRoute.self, required: false)
         currentStop = tradeRoute == nil ? -1 : xr.attribute("currentStop", default: 0)
+        // Java falls back on the work type here, but the one from before
+        // the reading, so only ever for an object read again in place,
+        // as Java's client does not (it copies a fresh copy in) but the
+        // engine's does; there it would keep a stale type.
         experienceType = try xr.getType(spec, "experienceType", GoodsType.self)
-        if experienceType == nil && workType != nil { experienceType = workType }
         experience = xr.attribute("experience", default: 0)
         visibleGoodsCount = xr.attribute("visibleGoodsCount", default: -1)
         workType = try xr.getType(spec, "workType", GoodsType.self)

@@ -3198,6 +3198,43 @@ as it can with the iOS app.
   given it explicitly as well.  Found by running the app under lldb.
   Checked on the Mac: the sample game's Build colony opens Fort Nassau's
   panel, and Europe opens.
+- **Faster moves:** after every command the engine used to read the
+  player's whole copy of the game afresh, written out by the server and
+  read back.  That took about 120 ms a move on the default map and
+  570 ms on a 200 by 200 one, and the app showed its spinner meanwhile.
+  - **Now:** the copy is kept up to date as Java's client keeps its own,
+    from what the server sends after the command
+    (`FreeColEngine/ClientUpdates.swift`).  It handles updates, partial
+    updates, removals, feature changes and stances.  The units in move
+    and attack animations are left out, as Java reads them only for the
+    animation.  The player itself is read again after each command, as
+    some of its fields (tension) change unsent.
+  - **Fallback:** anything else (a message not handled, an update from
+    another player meanwhile, the end of a turn) reads the copy afresh
+    as before.
+  - **Result:** moves take 2 to 5 ms on the default map, and about 70 ms
+    for the first on a 200 by 200 map.
+  - **Fixes found on the way:**
+    - A unit read again in place kept a stale experience type, from
+      Java's fallback on the previous work type.
+    - A copy read afresh lost the placeholder objects made for
+      settlements not yet seen, so tiles lost their owning settlement.
+      Java's client keeps them; both kinds of read now do.
+  - **Checked:** ClientUpdateTests plays two or three turns of seven
+    games, every unit making each kind of move it can.  After every
+    command, the tiles the player can see and the player itself must
+    match a copy read afresh.  Out-of-sight tiles may keep the units
+    last seen there, as in Java's client.  Model messages, market data
+    sent only on a price change, and a land name not yet answered are
+    left out of the comparison, as Java's client has them too.  Planted
+    bugs in partial updates, tile updates and the player's re-read were
+    caught.  One that left removed objects undisposed was not: the tile
+    updates sent with a removal already clear them.
+  - **FREECOL_CHECK_UPDATES=1** makes every game check this, printing
+    any difference.  Test games made with units on unexplored tiles
+    differ until those tiles are explored.
+  - **Not timed in the app:** the second copy of the app could not be
+    read through Accessibility while the first was open.
 - **Saved games:** the Mac app is sandboxed, so they are in its container
   (`~/Library/Containers/net.sf.freecol.ios/Data/Documents`).  Import
   and the share button move them in and out.

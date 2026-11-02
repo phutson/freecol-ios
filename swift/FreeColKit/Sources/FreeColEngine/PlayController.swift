@@ -17,6 +17,7 @@
 //  along with FreeCol.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+import class Foundation.ProcessInfo
 import FreeColCore
 import FreeColServer
 
@@ -130,7 +131,9 @@ final class PlayController {
     let human: Player
     /// Send a command to the server: nil if it was carried out, or why
     /// not.
-    private let send: (PlayerCommand) -> String?
+    /// Send a command: its refusal, if refused, and what the player was
+    /// sent because of it, or nil if that is not all it was told.
+    private let send: (PlayerCommand) -> (refusal: String?, updates: [PlayerUpdate]?)
     private var cached: PlayerView?
 
     var cycle = ActiveUnitCycle()
@@ -154,7 +157,8 @@ final class PlayController {
     private var updateRequested = false
     private var updateUnitRequested = false
 
-    init(game: ServerGame, human: Player, send: @escaping (PlayerCommand) -> String?) {
+    init(game: ServerGame, human: Player,
+         send: @escaping (PlayerCommand) -> (refusal: String?, updates: [PlayerUpdate]?)) {
         self.game = game
         self.human = human
         self.send = send
@@ -200,11 +204,52 @@ final class PlayController {
     /// Send a command; a refusal is told to the player, as Java shows
     /// the server's error.
     func command(_ c: PlayerCommand) -> Bool {
-        let refusal = send(c)
-        invalidate()
+        let (refusal, updates) = send(c)
+        refresh(updates, after: c)
         if let refusal { notices.append(refusal) }
         return refusal == nil
     }
+
+    /// For tests: compare the copy kept up to date with one read afresh
+    /// after every command, recording any difference.
+    /// FREECOL_CHECK_UPDATES=1 does so for every game, printing any.
+    var checkUpdates = ProcessInfo.processInfo.environment["FREECOL_CHECK_UPDATES"] == "1"
+    private(set) var updateMismatches: [String] = []
+    private(set) var updatesApplied = 0
+
+    /// Bring the player's copy up to date with what it was sent, as
+    /// Java's client does, or read it afresh if that can not be done.
+    private func refresh(_ updates: [PlayerUpdate]?, after c: PlayerCommand) {
+        guard let view = cached, let updates else {
+            invalidate()
+            return
+        }
+        do {
+            for u in updates { try view.apply(u, sentTo: human) }
+            try view.rereadPlayer(human)
+            updatesApplied += 1
+        } catch {
+            invalidate()
+            return
+        }
+        if checkUpdates, let fresh = try? PlayerView(of: game, for: human) {
+            // What the player sees now, and the player itself, as a copy
+            // read afresh has them.  Tiles out of sight may hold what was
+            // last seen there, as in Java's client: the server sends
+            // nothing when a tile passes out of sight other than by the
+            // moving unit's own.
+            let kept = Self.visible(view, as: human), read = Self.visible(fresh, as: human)
+            if kept != read {
+                let difference = PlayController.firstDifference(kept, read)
+                updateMismatches.append(difference)
+                if ProcessInfo.processInfo.environment["FREECOL_CHECK_UPDATES"] == "1" {
+                    print("UPDATE MISMATCH after \(c):\n\(difference)")
+                }
+                invalidate()
+            }
+        }
+    }
+
 
     func tell(_ t: StringTemplate) {
         notices.append(Messages.message(t) ?? "")

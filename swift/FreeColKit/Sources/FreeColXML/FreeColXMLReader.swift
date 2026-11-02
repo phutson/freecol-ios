@@ -288,6 +288,11 @@ public final class FreeColXMLReader {
         retained.append(object)
     }
 
+    /// The objects kept alive so far.
+    public var retainedObjects: [AnyObject] {
+        retained
+    }
+
     // MARK: Read scope
 
     /// Whether objects read are registered with their game: not while
