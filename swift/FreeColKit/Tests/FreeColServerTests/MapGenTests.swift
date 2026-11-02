@@ -94,10 +94,11 @@ struct MapGenTests {
         }
     }
 
-    /// The land generator types, temperatures and sizes, each a seed.
+    /// The land generator types, temperatures and sizes, each a seed;
+    /// and each generator asked for 75% land, which may not fit.
     @Test func terrain() throws {
         let maps = try Self.recorded("mapgen", "maps")
-        #expect(maps.count == 5)
+        #expect(maps.count == 9)
         try Messages.$scopedBundle.withValue(ColonyTurnTests.english) {
             for expected in maps {
                 let name = expected["name"]?.stringValue ?? "?"

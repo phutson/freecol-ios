@@ -4838,7 +4838,7 @@
                        value="100" minimumValue="20" maximumValue="200"/>
         <!-- Option for setting the land mass of the map -->
         <integerOption id="model.option.landMass"
-                       value="25" minimumValue="15" maximumValue="50"/>
+                       value="25" minimumValue="15" maximumValue="75"/>
         <!-- Option for setting the type of land generator to be used -->
         <selectOption id="model.option.landGeneratorType"
                       defaultValue="0" localizedLabels="true">

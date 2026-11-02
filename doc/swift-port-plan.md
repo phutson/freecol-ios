@@ -3158,6 +3158,34 @@ as it can with the iOS app.
     the simulator: a save wrote its file.  Loading settings with other
     rules and difficulty brought back Classic, Hard, Sweden with the
     Naval advantage (not Sweden's own Building) and a map 50 wide.
+  - **Land mass up to 75%:** the rules' land mass option allowed 15 to
+    50%, and now allows up to 75%
+    (`data/rules/classic/specification.xml`, which Java reads too).
+    - **Why the generators changed:** Java's continent and archipelago
+      generators never finished at 75%, and its islands generator not
+      even at 50%.  Each keeps placing land masses in open sea and found
+      none.  Only the classic generator gave up, lowering its target.
+    - **The fix:** `LandMap` gives up on a land mass after 10,000 tries to
+      find open sea, and the continent and island loops stop after 100
+      land masses in a row fail to place.  Made in both Java's and
+      Swift's `LandMap`.
+    - **What 75% gives:** how much land fits depends on the map size and
+      the distances to the edge.  On the default 40 by 100 map, classic
+      gives about 56%, or 80% with the preferred distance to edge at 2.
+      Continent gives 65%, archipelago 52% (61% at edge 2), and islands
+      40%.
+    - **Checked against Java:** MapGenOracle records four more maps, one
+      for each generator at 75%, and Swift's match them.  The existing
+      maps and new games came out of Java unchanged.  The recorded rule
+      sets, and the digests of the 23 bundled maps (which save the
+      option), differ only in the option's maximum; the saved games are
+      unchanged.  Planted bugs in the two
+      limits were caught.  One that stopped the continent loop's count
+      resetting after a land mass placed was not, since the 75% continent
+      map never needs the reset.  The setup screen's land mass runs from
+      15 to 75 (NewGameSetupTests).
+    - **Java's own game:** it is built from `src`, as the reference
+      script builds it, so it gets the same fix.
   - **Not offered:** editing a difficulty level's own settings, which
     Java allows for a custom difficulty.
 - **Saved games:** the Mac app is sandboxed, so they are in its container

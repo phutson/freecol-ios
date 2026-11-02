@@ -62,6 +62,8 @@ import Testing
         #expect(unnamed.isEmpty, Comment(rawValue: unnamed.joined(separator: ", ")))
         let rumours = try #require(setup.groups.flatMap(Self.options).first { $0.id == "model.option.rumourNumber" })
         #expect(rumours.name == "Number of lost city rumors")
+        let landMass = try #require(setup.groups.flatMap(Self.options).first { $0.id == "model.option.landMass" })
+        #expect(landMass.kind == .integer(minimum: 15, maximum: 75))
         if case .select(let items) = rumours.kind { #expect(items.count == 5) } else { Issue.record("not a choice") }
     }
 

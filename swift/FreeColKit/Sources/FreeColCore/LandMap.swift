@@ -95,6 +95,13 @@ public final class LandMap {
         }
     }
 
+    /// Land masses that may fail to be placed in a row, as the land fills
+    /// up, before the generator stops short of the land mass asked for
+    /// (as the classic generator does); and tries to find open sea to
+    /// start one in.
+    static let maxLandMassFailures = 100
+    static let maxStartTries = 10000
+
     private func generate(_ type: Int, _ distanceToEdge: Int, _ minNumberOfTiles: Int) {
         switch type {
         case LandMap.landGeneratorClassic:
@@ -105,8 +112,9 @@ public final class LandMap {
             let contsize = (minNumberOfTiles * 75) / 100
             let h = height / 4 + cache.nextInt(height / 2)
             addLandMass(contsize, contsize, width / 2, h, distanceToEdge)
-            while numberOfLandTiles < minNumberOfTiles {
-                addLandMass(15, 25, -1, -1, distanceToEdge)
+            var failures = 0
+            while numberOfLandTiles < minNumberOfTiles && failures < LandMap.maxLandMassFailures {
+                failures = addLandMass(15, 25, -1, -1, distanceToEdge) > 0 ? 0 : failures + 1
             }
         case LandMap.landGeneratorArchipelago:
             addPolarRegions()
@@ -126,8 +134,9 @@ public final class LandMap {
 
     private func addIslands(_ distanceToEdge: Int, _ minNumberOfTiles: Int) {
         addPolarRegions()
-        while numberOfLandTiles < minNumberOfTiles {
-            addLandMass(25, 25 + cache.nextInt(50), -1, -1, distanceToEdge)
+        var failures = 0
+        while numberOfLandTiles < minNumberOfTiles && failures < LandMap.maxLandMassFailures {
+            failures = addLandMass(25, 25 + cache.nextInt(50), -1, -1, distanceToEdge) > 0 ? 0 : failures + 1
         }
     }
 
@@ -217,7 +226,12 @@ public final class LandMap {
         if x < 0 || y < 0 {
             let wid = width - distanceToEdge * 2
             let hgt = height - distanceToEdge * 2
+            // With the land mass set high there may be no open sea left,
+            // so give up after a while.
+            var tries = 0
             repeat {
+                tries += 1
+                if tries > LandMap.maxStartTries { return 0 }
                 x = distanceToEdge + cache.nextInt(wid)
                 y = distanceToEdge + cache.nextInt(hgt)
             } while isLand(x, y) || hasAdjacentLand(x, y)
