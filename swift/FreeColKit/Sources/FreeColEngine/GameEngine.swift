@@ -75,6 +75,8 @@ public actor GameEngine {
         var trade: NativeTrade?
         /// Whether that trade is done, to be closed.
         var tradeDone = false
+        /// The players the human player has met, to know a first meeting.
+        var met: Set<String> = []
 
         func take(_ update: PlayerUpdate, _ player: Player) {
             events += GameEngine.events(update, for: player, shown: self)
@@ -96,6 +98,7 @@ public actor GameEngine {
                 ?? AIMain(game: game, controller: controller)
         }
         let shown = self.shown
+        shown.met = Set(game.livePlayers.filter { human.stance($0) != .uncontacted }.compactMap(\.id))
         controller.deliver = { player, update in
             if player === human {
                 shown.take(update, human)
@@ -289,6 +292,8 @@ public actor GameEngine {
         case unload(goodsTypeId: String, amount: Int, carrierId: String)
         /// Unload all a carrier holds.
         case unloadAll(carrierId: String)
+        /// Dump all a carrier holds (as unloading, but silently).
+        case dumpCargo(carrierId: String)
         case payArrears(goodsTypeId: String)
         /// Board a carrier where the unit is.
         case board(unitId: String, carrierId: String)
@@ -347,6 +352,7 @@ public actor GameEngine {
                 case let .load(goods, amount, carrier, source): play.load(goods, amount, onto: carrier, from: source)
                 case let .unload(goods, amount, carrier): play.unload(goods, amount, from: carrier)
                 case .unloadAll(let carrier): play.unloadAll(carrier)
+                case .dumpCargo(let carrier): play.unloadAll(carrier, dump: true)
                 case .payArrears(let goods): play.payArrears(goods)
                 case let .board(unit, carrier): play.board(unit, carrier)
                 case .leaveShip(let unit): play.leaveShip(unit)
@@ -368,7 +374,7 @@ public actor GameEngine {
             r.notices = play.notices
             r.activeUnitId = play.activeUnitId
             r.colonyToShow = play.colonyToShow
-            r = CommandResult(refusal: r.refusal, events: r.events + play.requests.map { .request($0) },
+            r = CommandResult(refusal: r.refusal, events: r.events + play.requests.map { .request($0) } + play.sounds.map { .sound($0) },
                               snapshot: r.snapshot, question: r.question, notices: r.notices,
                               activeUnitId: r.activeUnitId, colonyToShow: r.colonyToShow)
             return r
@@ -826,6 +832,9 @@ public actor GameEngine {
     /// and messages.
     private static func events(_ update: PlayerUpdate, for player: Player, shown: Shown?) -> [EngineEvent] {
         var ret: [EngineEvent] = []
+        // The server's sounds play only in the player's own turn (Java's
+        // clientGeneric).
+        let isCurrent = player.game?.currentPlayer === player
         for change in update.messages {
             switch change {
             case let .animateMove(unit, oldTile, newTile, _):
@@ -836,6 +845,13 @@ public actor GameEngine {
                                    attackerWon: success))
             case let .feature(parent, add, children) where add && parent === player:
                 for case let m as ModelMessage in children { ret.append(.message(SnapshotBuilder.message(m))) }
+            case let .stance(_, first, second) where first === player:
+                // A first meeting has its own music (stance handler).
+                if let shown, let id = second.id, shown.met.insert(id).inserted, let nation = second.nationId {
+                    ret.append(.sound("sound.event.meet." + nation))
+                }
+            case let .attribute(key, value) where key == "sound":
+                if isCurrent { ret.append(.sound(value)) }
             case let .spy(_, settlement):
                 if let screen = spied(settlement) { ret.append(.spied(screen)) }
             case let .message(m as NativeTradeMessage):
@@ -851,6 +867,9 @@ public actor GameEngine {
             default:
                 break
             }
+        }
+        if isCurrent {
+            for (key, value) in update.attributes where key == "sound" { ret.append(.sound(value)) }
         }
         return ret
     }

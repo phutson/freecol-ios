@@ -345,6 +345,8 @@ public enum EngineEvent: Sendable, Equatable {
     case notice(String)
     /// What a spy saw of a foreign colony: its panel.
     case spied(ColonyScreen)
+    /// A sound to play, by its resource key.
+    case sound(String)
 }
 
 /// What came of a command.

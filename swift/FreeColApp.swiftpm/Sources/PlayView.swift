@@ -88,6 +88,7 @@ struct TopBar: View {
     @Environment(GameStore.self) private var store
     let snapshot: GameSnapshot
     @State private var saving = false
+    @State private var soundSettings = false
     @State private var saveName = ""
     @State private var newName = ""
 
@@ -101,6 +102,7 @@ struct TopBar: View {
                 Button("Reports") { Task { await store.openReports() } }
                 Button("Trade routes") { Task { await store.openRoutes() } }
                 Button("Save…") { saving = true }
+                Button("Sound…") { soundSettings = true }
             }
             if snapshot.europe != nil {
                 Button("Europe") { Task { await store.openEurope() } }
@@ -129,6 +131,28 @@ struct TopBar: View {
                 .onAppear { saveName = "\(snapshot.player?.nationName ?? "") \(snapshot.turnName)" }
             Button("Save") { Task { await store.save(as: saveName) } }
             Button("Cancel", role: .cancel) {}
+        }
+        .sheet(isPresented: $soundSettings) { SoundSettings() }
+    }
+}
+
+/// The music and sound effect volumes (the client options).
+struct SoundSettings: View {
+    @Environment(GameStore.self) private var store
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage(GameAudio.musicVolumeKey) private var music = 100.0
+    @AppStorage(GameAudio.effectsVolumeKey) private var effects = 100.0
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                LabeledContent("Music") { Slider(value: $music, in: 0...100, step: 5) }
+                LabeledContent("Sound effects") { Slider(value: $effects, in: 0...100, step: 5) }
+            }
+            .navigationTitle("Sound")
+            .toolbar { Button("Done") { dismiss() } }
+            .onChange(of: music) { store.audio?.volumesChanged() }
+            .onChange(of: effects) { store.audio?.volumesChanged() }
         }
     }
 }

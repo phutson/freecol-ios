@@ -89,6 +89,15 @@ final class GameStore {
 
     var hasGame: Bool { engine != nil }
 
+    /// The sounds and music; the opening music plays at the setup screen.
+    private(set) var audio: GameAudio?
+
+    func startAudio() {
+        guard audio == nil, let data = Self.dataDirectory else { return }
+        audio = GameAudio(dataDirectory: data)
+        audio?.play("sound.intro.general")
+    }
+
     /// The path to draw: the goto being chosen, or the active unit's.
     var shownPath: UnitPath? { choosingGoto ? gotoPath : destinationPath }
 
@@ -130,6 +139,7 @@ final class GameStore {
             engine = loaded.0
             images = loaded.1
             snapshot = await loaded.0.snapshot()
+            if let nation = snapshot?.player?.nationId { audio?.play("sound.intro." + nation) }
             await play(.startTurn)
         } catch {
             failure = "Could not start the game: \(error)"
@@ -239,6 +249,7 @@ final class GameStore {
                 notices.append(text)
                 AccessibilityNotification.Announcement(text).post()
             case .spied(let screen): spiedColony = screen
+            case .sound(let key): audio?.play(key)
             case .unitMoved: break
             }
         }
@@ -435,7 +446,7 @@ final class GameStore {
         case .tile:
             notices.append(item.label)
         case .unit(let id): await play(.select(unitId: id))
-        case .dumpCargo(let id): await play(.unloadAll(carrierId: id))
+        case .dumpCargo(let id): await play(.dumpCargo(carrierId: id))
         case .activateAll: await play(.activateAll(at))
         case .goods: break
         }

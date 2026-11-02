@@ -140,3 +140,24 @@ public struct PropertyList: Sendable {
         values[key].flatMap { Int($0) } ?? defaultValue
     }
 }
+
+extension ResourceManager {
+
+    /// Whether a sound plays as music, stopping the music playing, rather
+    /// than as an effect (its ".type" in the resources; GUI.playSound).
+    public func isMusic(_ key: String) -> Bool {
+        stringResource(key + ".type")?.string == "music"
+    }
+
+    /// The files of a sound as the app has them, converted by
+    /// scripts/convert-audio.sh: paths from the rule set's folder
+    /// ("resources/sound/event/load.m4a").  Empty if there is no such
+    /// sound, which plays nothing, as in Java.
+    public func convertedSoundFiles(_ key: String) -> [String] {
+        (audioResource(key)?.files ?? []).compactMap { file in
+            guard let range = file.range(of: "/resources/", options: .backwards) else { return nil }
+            let path = String(file[file.index(after: range.lowerBound)...])
+            return path.hasSuffix(".ogg") ? String(path.dropLast(4)) + ".m4a" : path
+        }
+    }
+}

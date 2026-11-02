@@ -37,7 +37,7 @@ let package = Package(
             dependencies: [.product(name: "FreeColKit", package: "FreeColKit")],
             path: "Sources",
             exclude: [],
-            resources: [.copy("Resources/data"), .copy("Resources/games")]
+            resources: [.copy("Resources/data"), .copy("Resources/games"), .copy("Resources/audio")]
         ),
     ]
 )

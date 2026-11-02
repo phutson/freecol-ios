@@ -76,6 +76,7 @@ extension PlayController {
         let old = carrier.goodsCount(type)
         if command(.loadGoods(location: source.id, type: goodsTypeId, amount: String(amount), carrier: carrierId)),
            unit(carrierId)?.goodsCount(type) != old {
+            sounds.append("sound.event.loadCargo")
             updateGUI()
         }
     }
@@ -83,7 +84,7 @@ extension PlayController {
     /// Unload goods from a carrier: sold in Europe (if boycotted, the
     /// player may pay the arrears or dump them), or into its colony, or
     /// dumped (unloadCargo, sellGoods, MarketPanel).
-    func unload(_ goodsTypeId: String, _ amount: Int, from carrierId: String) {
+    func unload(_ goodsTypeId: String, _ amount: Int, from carrierId: String, dump: Bool = false) {
         guard ourTurn, amount > 0, let carrier = unit(carrierId),
               let type = view.game.specification?.getGoodsType(goodsTypeId) else { return }
         if carrier.isInEurope && !view.player.canTrade(type) {
@@ -101,8 +102,14 @@ extension PlayController {
             if answers["boycott:\(goodsTypeId)"] == "pay" { return }
         }
         let old = carrier.goodsCount(type)
+        let inEurope = carrier.isInEurope
         if command(.unloadGoods(type: goodsTypeId, amount: String(amount), carrier: carrierId)),
            unit(carrierId)?.goodsCount(type) != old {
+            if inEurope {
+                sounds.append("sound.event.sellCargo")
+            } else if !dump {
+                sounds.append("sound.event.unloadCargo")
+            }
             updateGUI()
         }
     }
@@ -127,6 +134,7 @@ extension PlayController {
         guard ourTurn, let u = unit(unitId), !u.isCarrier, let carrier = unit(carrierId), carrier.canCarryUnits,
               u.isAtLocation(carrier.location) else { return }
         if command(.embark(unit: unitId, carrier: carrierId, direction: nil)), unit(unitId)?.location?.id == carrierId {
+            sounds.append("sound.event.loadCargo")
             updateGUI()
         }
     }
@@ -142,13 +150,15 @@ extension PlayController {
 
     private func checkCashInTreasureTrainFromShip(_ unitId: String) -> Bool {
         guard let u = unit(unitId), u.canCarryTreasure, u.canCashInTreasureTrain else { return false }
-        return command(.cashInTreasureTrain(unit: unitId))
+        guard command(.cashInTreasureTrain(unit: unitId)) else { return false }
+        sounds.append("sound.event.cashInTreasureTrain")
+        return true
     }
 
     /// Unload everything from a carrier (EuropePanel.unloadAction and
     /// InGameController.unload): goods sold in Europe (paying arrears
     /// for the boycotted), or unloaded into the colony; units off.
-    func unloadAll(_ carrierId: String) {
+    func unloadAll(_ carrierId: String, dump: Bool = false) {
         guard ourTurn, let carrier = unit(carrierId), carrier.isCarrier else { return }
         let inEurope = carrier.isInEurope
         for g in carrier.compactGoodsList {
@@ -156,7 +166,7 @@ extension PlayController {
             if inEurope && !view.player.canTrade(type) {
                 payArrears(id)
             } else {
-                unload(id, g.amount, from: carrierId)
+                unload(id, g.amount, from: carrierId, dump: dump)
             }
             if question != nil { return }
         }
@@ -170,7 +180,10 @@ extension PlayController {
         guard ourTurn, let ship = unit(carrierId), ship.isNaval, let europe = view.player.europe else { return }
         if ship.tradeRoute != nil && (!confirmClearTradeRoute(carrierId) || !assignRoute(carrierId, nil)) { return }
         if destinationId == europe.id {
-            if ship.isInEurope { return }
+            if ship.isInEurope {
+                sounds.append("sound.event.illegalMove")
+                return
+            }
             if command(.moveTo(unit: carrierId, destination: destinationId)) { updateGUI() }
             return
         }

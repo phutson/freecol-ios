@@ -143,6 +143,8 @@ final class PlayController {
     var answers: [String: String] = [:]
     private(set) var question: PlayQuestion?
     var notices: [String] = []
+    /// The sounds the client itself plays (InGameController.sound).
+    var sounds: [String] = []
     var colonyToShow: String?
     /// What the client itself asks the player, as the server would
     /// (Brewster's choice of emigrant).
@@ -182,6 +184,7 @@ final class PlayController {
         self.answers = answers
         question = nil
         notices = []
+        sounds = []
         colonyToShow = nil
         requests = []
         updateRequested = false
@@ -504,6 +507,7 @@ final class PlayController {
         let illegal = interactive || destinationImminent
         func noAccess(_ key: String, nation: Bool, unit addUnit: Bool) {
             guard illegal else { return }
+            sounds.append("sound.event.illegalMove")
             var t = StringTemplate.template(key)
             if nation { t = t.addStringTemplate("%nation%", nationAt(oldTile, direction)) }
             if addUnit { t = t.addStringTemplate("%unit%", u.label(.national)) }
@@ -532,7 +536,9 @@ final class PlayController {
         case .moveNoAccessContact: noAccess("move.noAccessContact", nation: true, unit: false)
         case .moveNoAccessGoods: noAccess("move.noAccessGoods", nation: true, unit: true)
         case .moveNoAccessLand:
-            _ = moveDisembark(unitId, direction)
+            if !moveDisembark(unitId, direction) && interactive && question == nil {
+                sounds.append("sound.event.illegalMove")
+            }
         case .moveNoAccessMissionBan: noAccess("move.noAccessMissionBan", nation: true, unit: true)
         case .moveNoAccessSettlement: noAccess("move.noAccessSettlement", nation: true, unit: true)
         case .moveNoAccessSkill: noAccess("move.noAccessSkill", nation: false, unit: true)
@@ -546,6 +552,7 @@ final class PlayController {
             _ = changeState(unitId, .skipped)
         case .moveNoTile: noAccess("move.noTile", nation: false, unit: true)
         default:
+            if illegal { sounds.append("sound.event.illegalMove") }
             result = false
         }
         if destinationImminent && unit(unitId) != nil && question == nil {
@@ -710,7 +717,7 @@ final class PlayController {
         if clearGotoOrders(unitId),
            command(.embark(unit: unitId, carrier: carrierId, direction: direction.javaName)),
            unit(unitId)?.location?.id == carrierId {
-            // Aboard.
+            sounds.append("sound.event.loadCargo")
         } else if question == nil {
             _ = changeState(unitId, .skipped)
         }
@@ -780,7 +787,9 @@ final class PlayController {
                     .addAmount("%fee%", view.game.specification?.getInteger(GameOptions.treasureTransportFee) ?? 0)
             if !confirm("cashInTreasureTrain:\(unitId)", unitId, t, "accept", "reject") { return false }
         }
-        return command(.cashInTreasureTrain(unit: unitId)) && unit(unitId) == nil
+        guard command(.cashInTreasureTrain(unit: unitId)), unit(unitId) == nil else { return false }
+        sounds.append("sound.event.cashInTreasureTrain")
+        return true
     }
 
     /// Leaving a colony: not if the colony would lose what it needs,
@@ -942,6 +951,7 @@ final class PlayController {
         }
         if ret, command(.buildColony(name: name, unit: unitId)),
            let t = view.tile(MapPosition(x: tile.x, y: tile.y)), let colony = t.colony {
+            sounds.append("sound.event.buildingComplete")
             for id in t.units.compactMap(\.id) { _ = checkCashInTreasureTrain(id) }
             updateGUI()
             colonyToShow = colony.id

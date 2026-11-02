@@ -150,8 +150,12 @@ extension PlayController {
         choices.append(("incite", "missionarySettlement.incite"))
         switch choose("missionary:\(unitId)", unitId, PlayerView.missionaryQuestion(is_, player), choices) {
         case "establish", "denounce":
-            _ = command(.missionary(unit: unitId, direction: direction.javaName,
-                                    denounce: String(answers["missionary:\(unitId)"] == "denounce")))
+            if command(.missionary(unit: unitId, direction: direction.javaName,
+                                   denounce: String(answers["missionary:\(unitId)"] == "denounce"))),
+               // The player's copy of the game is rebuilt after a command.
+               view.game.getFreeColGameObject(is_.id ?? "", as: IndianSettlement.self)?.hasMissionary(view.player) == true {
+                sounds.append("sound.event.missionEstablished")
+            }
         case "incite":
             let enemies = view.game.livePlayers.filter { $0.isEuropean && $0 !== player }
             let options = enemies.compactMap { p in p.id.map { ($0, Messages.message(p.countryLabel) ?? "") } }

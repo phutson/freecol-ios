@@ -28,6 +28,7 @@ struct FreeColApp: App {
         WindowGroup {
             ContentView()
                 .environment(store)
+                .onAppear { store.startAudio() }
         }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .background, store.hasGame else { return }

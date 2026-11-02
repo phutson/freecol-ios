@@ -3010,9 +3010,80 @@ trade at settlements).
 - Sound and music (`common/sound` → AVFoundation), all translations, high
   scores, the tutorial.
 - Performance on large maps (profile pathfinding and AI turns on older
-  iPads).
-- Optional: mods, Game Center, the Mac (Mac Catalyst or native).
+  iPads).  This is also Phase 5 step 8, which stays open: there is no
+  iPad to measure on.
+- A macOS version (below).
+- Optional: mods, Game Center.
 - Release: depends on the license decision from Phase 0.
+
+### Status: sound and music done
+
+- **Files:** iOS can not play Ogg Vorbis, so `swift/scripts/convert-audio.sh`
+  decodes the game's 37 sounds and pieces of music with Java's own decoder
+  (`tools/dump/OggToWav.java`) and encodes them as AAC in the app's
+  `Resources/audio`: 26 MB, against about 92 MB of Ogg.  The 19th-century
+  mod's one sound is not converted.
+- **Which sound plays when:** the client's sounds are ported from
+  InGameController's call sites (`PlayController.sounds`), the server's
+  come from its "sound" attribute, in the player's own turn only, and a
+  first meeting plays the nation's music.  All reach the app as
+  `EngineEvent.sound`.
+- **Playing:** `GameAudio` in the app plays one effect and one piece of
+  music at a time, each new one stopping the last.  The opening music
+  plays at the setup screen, the nation's when a game starts, and then the
+  default playlist, shuffled.  The Game menu's Sound sheet sets the two
+  volumes.
+- **Checked:** `SoundTests` play the actions and check the keys, and that
+  each sound in the resources has its file.  These were written by reading
+  Java, not against a recording of it.  Planted bugs in sell and unload,
+  repeated meetings, the turn check and both illegal-move paths were each
+  caught; a first version of the illegal-move test passed with no moves to
+  try, and was fixed.  Every converted file opens in AVAudioPlayer on the
+  Mac with a length.
+- **Not checked:** nobody has listened to it.  In the simulator the app
+  starts its audio and the Sound sheet opens, but the volumes' effect and
+  the sounds themselves need a person with ears, and playback on a device
+  is untried.  The buildingComplete and cashIn sounds, and unloading in a
+  colony, are ported but no test plays them.
+- **Left out, as Java does by default or by design:** alert sounds
+  (`audioAlerts` is off by default, with no option here to turn it on);
+  anthems (multiplayer only).  `sound.attack.foot` has no file, so a foot
+  attack is silent, as in Java.  Java's refusal to send a ship already on
+  the map to the map or a settlement, with its sound, is not ported.
+- **For release:** the app still bundles the Ogg files in its data folder
+  though it never plays them, about 92 MB of its 263 MB.
+
+### The macOS version
+
+A FreeCol app for the Mac, sharing the engine and as many of the screens
+as it can with the iOS app.
+
+- **Where it starts from:** FreeColKit already declares macOS 14 and its
+  tests run on the Mac, so the engine, server, AI and resources need no
+  port.  The work is in the app: its package makes only an iOS
+  application, `GameStore.swift` draws the map's images with UIKit, and
+  `FreeColApp.swift`, `PlayView.swift` and several sheets use calls that
+  only iOS has.
+- **Decide first:** a native SwiftUI Mac app or Mac Catalyst.  Try both
+  on the current screens before choosing.  Native is expected to suit
+  the game better, with menus, windows, the keyboard and the mouse.
+  Catalyst is expected to be less work.
+- **Build:** a Mac target, which probably means a regular Xcode project,
+  since the app package's manifest makes iOS applications.  That project
+  would also give the iOS app the iCloud container that step 7 of Phase 5
+  left open.
+- **Share:** keep the screens in code both apps build, with the
+  differences in a small layer (images, sheets and full-screen covers,
+  the file pickers, haptics).
+- **Make it a Mac app:** a menu bar with the game's commands, Java's
+  keyboard shortcuts, right-click in place of long press, hover, a
+  resizable window and full screen, and saved games in a normal folder.
+- **Check:** the engine is already checked against Java and needs no new
+  recordings.  Drive the app on this Mac as the simulator drives the iOS
+  app.  A Mac is available, so the speed work can be measured here,
+  though that says little about iPads.
+- **Release:** signing and notarization for outside the App Store, or the
+  Mac App Store; this also depends on the license decision from Phase 0.
 
 ## Size and order
 
