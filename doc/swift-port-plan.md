@@ -2965,7 +2965,7 @@ trade at settlements).
   buildings in a hash set; here they are in the rules' order, and the
   labour report's other places are by identifier.
 
-**Step 7 status: partly done.**
+**Step 7 status: done, but for what needs a device or a signing team.**
 - **Long presses and context menus:** a long press on the map opens
   Java's tile menu (`TileMenuView`, TilePopup) in a sheet: attacking
   with the odds or going to the tile, the active unit's actions,
@@ -2992,12 +2992,18 @@ trade at settlements).
   by a long press or VoiceOver's actions: colonists work in a building
   or on a tile, go outside or board a ship; goods load from a warehouse
   or the market, and unload or sell from a ship; units board and leave.
-- **Not done:** an iCloud container of the app's own, syncing by itself
-  (that needs a signing team and entitlements, which this app package's
-  manifest can not declare, so it needs a regular Xcode project).
-- **Not checked:** haptics and VoiceOver, which need a device; sharing,
-  importing and the Files app by hand; renaming and the other menu
-  actions in the app, except renaming and activating all in the engine.
+- **Seen in the iPad simulator as well:** a save shared to Files, the
+  app's folder in the Files picker with iCloud Drive offered beside it,
+  a save deleted and imported back; a colony renamed from the tile menu;
+  and the menus: put to work, load, unload, board, buy, sell and leave.
+- **Not done:** an iCloud container of the app's own, syncing by itself.
+  It needs a signing team and an entitlement, and the app package's
+  manifest API has no way to declare one, so it needs a regular Xcode
+  project.  iCloud Drive is reachable by the pickers until then.
+- **Not checked:** haptics and VoiceOver, including whether VoiceOver
+  offers the menus, which need a device; saving to iCloud Drive itself,
+  which needs an account.  Importing refuses all but `.fsg` files;
+  that refusal was not tried.
 
 ## Phase 6: Polish and release
 

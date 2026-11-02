@@ -122,7 +122,7 @@ struct SetupView: View {
                 try GameStore.importGame(try result.get())
                 saved = GameStore.savedGames
             } catch {
-                importFailure = "\(error)"
+                importFailure = error.localizedDescription
             }
         }
         .alert(importFailure ?? "", isPresented: Binding(get: { importFailure != nil }, set: { if !$0 { importFailure = nil } })) {

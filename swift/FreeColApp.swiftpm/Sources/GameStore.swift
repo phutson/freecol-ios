@@ -376,6 +376,9 @@ final class GameStore {
 
     /// Copy in a saved game from elsewhere (Files, iCloud Drive).
     nonisolated static func importGame(_ url: URL) throws {
+        guard url.pathExtension == "fsg" else {
+            throw CocoaError(.fileReadCorruptFile, userInfo: [NSLocalizedDescriptionKey: "Not a FreeCol saved game."])
+        }
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         let to = savesDirectory.appendingPathComponent(url.lastPathComponent)

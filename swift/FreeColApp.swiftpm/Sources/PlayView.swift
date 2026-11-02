@@ -116,6 +116,7 @@ struct TopBar: View {
         .alert("Rename the colony", isPresented: Binding(get: { store.renamingColonyId != nil },
                                                          set: { if !$0 { store.renamingColonyId = nil } })) {
             TextField("Name", text: $newName)
+                .onAppear { newName = snapshot.colony(store.renamingColonyId ?? "")?.name ?? "" }
             Button("Rename") {
                 if let id = store.renamingColonyId {
                     Task { await store.play(.renameColony(colonyId: id, name: newName)) }
