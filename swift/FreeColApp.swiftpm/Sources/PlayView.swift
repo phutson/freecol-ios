@@ -69,15 +69,19 @@ struct PlayView: View {
         .fullScreenCover(isPresented: Binding(get: { store.europe != nil }, set: { if !$0 { store.closeEurope() } })) {
             if let europe = store.europe, let snapshot = store.snapshot {
                 EuropeView(europe: europe, snapshot: snapshot, images: images)
-                    .environment(store)
                     .modifier(Dialogs())
+                    // Last, so the dialogs have the store too: on the Mac
+                    // a cover does not inherit the presenter's.
+                    .environment(store)
             }
         }
         .fullScreenCover(isPresented: Binding(get: { store.colony != nil }, set: { if !$0 { store.closeColony() } })) {
             if let colony = store.colony, let snapshot = store.snapshot {
                 ColonyView(colony: colony, snapshot: snapshot, images: images)
-                    .environment(store)
                     .modifier(Dialogs())
+                    // Last, so the dialogs have the store too: on the Mac
+                    // a cover does not inherit the presenter's.
+                    .environment(store)
             }
         }
     }

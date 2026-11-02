@@ -41,7 +41,7 @@ struct TradeSheets: ViewModifier {
             .background {
                 Color.clear.sheet(isPresented: Binding(get: { store.spiedColony != nil },
                                                        set: { if !$0 { store.spiedColony = nil } })) {
-                    if let colony = store.spiedColony { SpiedColonySheet(colony: colony) }
+                    if let colony = store.spiedColony { SpiedColonySheet(colony: colony).environment(store) }
                 }
             }
     }

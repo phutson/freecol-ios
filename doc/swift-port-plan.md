@@ -3188,6 +3188,16 @@ as it can with the iOS app.
       script builds it, so it gets the same fix.
   - **Not offered:** editing a difficulty level's own settings, which
     Java allows for a custom difficulty.
+- **Crash fixed, colony panel and Europe:** opening either crashed the
+  Mac app, for example after founding a colony.  In both full-screen
+  covers the store was given to the screen but not to the question
+  dialogs attached after it.  An iPad's cover inherits the store from
+  the screen behind it, so only the Mac crashed ("No Observable object
+  of type GameStore").  The store is now given last, around the dialogs
+  too.  The right-click menus, the Sound sheet and the spy sheet are now
+  given it explicitly as well.  Found by running the app under lldb.
+  Checked on the Mac: the sample game's Build colony opens Fort Nassau's
+  panel, and Europe opens.
 - **Saved games:** the Mac app is sandboxed, so they are in its container
   (`~/Library/Containers/net.sf.freecol.ios/Data/Documents`).  Import
   and the share button move them in and out.

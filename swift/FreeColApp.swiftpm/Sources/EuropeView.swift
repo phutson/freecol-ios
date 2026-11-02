@@ -102,7 +102,7 @@ struct EuropeView: View {
                     UnitIcon(unitId: id, snapshot: snapshot, images: images)
                         .draggable(Drag.unit(id).text)
                         .contextMenu {
-                            RoleMenu(unitId: id)
+                            RoleMenu(unitId: id).environment(store)
                             ForEach(europe.carriers, id: \.id) { c in
                                 Button("Board \(snapshot.unit(c.id)?.label ?? c.id)") {
                                     Task { await store.play(.board(unitId: id, carrierId: c.id)) }
@@ -241,7 +241,7 @@ struct ShipCard<Buttons: View>: View {
                             .draggable(Drag.unit(id).text)
                             .contextMenu {
                                 if let colony {
-                                    ColonyUnitMenu(colony: colony, unitId: id)
+                                    ColonyUnitMenu(colony: colony, unitId: id).environment(store)
                                 } else {
                                     Button("Leave the ship") { Task { await store.play(.leaveShip(unitId: id)) } }
                                 }

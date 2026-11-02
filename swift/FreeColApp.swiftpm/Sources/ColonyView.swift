@@ -149,7 +149,7 @@ struct ColonyView: View {
             HStack {
                 ForEach(colony.outsideUnitIds, id: \.self) { id in
                     UnitIcon(unitId: id, snapshot: snapshot, images: images)
-                        .draggable(Drag.unit(id).text).contextMenu { ColonyUnitMenu(colony: colony, unitId: id) }
+                        .draggable(Drag.unit(id).text).contextMenu { ColonyUnitMenu(colony: colony, unitId: id).environment(store) }
                 }
                 Spacer(minLength: 0)
             }
@@ -266,7 +266,7 @@ struct ColonyTilesView: View {
             }
             ForEach(Array(t.unitIds.enumerated()), id: \.element) { i, id in
                 HStack(spacing: 0) {
-                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(Drag.unit(id).text).contextMenu { ColonyUnitMenu(colony: colony, unitId: id) }
+                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(Drag.unit(id).text).contextMenu { ColonyUnitMenu(colony: colony, unitId: id).environment(store) }
                     if let made = t.made[i] {
                         GoodsIcon(typeId: made.typeId, images: images, size: 16)
                         Text("\(made.amount)").font(.caption2).bold()
@@ -314,6 +314,7 @@ struct ColonyUnitMenu: View {
 
 /// A building: its picture, name, production and workers.
 struct BuildingCard: View {
+    @Environment(GameStore.self) private var store
     let colony: ColonyScreen
     let building: ColonyBuildingSlot
     let snapshot: GameSnapshot
@@ -339,7 +340,7 @@ struct BuildingCard: View {
             }
             HStack(spacing: 2) {
                 ForEach(building.unitIds, id: \.self) { id in
-                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(Drag.unit(id).text).contextMenu { ColonyUnitMenu(colony: colony, unitId: id) }
+                    UnitIcon(unitId: id, snapshot: snapshot, images: images, size: 34).draggable(Drag.unit(id).text).contextMenu { ColonyUnitMenu(colony: colony, unitId: id).environment(store) }
                 }
             }
             .frame(minHeight: 34)
