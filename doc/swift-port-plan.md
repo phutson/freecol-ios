@@ -3235,6 +3235,11 @@ as it can with the iOS app.
     differ until those tiles are explored.
   - **Not timed in the app:** the second copy of the app could not be
     read through Accessibility while the first was open.
+  - **No spinner for a move:** the spinner showed, and the top bar and
+    unit panel dimmed, the moment the engine was busy, so even a 5 ms
+    move flashed them.  Both now wait until it has been busy for 0.4 s,
+    as during the other players' turns; input waits meanwhile without
+    showing it.  Checked on the Mac: no spinner during moves.
 - **Saved games:** the Mac app is sandboxed, so they are in its container
   (`~/Library/Containers/net.sf.freecol.ios/Data/Documents`).  Import
   and the share button move them in and out.

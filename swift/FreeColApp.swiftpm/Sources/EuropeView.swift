@@ -75,7 +75,8 @@ struct EuropeView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Close") { store.closeEurope() } }
             }
-            .disabled(store.busy)
+            .allowsHitTesting(!store.busy)
+            .disabled(store.showsBusy)
         }
     }
 

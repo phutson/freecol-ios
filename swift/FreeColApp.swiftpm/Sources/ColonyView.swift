@@ -61,7 +61,8 @@ struct ColonyView: View {
             .sheet(isPresented: $editingQueue) {
                 BuildQueueView(colonyId: colony.id).environment(store)
             }
-            .disabled(store.busy)
+            .allowsHitTesting(!store.busy)
+            .disabled(store.showsBusy)
         }
     }
 
@@ -444,7 +445,8 @@ struct BuildQueueView: View {
                 .navigationTitle("Build queue")
             }
         }
-        .disabled(store.busy)
+        .allowsHitTesting(!store.busy)
+        .disabled(store.showsBusy)
     }
 
     private func choices(_ title: String, _ list: [BuildChoice], _ colony: ColonyScreen) -> some View {

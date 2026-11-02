@@ -42,7 +42,7 @@ struct PlayView: View {
                 if let unit = store.activeUnit { UnitPanel(unit: unit) }
             }
             .padding()
-            if store.busy {
+            if store.showsBusy {
                 ProgressView().tint(.white).padding().background(.thinMaterial, in: Circle())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -117,7 +117,10 @@ struct TopBar: View {
         }
         .padding(10)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
-        .disabled(store.busy)
+        // Input waits while the engine works; the controls dim only if
+        // that takes a while.
+        .allowsHitTesting(!store.busy)
+        .disabled(store.showsBusy)
         .alert("Rename the colony", isPresented: Binding(get: { store.renamingColonyId != nil },
                                                          set: { if !$0 { store.renamingColonyId = nil } })) {
             TextField("Name", text: $newName)
@@ -228,7 +231,10 @@ struct UnitPanel: View {
         }
         .padding(12)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-        .disabled(store.busy)
+        // Input waits while the engine works; the controls dim only if
+        // that takes a while.
+        .allowsHitTesting(!store.busy)
+        .disabled(store.showsBusy)
     }
 
     private var actions: some View {

@@ -39,7 +39,28 @@ final class GameStore {
     private var engine: GameEngine?
 
     /// Whether the engine is busy (the others' turns can take a while).
-    private(set) var busy = false
+    /// Input waits meanwhile.
+    private(set) var busy = false {
+        didSet { if busy != oldValue { busyChanged() } }
+    }
+    /// Whether to show that it is busy: only once it has been for a
+    /// while, so that a move, which takes a few milliseconds, does not
+    /// flash a spinner or dim the controls.
+    private(set) var showsBusy = false
+    private var busyShowing: Task<Void, Never>?
+
+    private func busyChanged() {
+        busyShowing?.cancel()
+        guard busy else {
+            showsBusy = false
+            return
+        }
+        busyShowing = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(400))
+            guard let self, !Task.isCancelled, self.busy else { return }
+            self.showsBusy = true
+        }
+    }
     /// The unit being moved, what it can do, and its way to its
     /// destination.
     private(set) var activeUnitId: String?
