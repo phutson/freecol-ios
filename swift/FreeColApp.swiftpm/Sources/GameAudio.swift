@@ -63,9 +63,18 @@ final class GameAudio: NSObject, AVAudioPlayerDelegate {
         return Float(stored / 100)
     }
 
+    /// Set the volumes; music turned right down pauses, and goes on
+    /// when turned up again.
     func volumesChanged() {
         effect?.volume = volume(Self.effectsVolumeKey)
-        music?.volume = volume(Self.musicVolumeKey)
+        if effect?.volume == 0 { effect?.stop() }
+        guard let music else { return }
+        music.volume = volume(Self.musicVolumeKey)
+        if music.volume == 0 {
+            music.pause()
+        } else if !music.isPlaying {
+            music.play()
+        }
     }
 
     private func url(_ path: String) -> URL { folder.appendingPathComponent(path) }
@@ -75,7 +84,7 @@ final class GameAudio: NSObject, AVAudioPlayerDelegate {
         guard let path = manager.convertedSoundFiles(key).randomElement() else { return }
         if manager.isMusic(key) {
             startMusic(url(path))
-        } else if let player = try? AVAudioPlayer(contentsOf: url(path)) {
+        } else if volume(Self.effectsVolumeKey) > 0, let player = try? AVAudioPlayer(contentsOf: url(path)) {
             player.volume = volume(Self.effectsVolumeKey)
             player.play()
             effect = player
@@ -86,7 +95,8 @@ final class GameAudio: NSObject, AVAudioPlayerDelegate {
         guard let player = try? AVAudioPlayer(contentsOf: url) else { return }
         player.delegate = self
         player.volume = volume(Self.musicVolumeKey)
-        player.play()
+        // Music turned off waits, ready to play when turned up.
+        if player.volume > 0 { player.play() }
         music = player
     }
 

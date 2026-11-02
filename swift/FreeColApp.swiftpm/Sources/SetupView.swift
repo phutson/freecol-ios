@@ -120,6 +120,7 @@ struct SetupView: View {
                 }
                 Section {
                     Button("Play the sample game") { Task { await store.loadSample() } }
+                    Button("Sound…") { store.soundSettingsShown = true }
                 }
             }
             .frame(maxWidth: 500)

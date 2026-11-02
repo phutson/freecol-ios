@@ -64,6 +64,11 @@ struct ContentView: View {
                 SetupView()
             }
         }
+        // From the menus, on the setup screen as in a game: the music
+        // begins at the setup screen.
+        .sheet(isPresented: Binding(get: { store.soundSettingsShown }, set: { store.soundSettingsShown = $0 })) {
+            SoundSettings()
+        }
     }
 }
 

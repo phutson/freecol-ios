@@ -136,9 +136,6 @@ struct TopBar: View {
             Button("Stop Game", role: .destructive) { store.stopGame() }
             Button("Cancel", role: .cancel) {}
         }
-        .sheet(isPresented: Binding(get: { store.soundSettingsShown }, set: { store.soundSettingsShown = $0 })) {
-            SoundSettings()
-        }
     }
 }
 
@@ -152,13 +149,31 @@ struct SoundSettings: View {
     var body: some View {
         NavigationStack {
             Form {
-                LabeledContent("Music") { Slider(value: $music, in: 0...100, step: 5) }
-                LabeledContent("Sound effects") { Slider(value: $effects, in: 0...100, step: 5) }
+                volume("Music", $music)
+                volume("Sound effects", $effects)
+                Section {
+                    Button("Turn all sound off") {
+                        music = 0
+                        effects = 0
+                    }
+                    .disabled(music == 0 && effects == 0)
+                }
             }
             .navigationTitle("Sound")
             .toolbar { Button("Done") { dismiss() } }
             .onChange(of: music) { store.audio?.volumesChanged() }
             .onChange(of: effects) { store.audio?.volumesChanged() }
+        }
+    }
+
+    private func volume(_ title: String, _ value: Binding<Double>) -> some View {
+        LabeledContent(title) {
+            HStack {
+                Slider(value: value, in: 0...100, step: 5)
+                Text(value.wrappedValue == 0 ? "Off" : "\(Int(value.wrappedValue))%")
+                    .monospacedDigit()
+                    .frame(width: 44, alignment: .trailing)
+            }
         }
     }
 }

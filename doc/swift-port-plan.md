@@ -3031,8 +3031,12 @@ trade at settlements).
 - **Playing:** `GameAudio` in the app plays one effect and one piece of
   music at a time, each new one stopping the last.  The opening music
   plays at the setup screen, the nation's when a game starts, and then the
-  default playlist, shuffled.  The Game menu's Sound sheet sets the two
-  volumes.
+  default playlist, shuffled.  The Sound sheet sets the two volumes, each
+  down to Off, and has a button to turn all sound off.  It opens from the
+  Game menus and from a button on the setup screen, where the music
+  begins; at first it opened only during a game.  Music turned off
+  pauses, and goes on when turned up.  On the Mac, the audio output went
+  idle a few seconds after the sound was turned off.
 - **Checked:** `SoundTests` play the actions and check the keys, and that
   each sound in the resources has its file.  These were written by reading
   Java, not against a recording of it.  Planted bugs in sell and unload,
