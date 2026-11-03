@@ -143,15 +143,10 @@ extension PlayerView {
         let uc = colony.unitCount
         let sol = colony.sonsOfLiberty
 
-        // The buildings, shuffled by the colony's place, as the panel
-        // lays them out.
-        var order = spec.buildingTypeList.filter { $0.upgradesFrom == nil }
-        let random = JavaRandom(seed: Int64(13 * tile.x + 23 * tile.y))
-        var i = order.count
-        while i > 1 {
-            order.swapAt(i - 1, Int(random.nextInt(Int32(i))))
-            i -= 1
-        }
+        // The buildings in the specification's order, town hall first,
+        // the same in every colony.  (Java's panel shuffles them by the
+        // colony's place, to make each town look different.)
+        let order = spec.buildingTypeList.filter { $0.upgradesFrom == nil }
         var slots: [ColonyBuildingSlot] = []
         for bt in order where !bt.isDefenceType && !bt.hasAbility(Ability.produceInWater) {
             guard let building = colony.buildings.first(where: { $0.type?.firstLevel === bt }) else {

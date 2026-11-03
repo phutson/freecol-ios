@@ -79,11 +79,19 @@ import Testing
     static func int(_ v: JSONValue?) -> String { v?.intValue.map { String($0) } ?? "-" }
 
     /// Java's colony panel, section by section, as lines.
-    static func javas(_ c: JSONValue) -> [String: [String]] {
+    ///
+    /// Java's panel shuffles the buildings by the colony's place; ours
+    /// keeps the specification's order, so Java's are put back in it.
+    static func javas(_ c: JSONValue, _ spec: Specification) -> [String: [String]] {
         var r: [String: [String]] = [:]
         r["population"] = ["units", "sonsOfLiberty", "rebels", "bonus", "sizeChange", "warehouseCapacity"]
             .map { int(c[$0]) }
-        r["buildings"] = (c["buildings"]?.arrayValue ?? []).map { b -> String in
+        let rank = { (b: JSONValue) -> Int in
+            let type = spec.getBuildingType(b["site"]?.stringValue ?? b["type"]?.stringValue)?.firstLevel
+            return spec.buildingTypeList.firstIndex { $0 === type } ?? -1
+        }
+        let javaBuildings = (c["buildings"]?.arrayValue ?? []).sorted { rank($0) < rank($1) }
+        r["buildings"] = javaBuildings.map { b -> String in
             if let site = b["site"]?.stringValue { return "site \(site)" }
             var e = "\(str(b["id"])) \(str(b["type"])) \(strings(b["units"]))"
             if let o = b["output"]?.arrayValue { e += " \(str(o[0])) \(int(o[1]))/\(int(o[2]))" }
@@ -145,7 +153,7 @@ import Testing
                     diffs.append("\(id): no colony")
                     continue
                 }
-                let ours = Self.ours(s), theirs = Self.javas(c)
+                let ours = Self.ours(s), theirs = Self.javas(c, try #require(view.game.specification))
                 for key in theirs.keys.sorted() where ours[key] != theirs[key] {
                     let o = ours[key] ?? [], t = theirs[key] ?? []
                     let i = Array(zip(o, t)).firstIndex { $0 != $1 } ?? min(o.count, t.count)

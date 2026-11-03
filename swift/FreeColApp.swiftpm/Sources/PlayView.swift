@@ -34,6 +34,8 @@ struct PlayView: View {
             MapView(snapshot: snapshot, images: images, activeUnitId: store.activeUnitId, path: store.shownPath,
                     onTap: { p in Task { await store.tap(p) } },
                     onLongPress: { p in Task { await store.openTileMenu(p) } },
+                    onGotoDrag: { p in Task { await store.dragGoto(to: p) } },
+                    onGotoDrop: { p in Task { await store.dropGoto(at: p) } },
                     zoom: Binding(get: { store.mapZoom }, set: { store.mapZoom = $0 }))
                 .ignoresSafeArea()
             ZoomButtons()
@@ -227,7 +229,7 @@ struct UnitPanel: View {
                 Text(unit.label).font(.headline)
                 Text("Moves \(moves) · \(unit.state.lowercased())").font(.subheadline).foregroundStyle(.secondary)
                 actions
-                if store.choosingGoto {
+                if store.choosingGoto && !store.draggingGoto {
                     Text(store.gotoPath == nil ? "Tap where to go." : "Tap again to go there.")
                         .font(.callout)
                 }

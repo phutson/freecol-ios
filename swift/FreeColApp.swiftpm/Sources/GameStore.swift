@@ -91,6 +91,8 @@ final class GameStore {
     private(set) var choosingGoto = false
     private(set) var gotoTarget: MapPosition?
     private(set) var gotoPath: UnitPath?
+    /// The goto is being chosen by dragging from the unit.
+    private(set) var draggingGoto = false
     /// A question the client asks before going on.
     private(set) var question: PlayQuestion?
     private var pending: (action: GameEngine.PlayAction, answers: [String: String])?
@@ -614,8 +616,30 @@ final class GameStore {
 
     func stopGoto() {
         choosingGoto = false
+        draggingGoto = false
         gotoTarget = nil
         gotoPath = nil
+    }
+
+    /// A drag from the active unit is over a tile: show the way there,
+    /// as Java's drag of a unit does.
+    func dragGoto(to p: MapPosition) async {
+        guard let engine, let id = activeUnitId else { return }
+        choosingGoto = true
+        draggingGoto = true
+        guard p != gotoTarget else { return }
+        gotoTarget = p
+        let path = await engine.gotoPath(id, to: p)
+        if gotoTarget == p { gotoPath = path }
+    }
+
+    /// The drag from the unit let go over a tile, or off the map: go
+    /// there if there is a way, and on in the turns after.
+    func dropGoto(at p: MapPosition?) async {
+        guard let engine, let id = activeUnitId else { return stopGoto() }
+        stopGoto()
+        guard let p, await engine.gotoPath(id, to: p) != nil else { return }
+        await play(.goTo(unitId: id, destination: .tile(p)))
     }
 
     private func chooseGoto(_ p: MapPosition) async {

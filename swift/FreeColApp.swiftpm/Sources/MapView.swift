@@ -36,6 +36,10 @@ struct MapView: View {
     var onTap: (MapPosition) -> Void = { _ in }
     /// A tile pressed and held.
     var onLongPress: (MapPosition) -> Void = { _ in }
+    /// A drag from the active unit, over a tile.
+    var onGotoDrag: (MapPosition) -> Void = { _ in }
+    /// The drag from the active unit let go, over a tile or off the map.
+    var onGotoDrop: (MapPosition?) -> Void = { _ in }
 
     /// The zoom, kept by the caller so keys and buttons can change it.
     @Binding var zoom: CGFloat
@@ -43,6 +47,11 @@ struct MapView: View {
     /// The map pixel (at scale 1) at the screen's centre.
     @State private var centre: CGPoint?
     @State private var dragStart: CGPoint?
+    /// The drag started on the active unit: it chooses where to go,
+    /// rather than moving the map.
+    @State private var draggingUnit: Bool?
+    /// The tile the unit's drag is over.
+    @State private var dragTile: MapPosition?
     @State private var zoomStart: CGFloat?
     /// Where the finger came down, for a long press, which does not say.
     @State private var touch: CGPoint?
@@ -61,7 +70,7 @@ struct MapView: View {
                     draw(&context, size, centre, options)
                 }
             }
-            .gesture(drag(centre).simultaneously(with: magnify))
+            .gesture(drag(centre, geometry.size).simultaneously(with: magnify))
             .simultaneousGesture(SpatialTapGesture().onEnded { value in
                 if held {
                     held = false
@@ -132,15 +141,33 @@ struct MapView: View {
         return CGPoint(x: o.x + MapScene.tileWidth / 2, y: o.y + MapScene.tileHeight / 2)
     }
 
-    private func drag(_ centre: CGPoint) -> some Gesture {
-        DragGesture(minimumDistance: 1)
+    /// A drag from the active unit shows the way to the tile under it
+    /// and goes there when let go (Java's unit drag); any other drag
+    /// moves the map.
+    private func drag(_ centre: CGPoint, _ size: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 4)
             .onChanged { value in
+                if draggingUnit == nil {
+                    let on = tile(at: value.startLocation, size, centre)
+                    draggingUnit = on != nil && on == activeUnitId.flatMap { snapshot.unit($0)?.position }
+                }
+                if draggingUnit == true {
+                    let over = tile(at: value.location, size, centre)
+                    if let over, over != dragTile { onGotoDrag(over) }
+                    dragTile = over
+                    return
+                }
                 let start = dragStart ?? centre
                 if dragStart == nil { dragStart = centre }
                 self.centre = clamped(CGPoint(x: start.x - value.translation.width / zoom,
                                               y: start.y - value.translation.height / zoom))
             }
-            .onEnded { _ in dragStart = nil }
+            .onEnded { value in
+                if draggingUnit == true { onGotoDrop(tile(at: value.location, size, centre)) }
+                draggingUnit = nil
+                dragTile = nil
+                dragStart = nil
+            }
     }
 
     private var magnify: some Gesture {
