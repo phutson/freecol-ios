@@ -246,8 +246,7 @@ struct ColonyTilesView: View {
                 MapView.render(draws, &context, images)
             }
             ForEach(colony.tiles, id: \.id) { t in
-                tile(t).frame(width: tw, height: th)
-                    .contentShape(Diamond())
+                tile(t)
                     .offset(x: origin(t.position).x, y: origin(t.position).y)
             }
         }
@@ -275,6 +274,9 @@ struct ColonyTilesView: View {
                 }
             }
         }
+        // The whole diamond takes the drop, empty or not.
+        .frame(width: tw, height: th)
+        .contentShape(Diamond())
         .dropDestination(for: String.self) { items, _ in
             guard case .unit(let unit)? = items.first.flatMap(Drag.init), !t.isCentre else { return false }
             Task { await store.play(.work(unitId: unit, workLocationId: t.id)) }
