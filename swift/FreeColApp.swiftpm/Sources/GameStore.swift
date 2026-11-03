@@ -78,6 +78,13 @@ final class GameStore {
     /// volumes (asked from the top bar or the menu bar).
     var savePrompt = false
     var soundSettingsShown = false
+    /// The map's zoom (Java's map scale).
+    var mapZoom = MapZoom.initial
+    var canZoomIn: Bool { mapZoom < MapZoom.maximum }
+    var canZoomOut: Bool { mapZoom > MapZoom.minimum }
+    func zoomIn() { mapZoom = MapZoom.zoomedIn(mapZoom) }
+    func zoomOut() { mapZoom = MapZoom.zoomedOut(mapZoom) }
+
     /// Whether the player is asked to stop the game for a new one.
     var stopGamePrompt = false
     /// Choosing a goto destination: the tile tapped and the path to it.

@@ -37,9 +37,11 @@ struct MapView: View {
     /// A tile pressed and held.
     var onLongPress: (MapPosition) -> Void = { _ in }
 
-    /// The map pixel (at scale 1) at the screen's centre, and the zoom.
+    /// The zoom, kept by the caller so keys and buttons can change it.
+    @Binding var zoom: CGFloat
+
+    /// The map pixel (at scale 1) at the screen's centre.
     @State private var centre: CGPoint?
-    @State private var zoom: CGFloat = 0.75
     @State private var dragStart: CGPoint?
     @State private var zoomStart: CGFloat?
     /// Where the finger came down, for a long press, which does not say.
@@ -146,7 +148,7 @@ struct MapView: View {
             .onChanged { value in
                 let start = zoomStart ?? zoom
                 if zoomStart == nil { zoomStart = zoom }
-                zoom = min(2, max(0.2, start * value.magnification))
+                zoom = min(MapZoom.maximum, max(MapZoom.minimum, start * value.magnification))
             }
             .onEnded { _ in zoomStart = nil }
     }
@@ -326,5 +328,24 @@ struct MapView: View {
         p.addLine(to: CGPoint(x: x, y: y + th / 2))
         p.closeSubpath()
         return p
+    }
+}
+
+/// The map's zoom steps, as Java's (ImageLibrary.SCALE_STEP, MIN_SCALE),
+/// up to twice the tiles' size, as pinching allows.
+enum MapZoom {
+    static let minimum: CGFloat = 0.25
+    static let maximum: CGFloat = 2
+    static let step: CGFloat = 0.25
+    static let initial: CGFloat = 0.75
+
+    /// The next step in, or out, from a zoom that pinching may have left
+    /// between steps.
+    static func zoomedIn(_ zoom: CGFloat) -> CGFloat {
+        min(maximum, (zoom / step + 0.001).rounded(.down) * step + step)
+    }
+
+    static func zoomedOut(_ zoom: CGFloat) -> CGFloat {
+        max(minimum, (zoom / step - 0.001).rounded(.up) * step - step)
     }
 }

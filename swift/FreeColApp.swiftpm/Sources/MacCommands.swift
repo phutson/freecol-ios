@@ -42,6 +42,18 @@ struct GameCommands: Commands {
                 .keyboardShortcut("s")
                 .disabled(!store.hasGame)
         }
+        // Java's keys: + and - typed.
+        CommandMenu("Map") {
+            Button("Zoom In") { store.zoomIn() }
+                .keyboardShortcut("+", modifiers: [])
+                .disabled(!store.hasGame || !store.canZoomIn)
+            Button("Zoom Out") { store.zoomOut() }
+                .keyboardShortcut("-", modifiers: [])
+                .disabled(!store.hasGame || !store.canZoomOut)
+            Button("Actual Size") { store.mapZoom = MapZoom.initial }
+                .keyboardShortcut("0", modifiers: [])
+                .disabled(!store.hasGame)
+        }
         CommandMenu("Game") {
             // Java's key is Return alone, too easily pressed by accident.
             play("End Turn", .endTurn, key: .return, modifiers: .command)

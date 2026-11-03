@@ -3279,9 +3279,15 @@ as it can with the iOS app.
   - **Crash:** opening a sheet over a notice crashed the app.  Its
     dismissal removed a notice from an empty list.  Now only OK removes
     a notice, and a notice hidden by a sheet shows again after it.
+- **Zoom:** a Map menu with Zoom In (+), Zoom Out (-) and Actual Size
+  (0), Java's keys, and on-map + and - buttons for a mouse or a finger
+  that does not pinch (the iPad too).  They step by Java's quarter,
+  from 0.25 to 2, as pinching does.  Checked on the Mac (- to the
+  smallest, where Zoom Out is disabled; 0 back) and the iPad simulator
+  (+ zooms in).
 - **Not done:**
-  - **Map controls:** no scroll wheel or trackpad panning, and no
-    keyboard zoom (Java's + and -).  Dragging and pinching work.
+  - **Map controls:** no scroll wheel or trackpad panning.  Dragging and
+    pinching work.
   - **Hover:** the map shows nothing on hover.
   - **Reports:** none of Java's per-report function keys.
   - **Look:** not seen.  Nobody has looked at the Mac window or listened

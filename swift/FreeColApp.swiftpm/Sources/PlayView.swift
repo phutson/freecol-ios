@@ -33,8 +33,13 @@ struct PlayView: View {
         ZStack(alignment: .top) {
             MapView(snapshot: snapshot, images: images, activeUnitId: store.activeUnitId, path: store.shownPath,
                     onTap: { p in Task { await store.tap(p) } },
-                    onLongPress: { p in Task { await store.openTileMenu(p) } })
+                    onLongPress: { p in Task { await store.openTileMenu(p) } },
+                    zoom: Binding(get: { store.mapZoom }, set: { store.mapZoom = $0 }))
                 .ignoresSafeArea()
+            ZoomButtons()
+                .padding()
+                .padding(.top, 70)
+                .frame(maxWidth: .infinity, alignment: .trailing)
             VStack(spacing: 0) {
                 TopBar(snapshot: snapshot)
                 Spacer()
@@ -457,5 +462,26 @@ struct Dialogs: ViewModifier {
     /// A presentation binding that runs an action when dismissed.
     private func binding(_ shown: Bool, onDismiss: @escaping () -> Void) -> Binding<Bool> {
         Binding(get: { shown }, set: { if !$0 { onDismiss() } })
+    }
+}
+
+/// Zooming the map in and out, for a mouse or a finger that does not
+/// pinch (Java's zoom in and out actions).
+struct ZoomButtons: View {
+    @Environment(GameStore.self) private var store
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button { store.zoomIn() } label: { Image(systemName: "plus").frame(width: 36, height: 36) }
+                .disabled(!store.canZoomIn)
+                .accessibilityLabel("Zoom in")
+            Divider().frame(width: 36)
+            Button { store.zoomOut() } label: { Image(systemName: "minus").frame(width: 36, height: 36) }
+                .disabled(!store.canZoomOut)
+                .accessibilityLabel("Zoom out")
+        }
+        .buttonStyle(.borderless)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .help("Zoom the map")
     }
 }
